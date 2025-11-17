@@ -113,6 +113,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                 sender.sendMessage("§7Commands:");
                 sender.sendMessage("§f  /adminpanel reload §7- Reload configuration");
                 sender.sendMessage("§f  /adminpanel status §7- Show server status");
+                sender.sendMessage("§f  /adminpanel resetpassword §7- Reset admin password to default");
                 return true;
             }
 
@@ -145,6 +146,19 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                         sender.sendMessage("§7WebSocket Clients: §f" +
                                 webServer.getWebSocketHandler().getClientCount());
                     }
+                    return true;
+
+                case "resetpassword":
+                    if (!sender.hasPermission("adminpanel.use")) {
+                        sender.sendMessage("§cYou don't have permission to use this command");
+                        return true;
+                    }
+
+                    authManager.resetAdminPassword();
+                    sender.sendMessage("§aAdmin password has been reset to the default password");
+                    sender.sendMessage("§eUsername: §f" + configManager.getDefaultUsername());
+                    sender.sendMessage("§ePassword: §f" + configManager.getDefaultPassword());
+                    sender.sendMessage("§c§lWARNING: §cPlease change this password immediately!");
                     return true;
 
                 default:
