@@ -184,8 +184,11 @@ public class WorldAPI {
         // Game rules
         Map<String, String> gameRules = new HashMap<>();
         for (String rule : world.getGameRules()) {
-            String value = world.getGameRuleValue(rule);
-            gameRules.put(rule, value != null ? value : "");
+        GameRule<?> gameRule = GameRule.getByName(rule);
+        if (gameRule != null) {
+        Object value = world.getGameRuleValue(gameRule);
+        gameRules.put(rule, value != null ? String.valueOf(value) : "");
+            }
         }
         info.put("gameRules", gameRules);
 
