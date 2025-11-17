@@ -1,0 +1,178 @@
+import { useEffect, useState } from 'react';
+import client from '../api/client';
+import { Activity, Users, HardDrive, Clock, Server, Boxes } from 'lucide-react';
+
+export default function Dashboard() {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await client.get('/dashboard/stats');
+        setStats(data.stats);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load server statistics');
+        console.error('Error fetching stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return null;
+  }
+
+  const tpsColor = stats.tps >= 19 ? 'text-green-500' : stats.tps >= 15 ? 'text-yellow-500' : 'text-red-500';
+  const memoryPercent = Math.round((stats.memory.used / stats.memory.max) * 100);
+  const memoryColor = memoryPercent < 70 ? 'text-green-500' : memoryPercent < 85 ? 'text-yellow-500' : 'text-red-500';
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-gray-400">Server overview and statistics</p>
+      </div>
+
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard
+          title="TPS"
+          value={stats.tps.toFixed(1)}
+          icon={<Activity className="w-6 h-6" />}
+          color={tpsColor}
+          subtitle="Ticks per second"
+        />
+
+        <StatCard
+          title="Players"
+          value={`${stats.onlinePlayers}/${stats.maxPlayers}`}
+          icon={<Users className="w-6 h-6" />}
+          color="text-blue-500"
+          subtitle="Online players"
+        />
+
+        <StatCard
+          title="Memory"
+          value={`${stats.memory.usedMB}MB / ${stats.memory.maxMB}MB`}
+          icon={<HardDrive className="w-6 h-6" />}
+          color={memoryColor}
+          subtitle={`${memoryPercent}% used`}
+        />
+
+        <StatCard
+          title="Uptime"
+          value={stats.uptimeFormatted}
+          icon={<Clock className="w-6 h-6" />}
+          color="text-purple-500"
+          subtitle="Server uptime"
+        />
+      </div>
+
+      {/* Additional Info Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <InfoCard
+          title="Server Version"
+          value={stats.bukkitVersion}
+          icon={<Server className="w-5 h-5" />}
+        />
+
+        <InfoCard
+          title="Loaded Chunks"
+          value={stats.loadedChunks.toLocaleString()}
+          icon={<Boxes className="w-5 h-5" />}
+        />
+
+        <InfoCard
+          title="Plugins"
+          value={stats.plugins}
+          icon={<Boxes className="w-5 h-5" />}
+        />
+      </div>
+
+      {/* World Information */}
+      <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
+        <h2 className="text-xl font-bold text-white mb-4">World Information</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-gray-400 text-sm">Total Worlds</p>
+            <p className="text-white text-2xl font-bold">{stats.worlds}</p>
+          </div>
+          <div>
+            <p className="text-gray-400 text-sm">Loaded Chunks</p>
+            <p className="text-white text-2xl font-bold">{stats.loadedChunks.toLocaleString()}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Memory Bar */}
+      <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
+        <h2 className="text-xl font-bold text-white mb-4">Memory Usage</h2>
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm text-gray-400">
+            <span>Used: {stats.memory.usedMB}MB</span>
+            <span>Available: {stats.memory.maxMB}MB</span>
+          </div>
+          <div className="w-full bg-dark-bg rounded-full h-4 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-500 ${
+                memoryPercent < 70 ? 'bg-green-500' : memoryPercent < 85 ? 'bg-yellow-500' : 'bg-red-500'
+              }`}
+              style={{ width: `${memoryPercent}%` }}
+            ></div>
+          </div>
+          <p className="text-center text-gray-400 text-sm">{memoryPercent}% utilized</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ title, value, icon, color, subtitle }) {
+  return (
+    <div className="bg-dark-surface p-6 rounded-lg border border-dark-border hover:border-dark-hover transition-colors">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
+        <div className={color}>{icon}</div>
+      </div>
+      <p className={`text-3xl font-bold ${color} mb-1`}>{value}</p>
+      {subtitle && <p className="text-gray-500 text-xs">{subtitle}</p>}
+    </div>
+  );
+}
+
+function InfoCard({ title, value, icon }) {
+  return (
+    <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
+      <div className="flex items-center mb-2">
+        <div className="text-gray-400 mr-2">{icon}</div>
+        <h3 className="text-gray-400 text-sm">{title}</h3>
+      </div>
+      <p className="text-white text-xl font-bold">{value}</p>
+    </div>
+  );
+}
