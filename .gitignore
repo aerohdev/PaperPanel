@@ -62,3 +62,8 @@ world/
 
 # Config files (may contain secrets)
 users.txt
+
+# Node.js / Frontend
+node_modules/
+package-lock.json
+webapp/dist/

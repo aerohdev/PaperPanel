@@ -63,8 +63,10 @@ public class WebServer {
 
             app = Javalin.create(javalinConfig -> {
                 // General configuration
-                javalinConfig.http.defaultContentType = "application/json";
                 javalinConfig.http.prefer405over404 = true;
+
+                // Serve static files from the webapp directory in resources
+                javalinConfig.staticFiles.add("/webapp", io.javalin.http.staticfiles.Location.CLASSPATH);
 
                 // CORS configuration
                 if (config.isCorsEnabled()) {
@@ -156,8 +158,8 @@ public class WebServer {
         // WebSocket route for live console
         app.ws("/ws/console", webSocketHandler.configure());
 
-        // Root endpoint
-        app.get("/", ctx -> {
+        // API info endpoint (moved from root)
+        app.get("/api/info", ctx -> {
             ctx.json(Map.of(
                     "name", "Server Admin Panel",
                     "version", plugin.getPluginMeta().getVersion(),
@@ -177,14 +179,32 @@ public class WebServer {
      * Setup exception handlers
      */
     private void setupExceptionHandlers() {
-        // 404 Not Found
+        // 404 Not Found - Serve index.html for SPA routing, JSON for API routes
         app.error(404, ctx -> {
-            ctx.json(Map.of(
-                    "success", false,
-                    "error", "Not Found",
-                    "message", "The requested endpoint does not exist",
-                    "path", ctx.path()
-            ));
+            String path = ctx.path();
+
+            // If it's an API or WebSocket request, return JSON error
+            if (path.startsWith("/api/") || path.startsWith("/ws/")) {
+                ctx.json(Map.of(
+                        "success", false,
+                        "error", "Not Found",
+                        "message", "The requested endpoint does not exist",
+                        "path", path
+                ));
+            } else {
+                // For all other routes, serve index.html to support React Router
+                try {
+                    ctx.contentType("text/html");
+                    var indexHtml = getClass().getClassLoader().getResourceAsStream("webapp/index.html");
+                    if (indexHtml != null) {
+                        ctx.result(indexHtml);
+                    } else {
+                        ctx.result("<html><body><h1>Error: Frontend not found</h1><p>The frontend files are not bundled in the plugin. Please build the frontend and copy to src/main/resources/webapp/</p></body></html>");
+                    }
+                } catch (Exception e) {
+                    ctx.result("<html><body><h1>Error loading frontend</h1></body></html>");
+                }
+            }
         });
 
         // 405 Method Not Allowed
