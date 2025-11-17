@@ -34,6 +34,14 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Log4j Core (for custom appenders) -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.23.1</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Javalin Web Framework -->
         <dependency>
             <groupId>io.javalin</groupId>
