@@ -1,6 +1,7 @@
 package de.kaicraft.adminpanel.stats;
 
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
@@ -78,7 +79,7 @@ public class PlayerStatsListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(AsyncChatEvent event) {
         UUID uuid = event.getPlayer().getUniqueId();
         statsManager.incrementStat(uuid, "MESSAGES_SENT", 1);
     }

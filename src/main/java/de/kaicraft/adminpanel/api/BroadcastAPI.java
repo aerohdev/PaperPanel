@@ -22,6 +22,41 @@ public class BroadcastAPI {
     private final ServerAdminPanelPlugin plugin;
     private final Gson gson;
 
+    /**
+     * Request body for chat message broadcast
+     */
+    public static class ChatMessageRequest {
+        public String message;
+        public String color;
+    }
+
+    /**
+     * Request body for title broadcast
+     */
+    public static class TitleRequest {
+        public String title;
+        public String subtitle;
+        public Double fadeIn;
+        public Double stay;
+        public Double fadeOut;
+    }
+
+    /**
+     * Request body for actionbar broadcast
+     */
+    public static class ActionBarRequest {
+        public String message;
+    }
+
+    /**
+     * Request body for sound broadcast
+     */
+    public static class SoundRequest {
+        public String sound;
+        public Double volume;
+        public Double pitch;
+    }
+
     public BroadcastAPI(ServerAdminPanelPlugin plugin) {
         this.plugin = plugin;
         this.gson = new Gson();
@@ -33,9 +68,9 @@ public class BroadcastAPI {
      */
     public void sendChatMessage(Context ctx) {
         try {
-            Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
-            String message = (String) body.get("message");
-            String colorHex = (String) body.getOrDefault("color", "#FFFFFF");
+            ChatMessageRequest body = gson.fromJson(ctx.body(), ChatMessageRequest.class);
+            String message = body.message;
+            String colorHex = body.color != null ? body.color : "#FFFFFF";
 
             if (message == null || message.trim().isEmpty()) {
                 ctx.status(400).json(Map.of("error", "Message is required"));
@@ -67,12 +102,12 @@ public class BroadcastAPI {
      */
     public void sendTitle(Context ctx) {
         try {
-            Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
-            String title = (String) body.get("title");
-            String subtitle = (String) body.getOrDefault("subtitle", "");
-            int fadeIn = ((Double) body.getOrDefault("fadeIn", 1.0)).intValue();
-            int stay = ((Double) body.getOrDefault("stay", 3.0)).intValue();
-            int fadeOut = ((Double) body.getOrDefault("fadeOut", 1.0)).intValue();
+            TitleRequest body = gson.fromJson(ctx.body(), TitleRequest.class);
+            String title = body.title;
+            String subtitle = body.subtitle != null ? body.subtitle : "";
+            int fadeIn = body.fadeIn != null ? body.fadeIn.intValue() : 1;
+            int stay = body.stay != null ? body.stay.intValue() : 3;
+            int fadeOut = body.fadeOut != null ? body.fadeOut.intValue() : 1;
 
             if (title == null || title.trim().isEmpty()) {
                 ctx.status(400).json(Map.of("error", "Title is required"));
@@ -113,8 +148,8 @@ public class BroadcastAPI {
      */
     public void sendActionBar(Context ctx) {
         try {
-            Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
-            String message = (String) body.get("message");
+            ActionBarRequest body = gson.fromJson(ctx.body(), ActionBarRequest.class);
+            String message = body.message;
 
             if (message == null || message.trim().isEmpty()) {
                 ctx.status(400).json(Map.of("error", "Message is required"));
@@ -147,10 +182,10 @@ public class BroadcastAPI {
      */
     public void playSound(Context ctx) {
         try {
-            Map<String, Object> body = gson.fromJson(ctx.body(), Map.class);
-            String soundName = (String) body.get("sound");
-            float volume = ((Double) body.getOrDefault("volume", 1.0)).floatValue();
-            float pitch = ((Double) body.getOrDefault("pitch", 1.0)).floatValue();
+            SoundRequest body = gson.fromJson(ctx.body(), SoundRequest.class);
+            String soundName = body.sound;
+            float volume = body.volume != null ? body.volume.floatValue() : 1.0f;
+            float pitch = body.pitch != null ? body.pitch.floatValue() : 1.0f;
 
             if (soundName == null) {
                 ctx.status(400).json(Map.of("error", "Sound name is required"));

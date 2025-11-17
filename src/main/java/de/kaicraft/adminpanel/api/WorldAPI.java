@@ -15,6 +15,16 @@ import java.util.stream.Collectors;
 public class WorldAPI {
     private final ServerAdminPanelPlugin plugin;
 
+    /**
+     * Request body for world settings update
+     */
+    public static class WorldSettingsRequest {
+        public String difficulty;
+        public Boolean pvp;
+        public Boolean spawnAnimals;
+        public Boolean spawnMonsters;
+    }
+
     public WorldAPI(ServerAdminPanelPlugin plugin) {
         this.plugin = plugin;
     }
@@ -103,36 +113,32 @@ public class WorldAPI {
                 return;
             }
 
-            Map<String, Object> settings = ctx.bodyAsClass(Map.class);
+            WorldSettingsRequest settings = ctx.bodyAsClass(WorldSettingsRequest.class);
             String username = ctx.attribute("username");
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if (settings.containsKey("difficulty")) {
-                    String difficulty = (String) settings.get("difficulty");
+                if (settings.difficulty != null) {
                     try {
-                        world.setDifficulty(org.bukkit.Difficulty.valueOf(difficulty.toUpperCase()));
-                        plugin.getLogger().info("User '" + username + "' set difficulty to " + difficulty + " in " + worldName);
+                        world.setDifficulty(org.bukkit.Difficulty.valueOf(settings.difficulty.toUpperCase()));
+                        plugin.getLogger().info("User '" + username + "' set difficulty to " + settings.difficulty + " in " + worldName);
                     } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid difficulty: " + difficulty);
+                        plugin.getLogger().warning("Invalid difficulty: " + settings.difficulty);
                     }
                 }
 
-                if (settings.containsKey("pvp")) {
-                    boolean pvp = (Boolean) settings.get("pvp");
-                    world.setPVP(pvp);
-                    plugin.getLogger().info("User '" + username + "' set PVP to " + pvp + " in " + worldName);
+                if (settings.pvp != null) {
+                    world.setPVP(settings.pvp);
+                    plugin.getLogger().info("User '" + username + "' set PVP to " + settings.pvp + " in " + worldName);
                 }
 
-                if (settings.containsKey("spawnAnimals")) {
-                    boolean spawnAnimals = (Boolean) settings.get("spawnAnimals");
-                    world.setSpawnFlags(spawnAnimals, world.getAllowMonsters());
-                    plugin.getLogger().info("User '" + username + "' set spawn animals to " + spawnAnimals + " in " + worldName);
+                if (settings.spawnAnimals != null) {
+                    world.setSpawnFlags(settings.spawnAnimals, world.getAllowMonsters());
+                    plugin.getLogger().info("User '" + username + "' set spawn animals to " + settings.spawnAnimals + " in " + worldName);
                 }
 
-                if (settings.containsKey("spawnMonsters")) {
-                    boolean spawnMonsters = (Boolean) settings.get("spawnMonsters");
-                    world.setSpawnFlags(world.getAllowAnimals(), spawnMonsters);
-                    plugin.getLogger().info("User '" + username + "' set spawn monsters to " + spawnMonsters + " in " + worldName);
+                if (settings.spawnMonsters != null) {
+                    world.setSpawnFlags(world.getAllowAnimals(), settings.spawnMonsters);
+                    plugin.getLogger().info("User '" + username + "' set spawn monsters to " + settings.spawnMonsters + " in " + worldName);
                 }
             });
 
@@ -178,7 +184,8 @@ public class WorldAPI {
         // Game rules
         Map<String, String> gameRules = new HashMap<>();
         for (String rule : world.getGameRules()) {
-            gameRules.put(rule, world.getGameRuleValue(rule));
+            String value = world.getGameRuleValue(rule);
+            gameRules.put(rule, value != null ? value : "");
         }
         info.put("gameRules", gameRules);
 

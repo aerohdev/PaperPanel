@@ -2,9 +2,9 @@ package de.kaicraft.adminpanel.api;
 
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import io.javalin.http.Context;
+import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,30 +29,26 @@ public class PluginAPI {
             List<Map<String, Object>> pluginList = new ArrayList<>();
 
             for (Plugin p : plugins) {
-                PluginDescriptionFile desc = p.getDescription();
+                PluginMeta meta = p.getPluginMeta();
 
                 Map<String, Object> pluginInfo = new HashMap<>();
                 pluginInfo.put("name", p.getName());
-                pluginInfo.put("version", desc.getVersion());
+                pluginInfo.put("version", meta.getVersion());
                 pluginInfo.put("enabled", p.isEnabled());
-                pluginInfo.put("description", desc.getDescription());
-                pluginInfo.put("authors", desc.getAuthors());
-                pluginInfo.put("website", desc.getWebsite());
-                pluginInfo.put("main", desc.getMain());
-                pluginInfo.put("apiVersion", desc.getAPIVersion());
+                pluginInfo.put("description", meta.getDescription());
+                pluginInfo.put("authors", meta.getAuthors());
+                pluginInfo.put("website", meta.getWebsite());
+                pluginInfo.put("main", meta.getMainClass());
+                pluginInfo.put("apiVersion", meta.getAPIVersion());
 
                 // Get dependencies
-                List<String> depends = desc.getDepend();
-                List<String> softDepends = desc.getSoftDepend();
+                List<String> depends = meta.getPluginDependencies();
+                List<String> softDepends = meta.getPluginSoftDependencies();
                 pluginInfo.put("depends", depends != null ? depends : Collections.emptyList());
                 pluginInfo.put("softDepends", softDepends != null ? softDepends : Collections.emptyList());
 
-                // Get commands
-                if (desc.getCommands() != null) {
-                    pluginInfo.put("commands", new ArrayList<>(desc.getCommands().keySet()));
-                } else {
-                    pluginInfo.put("commands", Collections.emptyList());
-                }
+                // Get commands - PluginMeta doesn't expose commands, use empty list
+                pluginInfo.put("commands", Collections.emptyList());
 
                 pluginList.add(pluginInfo);
             }
@@ -93,37 +89,27 @@ public class PluginAPI {
                 return;
             }
 
-            PluginDescriptionFile desc = p.getDescription();
+            PluginMeta meta = p.getPluginMeta();
 
             Map<String, Object> pluginInfo = new HashMap<>();
             pluginInfo.put("name", p.getName());
-            pluginInfo.put("version", desc.getVersion());
+            pluginInfo.put("version", meta.getVersion());
             pluginInfo.put("enabled", p.isEnabled());
-            pluginInfo.put("description", desc.getDescription());
-            pluginInfo.put("authors", desc.getAuthors());
-            pluginInfo.put("website", desc.getWebsite());
-            pluginInfo.put("main", desc.getMain());
-            pluginInfo.put("apiVersion", desc.getAPIVersion());
-            pluginInfo.put("depends", desc.getDepend());
-            pluginInfo.put("softDepends", desc.getSoftDepend());
-            pluginInfo.put("loadBefore", desc.getLoadBefore());
-            pluginInfo.put("prefix", desc.getPrefix());
+            pluginInfo.put("description", meta.getDescription());
+            pluginInfo.put("authors", meta.getAuthors());
+            pluginInfo.put("website", meta.getWebsite());
+            pluginInfo.put("main", meta.getMainClass());
+            pluginInfo.put("apiVersion", meta.getAPIVersion());
+            pluginInfo.put("depends", meta.getPluginDependencies());
+            pluginInfo.put("softDepends", meta.getPluginSoftDependencies());
+            pluginInfo.put("loadBefore", meta.getLoadBeforePlugins());
+            pluginInfo.put("prefix", meta.getLoggerPrefix());
 
-            // Get commands with details
-            if (desc.getCommands() != null) {
-                pluginInfo.put("commands", desc.getCommands());
-            }
+            // Get commands with details - PluginMeta doesn't expose commands
+            pluginInfo.put("commands", Collections.emptyMap());
 
-            // Get permissions
-            if (desc.getPermissions() != null) {
-                pluginInfo.put("permissions", desc.getPermissions().stream()
-                        .map(perm -> Map.of(
-                                "name", perm.getName(),
-                                "description", perm.getDescription() != null ? perm.getDescription() : "",
-                                "default", perm.getDefault().toString()
-                        ))
-                        .collect(Collectors.toList()));
-            }
+            // Get permissions - PluginMeta doesn't expose permissions
+            pluginInfo.put("permissions", Collections.emptyList());
 
             ctx.status(200).json(Map.of(
                     "success", true,
