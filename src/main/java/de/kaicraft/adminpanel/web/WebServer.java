@@ -160,7 +160,7 @@ public class WebServer {
         app.get("/", ctx -> {
             ctx.json(Map.of(
                     "name", "Server Admin Panel",
-                    "version", plugin.getDescription().getVersion(),
+                    "version", plugin.getPluginMeta().getVersion(),
                     "status", "running",
                     "endpoints", Map.of(
                             "health", "/api/health",

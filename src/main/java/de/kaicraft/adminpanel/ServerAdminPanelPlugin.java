@@ -73,7 +73,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
             getLogger().warning("Web server is disabled in configuration");
         }
 
-        getLogger().info("ServerAdminPanel v" + getDescription().getVersion() + " enabled!");
+        getLogger().info("ServerAdminPanel v" + getPluginMeta().getVersion() + " enabled!");
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         if (command.getName().equalsIgnoreCase("adminpanel")) {
             if (args.length == 0) {
                 sender.sendMessage("§6=== Server Admin Panel ===");
-                sender.sendMessage("§7Version: §f" + getDescription().getVersion());
+                sender.sendMessage("§7Version: §f" + getPluginMeta().getVersion());
                 if (webServer != null) {
                     sender.sendMessage("§7Status: §aRunning");
                     sender.sendMessage("§7Port: §f" + configManager.getPort());
