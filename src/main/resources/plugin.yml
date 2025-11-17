@@ -9,7 +9,7 @@ website: https://github.com/aerohdev/Minecraft-Admin-WebApp
 commands:
   adminpanel:
     description: Server Admin Panel commands
-    usage: /adminpanel [reload|status]
+    usage: /adminpanel [reload|status|resetpassword]
     aliases: [ap, panel]
     permission: adminpanel.use
 

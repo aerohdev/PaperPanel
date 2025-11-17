@@ -46,9 +46,20 @@ public class AuthManager {
             users.put(defaultUsername, hashedPassword);
             saveUsers();
 
-            plugin.getLogger().info("Created default admin user. Please change the password!");
+            plugin.getLogger().info("Created default admin user: '" + defaultUsername + "' with default password. Please change the password!");
         } else {
             loadUsers();
+
+            // Ensure default admin user exists
+            String defaultUsername = config.getDefaultUsername();
+            if (!users.containsKey(defaultUsername)) {
+                plugin.getLogger().warning("Default admin user '" + defaultUsername + "' not found, recreating...");
+                String defaultPassword = config.getDefaultPassword();
+                String hashedPassword = hashPassword(defaultPassword);
+                users.put(defaultUsername, hashedPassword);
+                saveUsers();
+                plugin.getLogger().info("Recreated default admin user with default password");
+            }
         }
     }
 
@@ -103,8 +114,12 @@ public class AuthManager {
     public String authenticate(String username, String password) {
         String hashedPassword = users.get(username);
         if (hashedPassword == null) {
+            plugin.getLogger().warning("Login attempt for non-existent user: '" + username + "'");
             return null;
         }
+
+        plugin.getLogger().info("Authenticating user '" + username + "' (hash starts with: " +
+                hashedPassword.substring(0, Math.min(10, hashedPassword.length())) + "...)");
 
         if (checkPassword(password, hashedPassword)) {
             String token = JWTUtil.generateToken(
@@ -117,7 +132,7 @@ public class AuthManager {
             return token;
         }
 
-        plugin.getLogger().warning("Failed login attempt for user '" + username + "'");
+        plugin.getLogger().warning("Failed login attempt for user '" + username + "' - password mismatch");
         return null;
     }
 
@@ -214,6 +229,8 @@ public class AuthManager {
         try {
             return BCrypt.checkpw(password, hash);
         } catch (Exception e) {
+            plugin.getLogger().severe("Password check failed with exception: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -231,5 +248,20 @@ public class AuthManager {
      */
     public int getActiveSessionCount() {
         return activeSessions.size();
+    }
+
+    /**
+     * Reset admin user to default password
+     * Useful for troubleshooting login issues
+     */
+    public void resetAdminPassword() {
+        String defaultUsername = config.getDefaultUsername();
+        String defaultPassword = config.getDefaultPassword();
+        String hashedPassword = hashPassword(defaultPassword);
+
+        users.put(defaultUsername, hashedPassword);
+        saveUsers();
+
+        plugin.getLogger().info("Reset password for admin user '" + defaultUsername + "' to default password");
     }
 }
