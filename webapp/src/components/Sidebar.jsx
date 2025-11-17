@@ -1,11 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Terminal, Package, Server } from 'lucide-react';
+import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe } from 'lucide-react';
 
 export default function Sidebar() {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/console', icon: Terminal, label: 'Console' },
+    { to: '/players', icon: Users, label: 'Players' },
     { to: '/plugins', icon: Package, label: 'Plugins' },
+    { to: '/worlds', icon: Globe, label: 'Worlds' },
+    { to: '/server', icon: Settings, label: 'Server Control' },
   ];
 
   return (

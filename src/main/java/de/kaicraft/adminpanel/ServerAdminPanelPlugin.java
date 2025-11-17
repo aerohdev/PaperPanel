@@ -1,7 +1,13 @@
 package de.kaicraft.adminpanel;
 
+import de.kaicraft.adminpanel.api.PlayerAPI;
+import de.kaicraft.adminpanel.api.ServerControlAPI;
+import de.kaicraft.adminpanel.api.WorldAPI;
 import de.kaicraft.adminpanel.auth.AuthManager;
 import de.kaicraft.adminpanel.config.ConfigManager;
+import de.kaicraft.adminpanel.database.DatabaseManager;
+import de.kaicraft.adminpanel.stats.PlayerStatsListener;
+import de.kaicraft.adminpanel.stats.PlayerStatsManager;
 import de.kaicraft.adminpanel.web.WebServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LogEvent;
@@ -20,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 public class ServerAdminPanelPlugin extends JavaPlugin {
     private ConfigManager configManager;
     private AuthManager authManager;
+    private DatabaseManager databaseManager;
+    private PlayerStatsManager statsManager;
     private WebServer webServer;
     private ConsoleAppender consoleAppender;
 
@@ -32,13 +40,31 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         configManager = new ConfigManager(this);
         getLogger().info("Configuration loaded");
 
+        // Initialize database
+        databaseManager = new DatabaseManager(this);
+        databaseManager.initialize();
+
+        // Initialize stats manager
+        statsManager = new PlayerStatsManager(this, databaseManager);
+        getLogger().info("Player stats system initialized");
+
+        // Register stats listener
+        getServer().getPluginManager().registerEvents(
+                new PlayerStatsListener(statsManager), this);
+
         // Initialize authentication manager
         authManager = new AuthManager(this, configManager);
         getLogger().info("Authentication system initialized");
 
         // Start web server if enabled
         if (configManager.isWebServerEnabled()) {
-            webServer = new WebServer(this, configManager, authManager);
+            // Initialize Phase 3 APIs
+            PlayerAPI playerAPI = new PlayerAPI(this, statsManager);
+            ServerControlAPI serverControlAPI = new ServerControlAPI(this);
+            WorldAPI worldAPI = new WorldAPI(this);
+
+            webServer = new WebServer(this, configManager, authManager,
+                    playerAPI, serverControlAPI, worldAPI);
             webServer.start();
 
             // Setup console log interceptor
@@ -55,6 +81,11 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         // Stop web server
         if (webServer != null) {
             webServer.stop();
+        }
+
+        // Close database connection
+        if (databaseManager != null) {
+            databaseManager.close();
         }
 
         // Remove console appender

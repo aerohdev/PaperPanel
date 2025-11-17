@@ -6,6 +6,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Console from './pages/Console';
 import Plugins from './pages/Plugins';
+import Players from './pages/Players';
+import ServerControl from './pages/ServerControl';
+import Worlds from './pages/Worlds';
 
 function App() {
   return (
@@ -28,6 +31,9 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="console" element={<Console />} />
             <Route path="plugins" element={<Plugins />} />
+            <Route path="players" element={<Players />} />
+            <Route path="server" element={<ServerControl />} />
+            <Route path="worlds" element={<Worlds />} />
           </Route>
 
           {/* Catch all - redirect to dashboard */}

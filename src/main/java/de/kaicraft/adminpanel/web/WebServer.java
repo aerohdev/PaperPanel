@@ -24,11 +24,15 @@ public class WebServer {
     private final DashboardAPI dashboardAPI;
     private final ConsoleAPI consoleAPI;
     private final PluginAPI pluginAPI;
+    private final PlayerAPI playerAPI;
+    private final ServerControlAPI serverControlAPI;
+    private final WorldAPI worldAPI;
     private final WebSocketHandler webSocketHandler;
 
     private Javalin app;
 
-    public WebServer(ServerAdminPanelPlugin plugin, ConfigManager config, AuthManager authManager) {
+    public WebServer(ServerAdminPanelPlugin plugin, ConfigManager config, AuthManager authManager,
+                     PlayerAPI playerAPI, ServerControlAPI serverControlAPI, WorldAPI worldAPI) {
         this.plugin = plugin;
         this.config = config;
         this.authManager = authManager;
@@ -39,6 +43,9 @@ public class WebServer {
         this.dashboardAPI = new DashboardAPI(plugin);
         this.consoleAPI = new ConsoleAPI(plugin, config);
         this.pluginAPI = new PluginAPI(plugin);
+        this.playerAPI = playerAPI;
+        this.serverControlAPI = serverControlAPI;
+        this.worldAPI = worldAPI;
         this.webSocketHandler = new WebSocketHandler(plugin, authManager, consoleAPI, config);
     }
 
@@ -119,6 +126,24 @@ public class WebServer {
         app.post("/api/plugins/{name}/enable", pluginAPI::enablePlugin);
         app.post("/api/plugins/{name}/disable", pluginAPI::disablePlugin);
         app.post("/api/plugins/{name}/reload", pluginAPI::reloadPlugin);
+
+        // Player routes
+        app.get("/api/players", playerAPI::getPlayers);
+        app.get("/api/players/{uuid}", playerAPI::getPlayer);
+        app.post("/api/players/{uuid}/kick", playerAPI::kickPlayer);
+        app.post("/api/players/{uuid}/message", playerAPI::messagePlayer);
+
+        // Server control routes
+        app.post("/api/server/restart", serverControlAPI::scheduleRestart);
+        app.post("/api/server/stop", serverControlAPI::stopServer);
+        app.post("/api/server/save-all", serverControlAPI::saveAll);
+        app.post("/api/server/weather/{world}/{type}", serverControlAPI::setWeather);
+        app.post("/api/server/time/{world}/{time}", serverControlAPI::setTime);
+
+        // World routes
+        app.get("/api/worlds", worldAPI::getWorlds);
+        app.get("/api/worlds/{name}", worldAPI::getWorld);
+        app.post("/api/worlds/{name}/settings", worldAPI::updateWorldSettings);
 
         // WebSocket route for live console
         app.ws("/ws/console", webSocketHandler.configure());
