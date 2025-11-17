@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe } from 'lucide-react';
+import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe, Radio } from 'lucide-react';
 
 export default function Sidebar() {
   const navItems = [
@@ -8,6 +8,7 @@ export default function Sidebar() {
     { to: '/players', icon: Users, label: 'Players' },
     { to: '/plugins', icon: Package, label: 'Plugins' },
     { to: '/worlds', icon: Globe, label: 'Worlds' },
+    { to: '/broadcast', icon: Radio, label: 'Broadcast' },
     { to: '/server', icon: Settings, label: 'Server Control' },
   ];
 

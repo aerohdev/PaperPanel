@@ -1,9 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { Terminal, Send, Trash2, Circle } from 'lucide-react';
+import ConnectionStatus from '../components/ConnectionStatus';
+import { Terminal, Send, Trash2 } from 'lucide-react';
 
 export default function Console() {
-  const { messages, send, connected, clearMessages } = useWebSocket('ws://localhost:8080/ws/console');
+  const {
+    messages,
+    send,
+    connected,
+    reconnecting,
+    connectionError,
+    reconnect,
+    clearMessages
+  } = useWebSocket('ws://localhost:8080/ws/console');
   const [command, setCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -83,12 +92,13 @@ export default function Console() {
             <Trash2 className="w-4 h-4" />
             Clear
           </button>
-          <span className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium ${
-            connected ? 'bg-green-900/30 text-green-400 border border-green-500' : 'bg-red-900/30 text-red-400 border border-red-500'
-          }`}>
-            <Circle className={`w-2 h-2 ${connected ? 'fill-green-400' : 'fill-red-400'}`} />
-            {connected ? 'Connected' : 'Disconnected'}
-          </span>
+
+          <ConnectionStatus
+            connected={connected}
+            reconnecting={reconnecting}
+            connectionError={connectionError}
+            onReconnect={reconnect}
+          />
         </div>
       </div>
 

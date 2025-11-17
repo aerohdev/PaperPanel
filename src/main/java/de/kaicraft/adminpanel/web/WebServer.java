@@ -27,6 +27,7 @@ public class WebServer {
     private final PlayerAPI playerAPI;
     private final ServerControlAPI serverControlAPI;
     private final WorldAPI worldAPI;
+    private final BroadcastAPI broadcastAPI;
     private final WebSocketHandler webSocketHandler;
 
     private Javalin app;
@@ -46,6 +47,7 @@ public class WebServer {
         this.playerAPI = playerAPI;
         this.serverControlAPI = serverControlAPI;
         this.worldAPI = worldAPI;
+        this.broadcastAPI = new BroadcastAPI(plugin);
         this.webSocketHandler = new WebSocketHandler(plugin, authManager, consoleAPI, config);
     }
 
@@ -144,6 +146,12 @@ public class WebServer {
         app.get("/api/worlds", worldAPI::getWorlds);
         app.get("/api/worlds/{name}", worldAPI::getWorld);
         app.post("/api/worlds/{name}/settings", worldAPI::updateWorldSettings);
+
+        // Broadcast routes
+        app.post("/api/broadcast/message", broadcastAPI::sendChatMessage);
+        app.post("/api/broadcast/title", broadcastAPI::sendTitle);
+        app.post("/api/broadcast/actionbar", broadcastAPI::sendActionBar);
+        app.post("/api/broadcast/sound", broadcastAPI::playSound);
 
         // WebSocket route for live console
         app.ws("/ws/console", webSocketHandler.configure());
