@@ -1,0 +1,22 @@
+name: ServerAdminPanel
+version: '1.0.0'
+main: de.kaicraft.adminpanel.ServerAdminPanelPlugin
+api-version: '1.21'
+author: Kai
+description: Web-based admin panel for Minecraft Paper servers
+website: https://github.com/aerohdev/Minecraft-Admin-WebApp
+
+commands:
+  adminpanel:
+    description: Server Admin Panel commands
+    usage: /adminpanel [reload|status]
+    aliases: [ap, panel]
+    permission: adminpanel.use
+
+permissions:
+  adminpanel.use:
+    description: Allows use of the admin panel plugin
+    default: op
+  adminpanel.webaccess:
+    description: Allows access to the web panel
+    default: op

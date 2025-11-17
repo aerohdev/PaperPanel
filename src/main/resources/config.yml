@@ -1,0 +1,27 @@
+# Server Admin Panel Configuration
+
+web-server:
+  enabled: true
+  port: 8080
+  host: "0.0.0.0"
+
+auth:
+  # Default credentials - CHANGE THESE!
+  default-username: "admin"
+  default-password: "changeme"
+  # JWT secret will be auto-generated on first start if left empty
+  jwt-secret: ""
+  # Session timeout in seconds (default: 1 hour)
+  session-timeout: 3600
+
+console:
+  # Maximum number of console lines to keep in history
+  max-history-lines: 1000
+  # Enable console command execution via API
+  allow-commands: true
+
+security:
+  # Enable CORS (Cross-Origin Resource Sharing)
+  enable-cors: true
+  # Rate limiting per IP (requests per minute)
+  rate-limit: 60
