@@ -3,6 +3,7 @@ package de.kaicraft.adminpanel.api;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
