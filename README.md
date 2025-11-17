@@ -26,9 +26,12 @@ A full-stack application that transforms Minecraft server management with a mode
 
 **💻 Live Console**
 - Real-time log streaming via WebSocket
+- **Auto-reconnect with exponential backoff**
+- Visual connection status indicators
 - Execute server commands remotely
 - Command history with arrow key navigation
 - Color-coded log levels (INFO, WARN, ERROR)
+- Message queuing during disconnection
 
 **📦 Plugin Management**
 - Enable/disable plugins without restart
@@ -48,6 +51,13 @@ A full-stack application that transforms Minecraft server management with a mode
 - Set time (day, noon, night, midnight)
 - Save all worlds command
 - Emergency server stop
+
+**📢 Broadcast Messages**
+- Send chat messages to all players
+- Display titles and subtitles
+- Show action bar messages
+- Play sounds globally
+- Quick action templates for common announcements
 
 **🔐 Security**
 - JWT-based authentication
@@ -129,12 +139,13 @@ Minecraft-Admin-WebApp/
 │   ├── ServerAdminPanelPlugin.java       # Main plugin class
 │   ├── api/                              # REST API endpoints
 │   │   ├── AuthAPI.java                  # Authentication (login/logout)
+│   │   ├── BroadcastAPI.java             # Broadcast messages (NEW)
 │   │   ├── ConsoleAPI.java               # Console operations
 │   │   ├── DashboardAPI.java             # Server statistics
-│   │   ├── PlayerAPI.java                # Player management (NEW)
+│   │   ├── PlayerAPI.java                # Player management
 │   │   ├── PluginAPI.java                # Plugin management
-│   │   ├── ServerControlAPI.java         # Server control (NEW)
-│   │   └── WorldAPI.java                 # World management (NEW)
+│   │   ├── ServerControlAPI.java         # Server control
+│   │   └── WorldAPI.java                 # World management
 │   ├── auth/                             # Authentication system
 │   │   ├── AuthManager.java              # User management
 │   │   ├── AuthMiddleware.java           # Route protection
@@ -157,6 +168,7 @@ Minecraft-Admin-WebApp/
 │   │   ├── api/
 │   │   │   └── client.js                 # Axios HTTP client
 │   │   ├── components/
+│   │   │   ├── ConnectionStatus.jsx      # WebSocket status indicator (NEW)
 │   │   │   ├── Header.jsx                # Top navigation bar
 │   │   │   ├── Layout.jsx                # Main layout wrapper
 │   │   │   ├── ProtectedRoute.jsx        # Auth guard
@@ -164,15 +176,16 @@ Minecraft-Admin-WebApp/
 │   │   ├── contexts/
 │   │   │   └── AuthContext.jsx           # Authentication state
 │   │   ├── hooks/
-│   │   │   └── useWebSocket.js           # WebSocket hook
+│   │   │   └── useWebSocket.js           # WebSocket hook with auto-reconnect
 │   │   ├── pages/
+│   │   │   ├── Broadcast.jsx             # Broadcast messages (NEW)
 │   │   │   ├── Console.jsx               # Live console page
 │   │   │   ├── Dashboard.jsx             # Statistics dashboard
 │   │   │   ├── Login.jsx                 # Login page
-│   │   │   ├── Players.jsx               # Player management (NEW)
+│   │   │   ├── Players.jsx               # Player management
 │   │   │   ├── Plugins.jsx               # Plugin management
-│   │   │   ├── ServerControl.jsx         # Server control (NEW)
-│   │   │   └── Worlds.jsx                # World management (NEW)
+│   │   │   ├── ServerControl.jsx         # Server control
+│   │   │   └── Worlds.jsx                # World management
 │   │   ├── styles/
 │   │   │   └── index.css                 # Global styles + Tailwind
 │   │   ├── App.jsx                       # Route configuration
@@ -522,6 +535,121 @@ Update world settings.
 
 ---
 
+### Broadcast Message Endpoints
+
+#### POST /api/broadcast/message
+Send a chat message to all online players.
+
+**Request:**
+```json
+{
+  "message": "Server maintenance in 10 minutes!",
+  "color": "#FFFFFF"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Broadcast sent to 15 players"
+}
+```
+
+**Color Options:**
+- `#FFFFFF` - White (default)
+- `#FF0000` - Red
+- `#00FF00` - Green
+- `#0000FF` - Blue
+- `#FFFF00` - Yellow
+- `#FF00FF` - Light Purple
+- `#00FFFF` - Aqua
+
+#### POST /api/broadcast/title
+Display a title and subtitle on all players' screens.
+
+**Request:**
+```json
+{
+  "title": "⚠️ Server Restart ⚠️",
+  "subtitle": "in 5 minutes",
+  "fadeIn": 1,
+  "stay": 3,
+  "fadeOut": 1
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Title sent to 15 players"
+}
+```
+
+**Parameters:**
+- `title` (required) - Main title text
+- `subtitle` (optional) - Subtitle text
+- `fadeIn` (optional) - Fade in duration in seconds (default: 1)
+- `stay` (optional) - Stay duration in seconds (default: 3)
+- `fadeOut` (optional) - Fade out duration in seconds (default: 1)
+
+#### POST /api/broadcast/actionbar
+Send an action bar message to all players (appears above hotbar).
+
+**Request:**
+```json
+{
+  "message": "⚡ Server maintenance in progress..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Action bar sent to 15 players"
+}
+```
+
+#### POST /api/broadcast/sound
+Play a sound effect for all online players.
+
+**Request:**
+```json
+{
+  "sound": "ENTITY_PLAYER_LEVELUP",
+  "volume": 1.0,
+  "pitch": 1.0
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Sound played for 15 players"
+}
+```
+
+**Available Sounds:**
+- `ENTITY_PLAYER_LEVELUP` - Level up sound
+- `ENTITY_EXPERIENCE_ORB_PICKUP` - XP pickup
+- `BLOCK_NOTE_BLOCK_PLING` - Note block pling
+- `ENTITY_VILLAGER_YES` - Villager yes sound
+- `ENTITY_VILLAGER_NO` - Villager no sound
+- `BLOCK_ANVIL_LAND` - Anvil landing
+- `ENTITY_ENDER_DRAGON_GROWL` - Dragon growl
+- `UI_TOAST_CHALLENGE_COMPLETE` - Achievement sound
+- [See full list](https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Sound.html)
+
+**Parameters:**
+- `sound` (required) - Sound name from Bukkit Sound enum
+- `volume` (optional) - Volume level 0.0-1.0 (default: 1.0)
+- `pitch` (optional) - Pitch level 0.5-2.0 (default: 1.0)
+
+---
+
 ## 🎮 In-Game Commands
 
 ### /adminpanel
@@ -560,11 +688,14 @@ Access: http://localhost:8080
 
 **Console** (`/console`)
 - Live log streaming via WebSocket
+- **Auto-reconnect with exponential backoff (5s - 30s)**
+- **Visual connection status indicator** (connected/reconnecting/disconnected)
+- **Message queuing during disconnection**
+- Manual "Retry Now" button
 - Command execution interface
 - Command history navigation (↑ ↓ arrows)
 - Auto-scroll to latest messages
 - Color-coded log levels
-- Connection status indicator
 
 **Players** (`/players`)
 - Online and offline player lists
@@ -594,6 +725,17 @@ Access: http://localhost:8080
 - Time control (day, noon, night, midnight)
 - Save all worlds
 - Emergency server stop
+
+**Broadcast** (`/broadcast`)
+- **Send chat messages** to all players with color options
+- **Display titles and subtitles** with customizable timing
+- **Show action bar messages** above player hotbars
+- **Play sounds** globally with 8+ preset options
+- **Quick Actions** for common announcements:
+  - Server restart warning (5 minutes)
+  - Welcome message
+  - Maintenance notice
+  - Event announcement with sound
 
 ### Theme
 
@@ -729,6 +871,30 @@ curl -X POST "http://localhost:8080/api/players/{uuid}/kick" \
   -d '{"reason":"Testing"}' | jq
 ```
 
+**Send Broadcast Message:**
+```bash
+curl -X POST http://localhost:8080/api/broadcast/message \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Server maintenance starting soon!","color":"#FFFF00"}' | jq
+```
+
+**Send Title:**
+```bash
+curl -X POST http://localhost:8080/api/broadcast/title \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Welcome!","subtitle":"Enjoy your stay","fadeIn":1,"stay":3,"fadeOut":1}' | jq
+```
+
+**Play Sound:**
+```bash
+curl -X POST http://localhost:8080/api/broadcast/sound \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"sound":"ENTITY_PLAYER_LEVELUP","volume":1.0,"pitch":1.0}' | jq
+```
+
 ## 🐛 Troubleshooting
 
 ### Backend Issues
@@ -764,6 +930,9 @@ curl -X POST "http://localhost:8080/api/players/{uuid}/kick" \
 - Verify JWT token is valid
 - Check WebSocket URL format
 - Review browser console for errors
+- Check connection status indicator on Console page
+- Use manual "Retry Now" button if auto-reconnect fails
+- Ensure server is running and port 8080 is accessible
 
 **Build errors:**
 ```bash
@@ -797,6 +966,13 @@ npm run dev
   - Server control operations
   - World management tools
   - SQLite database integration
+
+- **Phase 4:** WebSocket & Broadcast System
+  - WebSocket auto-reconnect with exponential backoff
+  - Connection status indicators
+  - Message queuing during disconnection
+  - Broadcast messaging (chat, titles, action bars, sounds)
+  - Quick action templates
 
 ### 🔮 Future Enhancements
 
