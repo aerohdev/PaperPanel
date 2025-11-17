@@ -69,67 +69,136 @@ A full-stack application that transforms Minecraft server management with a mode
 ## 🚀 Quick Start
 
 ### Prerequisites
+- Java 21+
+- Paper Server 1.21.1+
+- Node.js 18+ and npm
+- Maven
 
-- **Java 21** or higher
-- **Paper Server 1.21.1** or compatible
-- **Node.js 18+** and npm (for frontend development)
-- **Maven** (for building the plugin)
+### Installation
 
-### Backend Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/aerohdev/Minecraft-Admin-WebApp.git
-   cd Minecraft-Admin-WebApp
-   ```
-
-2. **Build the plugin**
-   ```bash
-   mvn clean package
-   ```
-
-3. **Install to server**
-   ```bash
-   cp target/ServerAdminPanel-1.0.0-SNAPSHOT.jar /path/to/server/plugins/
-   ```
-
-4. **Start/restart your server**
-   - The plugin will create `plugins/ServerAdminPanel/config.yml`
-   - Web server starts automatically on `http://localhost:8080`
-
-### Frontend Installation
-
-1. **Navigate to webapp directory**
-   ```bash
-   cd webapp
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-4. **Access the panel**
-   - Open `http://localhost:3000` in your browser
-   - Login with default credentials: `admin` / `changeme`
-   - **⚠️ Change the password immediately!**
-
-### Production Deployment
-
-**Backend:**
-- Already bundled with server plugin
-
-**Frontend:**
 ```bash
+# 1. Clone repo
+git clone https://github.com/aerohdev/Minecraft-Admin-WebApp.git
+cd Minecraft-Admin-WebApp
+
+# 2. Install Node.js (Ubuntu/Debian)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 3. Build frontend
 cd webapp
+npm install
 npm run build
-# Serve the dist/ folder with nginx, Apache, or your preferred web server
+cd ..
+
+# 4. Bundle frontend into plugin
+mkdir -p src/main/resources/webapp
+cp -r webapp/dist/* src/main/resources/webapp/
+
+# 5. Build plugin (contains frontend + backend)
+mvn clean package
+
+# 6. Install to server
+cp target/ServerAdminPanel-*.jar /path/to/server/plugins/
+
+# 7. Open firewall
+sudo ufw allow 8080/tcp
+
+# 8. Restart server
 ```
+
+### Access the Panel
+- Open browser: `http://YOUR_SERVER_IP:8080`
+- Login: `admin` / `changeme`
+- **⚠️ Change password immediately!**
+
+---
+
+## 🔄 Updating
+
+```bash
+git pull
+cd webapp && npm install && npm run build && cd ..
+cp -r webapp/dist/* src/main/resources/webapp/
+mvn clean package
+cp target/*.jar /server/plugins/
+# Restart server
+```
+
+---
+
+## 🐛 Troubleshooting
+
+**Panel won't load:**
+```bash
+# Check if frontend is bundled
+jar -tf target/ServerAdminPanel-*.jar | grep webapp/index.html
+
+# If empty, rebuild:
+cp -r webapp/dist/* src/main/resources/webapp/
+mvn clean package
+```
+
+**Can't access:**
+```bash
+# Check web server started
+grep "Web server" logs/latest.log
+
+# Check port is open
+sudo ufw status | grep 8080
+
+# Test connection
+curl http://localhost:8080
+```
+
+---
+
+## ⚠️ Important
+
+**Production (CORRECT):**
+- Everything on `http://server-ip:8080`
+- Frontend bundled in JAR
+- One-file deployment
+
+**Development only:**
+- Frontend dev server: `npm run dev` (localhost:3000)
+- Only for development, NOT production!
+
+---
+
+## 🔨 Quick Build Script
+
+Create `build.sh`:
+
+```bash
+#!/bin/bash
+set -e
+
+echo "Building admin panel..."
+
+# Frontend
+cd webapp
+npm install
+npm run build
+cd ..
+
+# Bundle into plugin
+rm -rf src/main/resources/webapp
+mkdir -p src/main/resources/webapp
+cp -r webapp/dist/* src/main/resources/webapp/
+
+# Build plugin
+mvn clean package
+
+echo "✅ Done! JAR: target/ServerAdminPanel-*.jar"
+echo "Install: cp target/*.jar /server/plugins/"
+```
+
+Make executable: `chmod +x build.sh`
+
+Run: `./build.sh`
+
+---
 
 ## 📁 Project Structure
 
