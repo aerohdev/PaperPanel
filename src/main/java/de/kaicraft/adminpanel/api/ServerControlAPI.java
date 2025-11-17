@@ -23,7 +23,8 @@ public class ServerControlAPI {
      */
     public void scheduleRestart(Context ctx) {
         try {
-            int delay = Integer.parseInt(ctx.queryParam("delay", "60"));
+            String delayParam = ctx.queryParam("delay");
+            int delay = Integer.parseInt(delayParam != null ? delayParam : "60");
 
             if (delay < 10) {
                 ctx.status(400).json(Map.of(
