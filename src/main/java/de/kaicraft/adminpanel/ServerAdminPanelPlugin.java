@@ -176,7 +176,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
      */
     private class ConsoleAppender extends AbstractAppender {
         protected ConsoleAppender() {
-            super("ServerAdminPanelAppender", null, null, true, Property.EMPTY_ARRAY);
+            super("ServerAdminPanelAppender", null, null, true, new Property[0]);
         }
 
         @Override

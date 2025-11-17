@@ -16,6 +16,20 @@ public class PlayerAPI {
     private final ServerAdminPanelPlugin plugin;
     private final PlayerStatsManager statsManager;
 
+    /**
+     * Request body for kick player endpoint
+     */
+    public static class KickRequest {
+        public String reason;
+    }
+
+    /**
+     * Request body for message player endpoint
+     */
+    public static class MessageRequest {
+        public String message;
+    }
+
     public PlayerAPI(ServerAdminPanelPlugin plugin, PlayerStatsManager statsManager) {
         this.plugin = plugin;
         this.statsManager = statsManager;
@@ -145,8 +159,10 @@ public class PlayerAPI {
                 return;
             }
 
-            Map<String, String> body = ctx.bodyAsClass(Map.class);
-            String reason = body.getOrDefault("reason", "Kicked by administrator");
+            KickRequest body = ctx.bodyAsClass(KickRequest.class);
+            String reason = (body.reason != null && !body.reason.isEmpty())
+                    ? body.reason
+                    : "Kicked by administrator";
 
             String username = ctx.attribute("username");
             plugin.getLogger().info("User '" + username + "' kicked player: " + player.getName());
@@ -197,8 +213,8 @@ public class PlayerAPI {
                 return;
             }
 
-            Map<String, String> body = ctx.bodyAsClass(Map.class);
-            String message = body.get("message");
+            MessageRequest body = ctx.bodyAsClass(MessageRequest.class);
+            String message = body.message;
 
             if (message == null || message.isEmpty()) {
                 ctx.status(400).json(Map.of(
