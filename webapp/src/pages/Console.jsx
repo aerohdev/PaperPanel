@@ -12,7 +12,7 @@ export default function Console() {
     connectionError,
     reconnect,
     clearMessages
-  } = useWebSocket('ws://${window.location.host}/ws/console');
+  } = useWebSocket(`ws://${window.location.host}/ws/console`);
   const [command, setCommand] = useState('');
   const [commandHistory, setCommandHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
