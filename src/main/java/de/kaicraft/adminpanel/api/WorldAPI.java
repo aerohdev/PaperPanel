@@ -7,7 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class WorldAPI {
@@ -18,45 +18,38 @@ public class WorldAPI {
     }
 
     public void getWorlds(Context ctx) {
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                    return plugin.getServer().getWorlds().stream()
-                        .map(this::getWorldInfo)
-                        .collect(Collectors.toList());
-                }).get();
-            } catch (Exception e) {
-                plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
-                e.printStackTrace();
-                return Collections.emptyList();
-            }
-        }).thenAccept(worlds -> {
+        try {
+            // Führe synchron im Hauptthread aus und warte auf Ergebnis
+            List<Map<String, Object>> worlds = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                return plugin.getServer().getWorlds().stream()
+                    .map(this::getWorldInfo)
+                    .collect(Collectors.toList());
+            }).get();
+            
             ctx.json(Map.of("success", true, "worlds", worlds));
-        }).exceptionally(ex -> {
-            plugin.getLogger().severe("Exception in getWorlds: " + ex.getMessage());
-            ctx.status(500).json(Map.of("success", false, "message", "Internal server error"));
-            return null;
-        });
+        } catch (InterruptedException | ExecutionException e) {
+            plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "success", false, 
+                "message", "Failed to retrieve worlds",
+                "error", e.getMessage()
+            ));
+        }
     }
 
     public void getWorld(Context ctx) {
         String worldName = ctx.pathParam("name");
         
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                    World world = plugin.getServer().getWorld(worldName);
-                    if (world == null) {
-                        return null;
-                    }
-                    return getWorldInfo(world);
-                }).get();
-            } catch (Exception e) {
-                plugin.getLogger().severe("Error getting world: " + e.getMessage());
-                e.printStackTrace();
-                return null;
-            }
-        }).thenAccept(worldInfo -> {
+        try {
+            Map<String, Object> worldInfo = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) {
+                    return null;
+                }
+                return getWorldInfo(world);
+            }).get();
+            
             if (worldInfo == null) {
                 ctx.status(404).json(Map.of(
                     "success", false,
@@ -64,12 +57,16 @@ public class WorldAPI {
                 ));
                 return;
             }
+            
             ctx.json(Map.of("success", true, "world", worldInfo));
-        }).exceptionally(ex -> {
-            plugin.getLogger().severe("Exception in getWorld: " + ex.getMessage());
-            ctx.status(500).json(Map.of("success", false, "message", "Internal server error"));
-            return null;
-        });
+        } catch (InterruptedException | ExecutionException e) {
+            plugin.getLogger().severe("Error getting world: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "success", false,
+                "message", "Failed to retrieve world"
+            ));
+        }
     }
 
     public void updateWorldSettings(Context ctx) {
@@ -77,23 +74,17 @@ public class WorldAPI {
         @SuppressWarnings("unchecked")
         Map<String, Object> settings = ctx.bodyAsClass(Map.class);
         
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-                    World world = plugin.getServer().getWorld(worldName);
-                    if (world == null) {
-                        return false;
-                    }
-                    
-                    applyWorldSettings(world, settings);
-                    return true;
-                }).get();
-            } catch (Exception e) {
-                plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
-                e.printStackTrace();
-                return false;
-            }
-        }).thenAccept(success -> {
+        try {
+            Boolean success = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) {
+                    return false;
+                }
+                
+                applyWorldSettings(world, settings);
+                return true;
+            }).get();
+            
             if (!success) {
                 ctx.status(404).json(Map.of(
                     "success", false,
@@ -101,15 +92,19 @@ public class WorldAPI {
                 ));
                 return;
             }
+            
             ctx.json(Map.of(
                 "success", true,
                 "message", "World settings updated successfully"
             ));
-        }).exceptionally(ex -> {
-            plugin.getLogger().severe("Exception in updateWorldSettings: " + ex.getMessage());
-            ctx.status(500).json(Map.of("success", false, "message", "Internal server error"));
-            return null;
-        });
+        } catch (InterruptedException | ExecutionException e) {
+            plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "success", false,
+                "message", "Failed to update world settings"
+            ));
+        }
     }
 
     private Map<String, Object> getWorldInfo(World world) {
@@ -117,16 +112,25 @@ public class WorldAPI {
         info.put("name", world.getName());
         info.put("environment", world.getEnvironment().toString());
         info.put("difficulty", world.getDifficulty().toString());
-        info.put("spawnLocation", formatLocation(world.getSpawnLocation()));
+        
+        Location spawn = world.getSpawnLocation();
+        Map<String, Integer> spawnLoc = new HashMap<>();
+        spawnLoc.put("x", spawn.getBlockX());
+        spawnLoc.put("y", spawn.getBlockY());
+        spawnLoc.put("z", spawn.getBlockZ());
+        info.put("spawnLocation", spawnLoc);
+        
         info.put("time", world.getTime());
         info.put("weatherDuration", world.getWeatherDuration());
-        info.put("isThundering", world.isThundering());
-        info.put("playerCount", world.getPlayers().size());
-        info.put("chunkCount", world.getLoadedChunks().length);
-        info.put("entityCount", world.getEntities().size());
+        info.put("thundering", world.isThundering());
+        info.put("storm", world.hasStorm());
+        info.put("players", world.getPlayers().size());
+        info.put("loadedChunks", world.getLoadedChunks().length);
+        info.put("entities", world.getEntities().size());
         info.put("seed", world.getSeed());
         info.put("pvp", world.getPVP());
         info.put("autoSave", world.isAutoSave());
+        
         return info;
     }
 
@@ -153,10 +157,5 @@ public class WorldAPI {
         if (settings.containsKey("pvp")) {
             world.setPVP((Boolean) settings.get("pvp"));
         }
-    }
-
-    private String formatLocation(Location loc) {
-        return String.format("%s: %.1f, %.1f, %.1f", 
-            loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
     }
 }
