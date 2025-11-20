@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe, Radio } from 'lucide-react';
+import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe, Radio, Shield } from 'lucide-react';
 
 export default function Sidebar() {
   const navItems = [
@@ -10,6 +10,7 @@ export default function Sidebar() {
     { to: '/worlds', icon: Globe, label: 'Worlds' },
     { to: '/broadcast', icon: Radio, label: 'Broadcast' },
     { to: '/server', icon: Settings, label: 'Server Control' },
+    { to: '/users', icon: Shield, label: 'User Management' },
   ];
 
   return (
@@ -51,7 +52,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-dark-border">
         <div className="text-xs text-gray-500 text-center">
-          <p>Server Admin Panel v1.0.0</p>
+          <p>Server Admin Panel v1.1.0</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

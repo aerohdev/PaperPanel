@@ -10,6 +10,7 @@ import Players from './pages/Players';
 import ServerControl from './pages/ServerControl';
 import Worlds from './pages/Worlds';
 import Broadcast from './pages/Broadcast';
+import Users from './pages/Users';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="server" element={<ServerControl />} />
             <Route path="worlds" element={<Worlds />} />
             <Route path="broadcast" element={<Broadcast />} />
+            <Route path="users" element={<Users />} />
           </Route>
 
           {/* Catch all - redirect to dashboard */}

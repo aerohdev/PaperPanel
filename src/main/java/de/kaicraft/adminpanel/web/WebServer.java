@@ -29,6 +29,7 @@ public class WebServer {
     private final WorldAPI worldAPI;
     private final BroadcastAPI broadcastAPI;
     private final WebSocketHandler webSocketHandler;
+    private final UserManagementAPI userManagementAPI;
 
     private Javalin app;
 
@@ -49,6 +50,7 @@ public class WebServer {
         this.worldAPI = worldAPI;
         this.broadcastAPI = new BroadcastAPI(plugin);
         this.webSocketHandler = new WebSocketHandler(plugin, authManager, consoleAPI, config);
+        this.userManagementAPI = new UserManagementAPI(plugin, authManager);
     }
 
     /**
@@ -78,8 +80,8 @@ public class WebServer {
                     });
                 }
 
-                // Logging
-                javalinConfig.bundledPlugins.enableDevLogging();
+                // Logging - nur Warnings und Errors
+                javalinConfig.bundledPlugins.enableRouteOverview("/api/routes"); // Optional: Route overview
 
                 // Request size limit (10MB)
                 javalinConfig.http.maxRequestSize = 10_485_760L;
@@ -173,6 +175,12 @@ public class WebServer {
                     )
             ));
         });
+
+        // User management routes
+        app.get("/api/users", userManagementAPI::getUsers);
+        app.post("/api/users", userManagementAPI::createUser);
+        app.put("/api/users/{username}/password", userManagementAPI::changePassword);
+        app.delete("/api/users/{username}", userManagementAPI::deleteUser);
     }
 
     /**

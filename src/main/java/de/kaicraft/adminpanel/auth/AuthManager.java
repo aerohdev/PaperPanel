@@ -8,7 +8,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -263,5 +265,14 @@ public class AuthManager {
         saveUsers();
 
         plugin.getLogger().info("Reset password for admin user '" + defaultUsername + "' to default password");
+    }
+
+    /**
+     * Get all usernames
+     *
+     * @return List of all usernames
+     */
+    public List<String> getAllUsernames() {
+        return new ArrayList<>(users.keySet());
     }
 }
