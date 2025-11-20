@@ -1,6 +1,6 @@
 package de.kaicraft.adminpanel.api;
 
-import de.kaicraft.adminpanel.AdminPanelPlugin;
+import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
  * API endpoints for world management
  */
 public class WorldAPI {
-    private final AdminPanelPlugin plugin;
+    private final ServerAdminPanelPlugin plugin;
 
-    public WorldAPI(AdminPanelPlugin plugin) {
+    public WorldAPI(ServerAdminPanelPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -96,6 +96,7 @@ public class WorldAPI {
      */
     private void updateWorldSettings(Context ctx) {
         String worldName = ctx.pathParam("name");
+        @SuppressWarnings("unchecked")
         Map<String, Object> settings = ctx.bodyAsClass(Map.class);
         
         CompletableFuture.supplyAsync(() -> {
