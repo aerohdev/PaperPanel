@@ -148,6 +148,11 @@ export default function Users() {
                         You
                       </span>
                     )}
+                    {user.isDefaultAdmin && (
+                      <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                        Admin
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -167,7 +172,7 @@ export default function Users() {
                       <Key className="w-4 h-4" />
                       Change Password
                     </button>
-                    {!user.isCurrentUser && (
+                    {!user.isCurrentUser && !user.isDefaultAdmin && (
                       <button
                         onClick={() => {
                           setSelectedUser(user.username);
@@ -178,6 +183,11 @@ export default function Users() {
                         <Trash2 className="w-4 h-4" />
                         Delete
                       </button>
+                    )}
+                    {user.isDefaultAdmin && !user.isCurrentUser && (
+                      <span className="px-3 py-2 text-gray-500 text-sm italic">
+                        Protected
+                      </span>
                     )}
                   </div>
                 </td>

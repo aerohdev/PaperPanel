@@ -117,6 +117,7 @@ public class WebServer {
         // Authentication routes (with auth)
         app.post("/api/auth/logout", authAPI::logout);
         app.get("/api/auth/verify", authAPI::verify);
+        app.get("/api/auth/security-status", authAPI::getSecurityStatus);
 
         // Dashboard routes
         app.get("/api/dashboard/stats", dashboardAPI::getStats);

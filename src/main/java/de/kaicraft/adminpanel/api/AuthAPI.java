@@ -111,4 +111,28 @@ public class AuthAPI {
                 "username", username
         ));
     }
+
+    /**
+     * Check security status (default password warning)
+     */
+    public void getSecurityStatus(Context ctx) {
+        try {
+            String username = (String) ctx.attribute("username");
+            boolean usingDefaultPassword = authManager.isUsingDefaultPassword(username);
+            boolean isDefaultAdmin = authManager.isDefaultAdmin(username);
+
+            ctx.json(Map.of(
+                    "success", true,
+                    "usingDefaultPassword", usingDefaultPassword,
+                    "isDefaultAdmin", isDefaultAdmin,
+                    "username", username
+            ));
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error checking security status: " + e.getMessage());
+            ctx.status(500).json(Map.of(
+                    "success", false,
+                    "message", "Failed to check security status"
+            ));
+        }
+    }
 }

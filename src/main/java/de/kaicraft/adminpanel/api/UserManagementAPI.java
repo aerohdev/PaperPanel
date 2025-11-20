@@ -42,6 +42,7 @@ public class UserManagementAPI {
                 Map<String, Object> user = new HashMap<>();
                 user.put("username", username);
                 user.put("isCurrentUser", username.equals(currentUser));
+                user.put("isDefaultAdmin", authManager.isDefaultAdmin(username));
                 users.add(user);
             }
             
@@ -198,6 +199,15 @@ public class UserManagementAPI {
                 ctx.status(403).json(Map.of(
                     "success", false,
                     "message", "Cannot delete the last user"
+                ));
+                return;
+            }
+            
+            // Prevent deletion of default admin user
+            if (authManager.isDefaultAdmin(targetUsername)) {
+                ctx.status(403).json(Map.of(
+                    "success", false,
+                    "message", "The default admin user cannot be deleted"
                 ));
                 return;
             }

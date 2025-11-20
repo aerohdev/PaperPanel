@@ -275,4 +275,46 @@ public class AuthManager {
     public List<String> getAllUsernames() {
         return new ArrayList<>(users.keySet());
     }
+
+    /**
+     * Check if a user is using the default password
+     *
+     * @param username The username to check
+     * @return true if using default password, false otherwise
+     */
+    public boolean isUsingDefaultPassword(String username) {
+        String defaultUsername = config.getDefaultUsername();
+        String defaultPassword = config.getDefaultPassword();
+
+        // Only check for default admin user
+        if (!username.equals(defaultUsername)) {
+            return false;
+        }
+
+        String hashedPassword = users.get(username);
+        if (hashedPassword == null) {
+            return false;
+        }
+
+        return checkPassword(defaultPassword, hashedPassword);
+    }
+
+    /**
+     * Check if a username is the default admin user
+     *
+     * @param username The username to check
+     * @return true if it's the default admin user
+     */
+    public boolean isDefaultAdmin(String username) {
+        return username.equals(config.getDefaultUsername());
+    }
+
+    /**
+     * Get the default admin username
+     *
+     * @return The default admin username
+     */
+    public String getDefaultAdminUsername() {
+        return config.getDefaultUsername();
+    }
 }
