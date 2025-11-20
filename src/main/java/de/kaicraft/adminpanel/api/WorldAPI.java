@@ -10,9 +10,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-/**
- * API endpoints for world management
- */
 public class WorldAPI {
     private final ServerAdminPanelPlugin plugin;
 
@@ -20,18 +17,7 @@ public class WorldAPI {
         this.plugin = plugin;
     }
 
-    public void registerRoutes() {
-        plugin.getApp().get("/api/worlds", this::getWorlds);
-        plugin.getApp().get("/api/worlds/{name}", this::getWorld);
-        plugin.getApp().post("/api/worlds/{name}/settings", this::updateWorldSettings);
-    }
-
-    /**
-     * GET /api/worlds
-     * Get list of all worlds
-     */
-    private void getWorlds(Context ctx) {
-        // Führe die Bukkit-API-Calls im Haupt-Thread aus
+    public void getWorlds(Context ctx) {
         CompletableFuture.supplyAsync(() -> {
             try {
                 return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
@@ -53,11 +39,7 @@ public class WorldAPI {
         });
     }
 
-    /**
-     * GET /api/worlds/{name}
-     * Get specific world details
-     */
-    private void getWorld(Context ctx) {
+    public void getWorld(Context ctx) {
         String worldName = ctx.pathParam("name");
         
         CompletableFuture.supplyAsync(() -> {
@@ -90,11 +72,7 @@ public class WorldAPI {
         });
     }
 
-    /**
-     * POST /api/worlds/{name}/settings
-     * Update world settings
-     */
-    private void updateWorldSettings(Context ctx) {
+    public void updateWorldSettings(Context ctx) {
         String worldName = ctx.pathParam("name");
         @SuppressWarnings("unchecked")
         Map<String, Object> settings = ctx.bodyAsClass(Map.class);
@@ -134,9 +112,6 @@ public class WorldAPI {
         });
     }
 
-    /**
-     * Helper method to get world information
-     */
     private Map<String, Object> getWorldInfo(World world) {
         Map<String, Object> info = new HashMap<>();
         info.put("name", world.getName());
@@ -155,9 +130,6 @@ public class WorldAPI {
         return info;
     }
 
-    /**
-     * Apply the given settings to the world
-     */
     private void applyWorldSettings(World world, Map<String, Object> settings) {
         if (settings.containsKey("time")) {
             world.setTime(((Number) settings.get("time")).longValue());
@@ -183,9 +155,6 @@ public class WorldAPI {
         }
     }
 
-    /**
-     * Format the location for JSON output
-     */
     private String formatLocation(Location loc) {
         return String.format("%s: %.1f, %.1f, %.1f", 
             loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
