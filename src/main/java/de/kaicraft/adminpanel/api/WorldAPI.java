@@ -1,6 +1,6 @@
 package de.kaicraft.adminpanel.api;
 
-import de.kaicraft.adminpanel.ServerAdminPanel;
+import de.kaicraft.adminpanel.AdminPanelPlugin;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
  * API endpoints for world management
  */
 public class WorldAPI {
-    private final ServerAdminPanel plugin;
+    private final AdminPanelPlugin plugin;
 
-    public WorldAPI(ServerAdminPanel plugin) {
+    public WorldAPI(AdminPanelPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -41,10 +41,15 @@ public class WorldAPI {
                 }).get();
             } catch (Exception e) {
                 plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
+                e.printStackTrace();
                 return Collections.emptyList();
             }
         }).thenAccept(worlds -> {
             ctx.json(Map.of("success", true, "worlds", worlds));
+        }).exceptionally(ex -> {
+            plugin.getLogger().severe("Exception in getWorlds: " + ex.getMessage());
+            ctx.status(500).json(Map.of("success", false, "message", "Internal server error"));
+            return null;
         });
     }
 
@@ -66,6 +71,7 @@ public class WorldAPI {
                 }).get();
             } catch (Exception e) {
                 plugin.getLogger().severe("Error getting world: " + e.getMessage());
+                e.printStackTrace();
                 return null;
             }
         }).thenAccept(worldInfo -> {
@@ -77,6 +83,10 @@ public class WorldAPI {
                 return;
             }
             ctx.json(Map.of("success", true, "world", worldInfo));
+        }).exceptionally(ex -> {
+            plugin.getLogger().severe("Exception in getWorld: " + ex.getMessage());
+            ctx.status(500).json(Map.of("success", false, "message", "Internal server error"));
+            return null;
         });
     }
 
@@ -101,6 +111,7 @@ public class WorldAPI {
                 }).get();
             } catch (Exception e) {
                 plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
+                e.printStackTrace();
                 return false;
             }
         }).thenAccept(success -> {
@@ -115,6 +126,10 @@ public class WorldAPI {
                 "success", true,
                 "message", "World settings updated successfully"
             ));
+        }).exceptionally(ex -> {
+            plugin.getLogger().severe("Exception in updateWorldSettings: " + ex.getMessage());
+            ctx.status(500).json(Map.of("success", false, "message", "Internal server error"));
+            return null;
         });
     }
 
@@ -132,7 +147,7 @@ public class WorldAPI {
         info.put("isThundering", world.isThundering());
         info.put("playerCount", world.getPlayers().size());
         info.put("chunkCount", world.getLoadedChunks().length);
-        info.put("entityCount", world.getEntities().size()); // Jetzt sicher im Haupt-Thread
+        info.put("entityCount", world.getEntities().size());
         info.put("seed", world.getSeed());
         info.put("pvp", world.getPVP());
         info.put("autoSave", world.isAutoSave());
