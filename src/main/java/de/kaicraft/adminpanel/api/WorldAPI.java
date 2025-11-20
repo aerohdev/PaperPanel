@@ -1,6 +1,6 @@
 package de.kaicraft.adminpanel.api;
 
-import de.kaicraft.adminpanel.AdminPanel;
+import de.kaicraft.adminpanel.ServerAdminPanel;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
  * API endpoints for world management
  */
 public class WorldAPI {
-    private final AdminPanel plugin;
+    private final ServerAdminPanel plugin;
 
-    public WorldAPI(AdminPanel plugin) {
+    public WorldAPI(ServerAdminPanel plugin) {
         this.plugin = plugin;
     }
 
@@ -32,25 +32,20 @@ public class WorldAPI {
      */
     private void getWorlds(Context ctx) {
         // Führe die Bukkit-API-Calls im Haupt-Thread aus
-        CompletableFuture<List<Map<String, Object>>> future = CompletableFuture.supplyAsync(() -> {
-            return plugin.getServer().getScheduler().callSyncMethod(plugin, () -> {
-                return plugin.getServer().getWorlds().stream()
-                    .map(this::getWorldInfo)
-                    .collect(Collectors.toList());
-            }).get();
-        });
-
-        try {
-            List<Map<String, Object>> worlds = future.get();
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                    return plugin.getServer().getWorlds().stream()
+                        .map(this::getWorldInfo)
+                        .collect(Collectors.toList());
+                }).get();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
+                return Collections.emptyList();
+            }
+        }).thenAccept(worlds -> {
             ctx.json(Map.of("success", true, "worlds", worlds));
-        } catch (Exception e) {
-            plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to retrieve worlds",
-                "error", e.getMessage()
-            ));
-        }
+        });
     }
 
     /**
@@ -60,18 +55,20 @@ public class WorldAPI {
     private void getWorld(Context ctx) {
         String worldName = ctx.pathParam("name");
         
-        CompletableFuture<Map<String, Object>> future = CompletableFuture.supplyAsync(() -> {
-            return plugin.getServer().getScheduler().callSyncMethod(plugin, () -> {
-                World world = plugin.getServer().getWorld(worldName);
-                if (world == null) {
-                    return null;
-                }
-                return getWorldInfo(world);
-            }).get();
-        });
-
-        try {
-            Map<String, Object> worldInfo = future.get();
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                    World world = plugin.getServer().getWorld(worldName);
+                    if (world == null) {
+                        return null;
+                    }
+                    return getWorldInfo(world);
+                }).get();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Error getting world: " + e.getMessage());
+                return null;
+            }
+        }).thenAccept(worldInfo -> {
             if (worldInfo == null) {
                 ctx.status(404).json(Map.of(
                     "success", false,
@@ -80,13 +77,7 @@ public class WorldAPI {
                 return;
             }
             ctx.json(Map.of("success", true, "world", worldInfo));
-        } catch (Exception e) {
-            plugin.getLogger().severe("Error getting world: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to retrieve world"
-            ));
-        }
+        });
     }
 
     /**
@@ -97,20 +88,22 @@ public class WorldAPI {
         String worldName = ctx.pathParam("name");
         Map<String, Object> settings = ctx.bodyAsClass(Map.class);
         
-        CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
-            return plugin.getServer().getScheduler().callSyncMethod(plugin, () -> {
-                World world = plugin.getServer().getWorld(worldName);
-                if (world == null) {
-                    return false;
-                }
-                
-                applyWorldSettings(world, settings);
-                return true;
-            }).get();
-        });
-
-        try {
-            boolean success = future.get();
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                return Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                    World world = plugin.getServer().getWorld(worldName);
+                    if (world == null) {
+                        return false;
+                    }
+                    
+                    applyWorldSettings(world, settings);
+                    return true;
+                }).get();
+            } catch (Exception e) {
+                plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
+                return false;
+            }
+        }).thenAccept(success -> {
             if (!success) {
                 ctx.status(404).json(Map.of(
                     "success", false,
@@ -122,13 +115,7 @@ public class WorldAPI {
                 "success", true,
                 "message", "World settings updated successfully"
             ));
-        } catch (Exception e) {
-            plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to update world settings"
-            ));
-        }
+        });
     }
 
     /**
