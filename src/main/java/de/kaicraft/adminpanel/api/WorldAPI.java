@@ -1,55 +1,54 @@
 package de.kaicraft.adminpanel.api;
 
-import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.AdminPanel;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
-import org.bukkit.GameRule;
+import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
  * API endpoints for world management
  */
 public class WorldAPI {
-    private final ServerAdminPanelPlugin plugin;
+    private final AdminPanel plugin;
 
-    /**
-     * Request body for world settings update
-     */
-    public static class WorldSettingsRequest {
-        public String difficulty;
-        public Boolean pvp;
-        public Boolean spawnAnimals;
-        public Boolean spawnMonsters;
+    public WorldAPI(AdminPanel plugin) {
+        this.plugin = plugin;
     }
 
-    public WorldAPI(ServerAdminPanelPlugin plugin) {
-        this.plugin = plugin;
+    public void registerRoutes() {
+        plugin.getApp().get("/api/worlds", this::getWorlds);
+        plugin.getApp().get("/api/worlds/{name}", this::getWorld);
+        plugin.getApp().post("/api/worlds/{name}/settings", this::updateWorldSettings);
     }
 
     /**
      * GET /api/worlds
      * Get list of all worlds
      */
-    public void getWorlds(Context ctx) {
-        try {
-            List<Map<String, Object>> worlds = Bukkit.getWorlds().stream()
+    private void getWorlds(Context ctx) {
+        // Führe die Bukkit-API-Calls im Haupt-Thread aus
+        CompletableFuture<List<Map<String, Object>>> future = CompletableFuture.supplyAsync(() -> {
+            return plugin.getServer().getScheduler().callSyncMethod(plugin, () -> {
+                return plugin.getServer().getWorlds().stream()
                     .map(this::getWorldInfo)
                     .collect(Collectors.toList());
+            }).get();
+        });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "worlds", worlds
-            ));
+        try {
+            List<Map<String, Object>> worlds = future.get();
+            ctx.json(Map.of("success", true, "worlds", worlds));
         } catch (Exception e) {
             plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
             ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve worlds"
+                "success", false,
+                "message", "Failed to retrieve worlds",
+                "error", e.getMessage()
             ));
         }
     }
@@ -58,40 +57,34 @@ public class WorldAPI {
      * GET /api/worlds/{name}
      * Get specific world details
      */
-    public void getWorld(Context ctx) {
-        try {
-            String worldName = ctx.pathParam("name");
-            World world = Bukkit.getWorld(worldName);
+    private void getWorld(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        
+        CompletableFuture<Map<String, Object>> future = CompletableFuture.supplyAsync(() -> {
+            return plugin.getServer().getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) {
+                    return null;
+                }
+                return getWorldInfo(world);
+            }).get();
+        });
 
-            if (world == null) {
+        try {
+            Map<String, Object> worldInfo = future.get();
+            if (worldInfo == null) {
                 ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "World not found"
+                    "success", false,
+                    "message", "World not found"
                 ));
                 return;
             }
-
-            Map<String, Object> worldData = getWorldInfo(world);
-
-            // Add detailed entity breakdown
-            Map<String, Integer> entityCounts = new HashMap<>();
-            for (Entity entity : world.getEntities()) {
-                String type = entity.getType().name();
-                entityCounts.put(type, entityCounts.getOrDefault(type, 0) + 1);
-            }
-            worldData.put("entityBreakdown", entityCounts);
-
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "world", worldData
-            ));
+            ctx.json(Map.of("success", true, "world", worldInfo));
         } catch (Exception e) {
             plugin.getLogger().severe("Error getting world: " + e.getMessage());
             ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve world data"
+                "success", false,
+                "message", "Failed to retrieve world"
             ));
         }
     }
@@ -100,60 +93,40 @@ public class WorldAPI {
      * POST /api/worlds/{name}/settings
      * Update world settings
      */
-    public void updateWorldSettings(Context ctx) {
-        try {
-            String worldName = ctx.pathParam("name");
-            World world = Bukkit.getWorld(worldName);
+    private void updateWorldSettings(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        Map<String, Object> settings = ctx.bodyAsClass(Map.class);
+        
+        CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
+            return plugin.getServer().getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) {
+                    return false;
+                }
+                
+                applyWorldSettings(world, settings);
+                return true;
+            }).get();
+        });
 
-            if (world == null) {
+        try {
+            boolean success = future.get();
+            if (!success) {
                 ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "World not found"
+                    "success", false,
+                    "message", "World not found"
                 ));
                 return;
             }
-
-            WorldSettingsRequest settings = ctx.bodyAsClass(WorldSettingsRequest.class);
-            String username = ctx.attribute("username");
-
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (settings.difficulty != null) {
-                    try {
-                        world.setDifficulty(org.bukkit.Difficulty.valueOf(settings.difficulty.toUpperCase()));
-                        plugin.getLogger().info("User '" + username + "' set difficulty to " + settings.difficulty + " in " + worldName);
-                    } catch (IllegalArgumentException e) {
-                        plugin.getLogger().warning("Invalid difficulty: " + settings.difficulty);
-                    }
-                }
-
-                if (settings.pvp != null) {
-                    world.setPVP(settings.pvp);
-                    plugin.getLogger().info("User '" + username + "' set PVP to " + settings.pvp + " in " + worldName);
-                }
-
-                if (settings.spawnAnimals != null) {
-                    world.setSpawnFlags(settings.spawnAnimals, world.getAllowMonsters());
-                    plugin.getLogger().info("User '" + username + "' set spawn animals to " + settings.spawnAnimals + " in " + worldName);
-                }
-
-                if (settings.spawnMonsters != null) {
-                    world.setSpawnFlags(world.getAllowAnimals(), settings.spawnMonsters);
-                    plugin.getLogger().info("User '" + username + "' set spawn monsters to " + settings.spawnMonsters + " in " + worldName);
-                }
-            });
-
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "World settings updated",
-                    "world", worldName
+            ctx.json(Map.of(
+                "success", true,
+                "message", "World settings updated successfully"
             ));
         } catch (Exception e) {
             plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
             ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to update world settings"
+                "success", false,
+                "message", "Failed to update world settings"
             ));
         }
     }
@@ -163,36 +136,55 @@ public class WorldAPI {
      */
     private Map<String, Object> getWorldInfo(World world) {
         Map<String, Object> info = new HashMap<>();
-
         info.put("name", world.getName());
-        info.put("seed", world.getSeed());
-        info.put("environment", world.getEnvironment().name());
-        info.put("difficulty", world.getDifficulty().name());
+        info.put("environment", world.getEnvironment().toString());
+        info.put("difficulty", world.getDifficulty().toString());
+        info.put("spawnLocation", formatLocation(world.getSpawnLocation()));
         info.put("time", world.getTime());
-        info.put("fullTime", world.getFullTime());
-        info.put("storm", world.hasStorm());
-        info.put("thundering", world.isThundering());
-        info.put("loadedChunks", world.getLoadedChunks().length);
-        info.put("entities", world.getEntities().size());
-        info.put("players", world.getPlayers().size());
+        info.put("weatherDuration", world.getWeatherDuration());
+        info.put("isThundering", world.isThundering());
+        info.put("playerCount", world.getPlayers().size());
+        info.put("chunkCount", world.getLoadedChunks().length);
+        info.put("entityCount", world.getEntities().size()); // Jetzt sicher im Haupt-Thread
+        info.put("seed", world.getSeed());
         info.put("pvp", world.getPVP());
-        info.put("spawnLocation", Map.of(
-                "x", world.getSpawnLocation().getBlockX(),
-                "y", world.getSpawnLocation().getBlockY(),
-                "z", world.getSpawnLocation().getBlockZ()
-        ));
+        info.put("autoSave", world.isAutoSave());
+        return info;
+    }
 
-        // Game rules
-        Map<String, String> gameRules = new HashMap<>();
-        for (String rule : world.getGameRules()) {
-        GameRule<?> gameRule = GameRule.getByName(rule);
-        if (gameRule != null) {
-        Object value = world.getGameRuleValue(gameRule);
-        gameRules.put(rule, value != null ? String.valueOf(value) : "");
+    /**
+     * Apply the given settings to the world
+     */
+    private void applyWorldSettings(World world, Map<String, Object> settings) {
+        if (settings.containsKey("time")) {
+            world.setTime(((Number) settings.get("time")).longValue());
+        }
+        if (settings.containsKey("weather")) {
+            String weather = (String) settings.get("weather");
+            if ("clear".equalsIgnoreCase(weather)) {
+                world.setStorm(false);
+                world.setThundering(false);
+            } else if ("rain".equalsIgnoreCase(weather)) {
+                world.setStorm(true);
+                world.setThundering(false);
+            } else if ("thunder".equalsIgnoreCase(weather)) {
+                world.setStorm(true);
+                world.setThundering(true);
             }
         }
-        info.put("gameRules", gameRules);
+        if (settings.containsKey("difficulty")) {
+            world.setDifficulty(org.bukkit.Difficulty.valueOf((String) settings.get("difficulty")));
+        }
+        if (settings.containsKey("pvp")) {
+            world.setPVP((Boolean) settings.get("pvp"));
+        }
+    }
 
-        return info;
+    /**
+     * Format the location for JSON output
+     */
+    private String formatLocation(Location loc) {
+        return String.format("%s: %.1f, %.1f, %.1f", 
+            loc.getWorld().getName(), loc.getX(), loc.getY(), loc.getZ());
     }
 }
