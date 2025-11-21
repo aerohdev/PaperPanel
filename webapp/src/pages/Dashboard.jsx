@@ -5,27 +5,26 @@ import { Activity, Users, HardDrive, Clock, Server, Boxes, RefreshCw } from 'luc
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // ← DIESER FEHLT!
   const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await client.get('/dashboard/stats');
-        setStats(data.stats);
-        setError(null);
-      } catch (err) {
-        setError('Failed to load server statistics');
-        console.error('Error fetching stats:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStats();
-    const interval = setInterval(fetchStats, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const response = await client.get('/dashboard/stats');
+      setStats(response.data);
+      setError(null); // ← Reset error on success
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+      setError('Failed to load dashboard stats'); // ← Set error
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCheckUpdates = async () => {
     setCheckingUpdates(true);
@@ -52,7 +51,10 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-red-500 text-xl">{error}</div>
+        <div className="text-red-500 text-center">
+          <p className="text-xl font-bold mb-2">Error</p>
+          <p>{error}</p>
+        </div>
       </div>
     );
   }
