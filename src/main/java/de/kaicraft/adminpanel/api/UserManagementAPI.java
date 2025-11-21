@@ -68,6 +68,7 @@ public class UserManagementAPI {
     public void createUser(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
+            @SuppressWarnings("unchecked")
             Map<String, String> data = gson.fromJson(ctx.body(), Map.class);
             
             String username = data.get("username");

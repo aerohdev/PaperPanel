@@ -175,7 +175,9 @@ public class WorldAPI {
         info.put("seed", world.getSeed());
         info.put("pvp", world.getPVP());
         info.put("autoSave", world.isAutoSave());
-        info.put("keepSpawnInMemory", world.getKeepSpawnInMemory());
+        @SuppressWarnings("deprecation")
+        boolean keepSpawn = world.getKeepSpawnInMemory(); // Deprecated but still functional
+        info.put("keepSpawnInMemory", keepSpawn);
         
         // Add common game rules
         Map<String, Object> gameRules = new HashMap<>();
@@ -267,7 +269,8 @@ public class WorldAPI {
         // Keep Spawn in Memory
         if (settings.containsKey("keepSpawnInMemory")) {
             boolean keepSpawn = (Boolean) settings.get("keepSpawnInMemory");
-            world.setKeepSpawnInMemory(keepSpawn);
+            @SuppressWarnings("deprecation")
+            boolean ignored = world.setKeepSpawnInMemory(keepSpawn); // Deprecated but still functional
             plugin.getLogger().fine("Set keepSpawnInMemory to " + keepSpawn + " in world '" + world.getName() + "'");
         }
         
@@ -280,18 +283,41 @@ public class WorldAPI {
                 Object ruleValue = rule.getValue();
                 
                 try {
-                    if (ruleValue instanceof Boolean) {
-                        world.setGameRule(org.bukkit.GameRule.getByName(ruleName), ruleValue);
-                    } else if (ruleValue instanceof Number) {
-                        world.setGameRule(org.bukkit.GameRule.getByName(ruleName), ((Number) ruleValue).intValue());
-                    } else {
-                        world.setGameRule(org.bukkit.GameRule.getByName(ruleName), ruleValue.toString());
-                    }
-                    plugin.getLogger().fine("Set game rule " + ruleName + " to " + ruleValue + 
-                                          " in world '" + world.getName() + "'");
+                    setGameRuleSafely(world, ruleName, ruleValue);
                 } catch (Exception e) {
                     plugin.getLogger().warning("Failed to set game rule " + ruleName + ": " + e.getMessage());
                 }
+            }
+        }
+    }
+    
+    /**
+     * Safely set a game rule with proper type handling
+     */
+    @SuppressWarnings("unchecked")
+    private <T> void setGameRuleSafely(World world, String ruleName, Object value) {
+        org.bukkit.GameRule<T> gameRule = (org.bukkit.GameRule<T>) org.bukkit.GameRule.getByName(ruleName);
+        if (gameRule == null) {
+            plugin.getLogger().warning("Unknown game rule: " + ruleName);
+            return;
+        }
+        
+        try {
+            // Try to cast the value to the correct type
+            T typedValue = (T) value;
+            world.setGameRule(gameRule, typedValue);
+            plugin.getLogger().fine("Set game rule " + ruleName + " to " + value + 
+                                  " in world '" + world.getName() + "'");
+        } catch (ClassCastException e) {
+            // If direct cast fails, try to convert
+            if (value instanceof Boolean && gameRule.getType() == Boolean.class) {
+                world.setGameRule((org.bukkit.GameRule<Boolean>) gameRule, (Boolean) value);
+            } else if (value instanceof Number && gameRule.getType() == Integer.class) {
+                world.setGameRule((org.bukkit.GameRule<Integer>) gameRule, ((Number) value).intValue());
+            } else {
+                plugin.getLogger().warning("Type mismatch for game rule " + ruleName + 
+                                         ": expected " + gameRule.getType().getSimpleName() + 
+                                         " but got " + value.getClass().getSimpleName());
             }
         }
     }
