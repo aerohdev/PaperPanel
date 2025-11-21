@@ -1,9 +1,10 @@
 package de.kaicraft.adminpanel.api;
 
+import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.update.PaperVersionChecker;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ public class DashboardAPI {
 
             // Loaded chunks
             int totalChunks = 0;
-            for (World world : Bukkit.getWorlds()) {
+            for (org.bukkit.World world : Bukkit.getWorlds()) {
                 totalChunks += world.getLoadedChunks().length;
             }
             stats.put("loadedChunks", totalChunks);
