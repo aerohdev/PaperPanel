@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import client from '../api/client';
 import { Activity, Users, HardDrive, Clock, Server, Boxes, RefreshCw } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -27,10 +28,24 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleCheckUpdates = async () => {
+    setCheckingUpdates(true);
+    try {
+      await client.post('/dashboard/check-updates');
+      setTimeout(() => {
+        setCheckingUpdates(false);
+        alert('Update check complete. Refresh the page if an update is available.');
+      }, 3000);
+    } catch (err) {
+      alert('Failed to check updates');
+      setCheckingUpdates(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-white text-xl">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -52,10 +67,21 @@ export default function Dashboard() {
   const memoryColor = memoryPercent < 70 ? 'text-green-500' : memoryPercent < 85 ? 'text-yellow-500' : 'text-red-500';
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-gray-400">Server overview and statistics</p>
+    <div className="p-6">
+      {/* Header with Check Updates Button */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+          <p className="text-gray-400">Server overview and statistics</p>
+        </div>
+        <button
+          onClick={handleCheckUpdates}
+          disabled={checkingUpdates}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+        >
+          <RefreshCw className={`w-4 h-4 ${checkingUpdates ? 'animate-spin' : ''}`} />
+          {checkingUpdates ? 'Checking...' : 'Check for Updates'}
+        </button>
       </div>
 
       {/* Main Stats Grid */}
@@ -147,24 +173,6 @@ export default function Dashboard() {
           </div>
           <p className="text-center text-gray-400 text-sm">{memoryPercent}% utilized</p>
         </div>
-      </div>
-
-      {/* Check for Updates Button */}
-      <div className="mt-6">
-        <button
-          onClick={async () => {
-            try {
-              await client.post('/dashboard/check-updates');
-              alert('Update check started. Refresh in a few seconds.');
-            } catch (err) {
-              alert('Failed to check updates');
-            }
-          }}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Check for Updates
-        </button>
       </div>
     </div>
   );

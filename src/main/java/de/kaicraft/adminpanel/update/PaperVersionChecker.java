@@ -416,7 +416,7 @@ public class PaperVersionChecker {
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
-            conn.setRequestProperty("User-Agent", "ServerAdminPanel/1.3.0");
+            conn.setRequestProperty("User-Agent", "ServerAdminPanel/1.3.1");
             
             int responseCode = conn.getResponseCode();
             if (responseCode != 200) {
@@ -444,7 +444,7 @@ public class PaperVersionChecker {
             URL url = new URL(urlString);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("User-Agent", "ServerAdminPanel/1.3.0");
+            conn.setRequestProperty("User-Agent", "ServerAdminPanel/1.3.1");
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(60000);
             

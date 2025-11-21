@@ -69,10 +69,10 @@ export default function UpdateBanner() {
   };
 
   const handleInstallUpdate = async () => {
-    if (!confirm('⚠️ SERVER WILL RESTART!\n\nThe installation process will:\n• Announce update to all players\n• Wait 5 minutes\n• Kick all players\n• Create backup\n• Restart server\n\nContinue?')) {
-      return;
-    }
+    setShowInstallConfirm(true);
+  };
 
+  const confirmInstall = async () => {
     setLoading(true);
     try {
       const response = await client.post('/dashboard/install-update');
@@ -161,8 +161,9 @@ export default function UpdateBanner() {
       {showInstallConfirm && (
         <InstallConfirmModal
           onClose={() => setShowInstallConfirm(false)}
-          onInstall={handleInstallUpdate}
+          onInstall={confirmInstall}
           version={updateStatus.latestBuild}
+          loading={loading}
         />
       )}
     </>
@@ -170,7 +171,7 @@ export default function UpdateBanner() {
 }
 
 // Install Confirmation Modal
-function InstallConfirmModal({ onClose, onInstall, version }) {
+function InstallConfirmModal({ onClose, onInstall, version, loading }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-dark-surface border border-dark-border rounded-lg max-w-lg w-full">
@@ -179,7 +180,11 @@ function InstallConfirmModal({ onClose, onInstall, version }) {
             <AlertTriangle className="w-6 h-6 text-yellow-500" />
             <h2 className="text-xl font-bold text-white">Install Update?</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button 
+            onClick={onClose} 
+            disabled={installing}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -235,12 +240,14 @@ function InstallConfirmModal({ onClose, onInstall, version }) {
         <div className="flex items-center gap-3 p-6 border-t border-dark-border">
           <button
             onClick={onInstall}
-            className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+            disabled={loading}
+            className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors"
           >
-            Yes, Install Now
+            {loading ? 'Installing...' : 'Yes, Install Now'}
           </button>
           <button
             onClick={onClose}
+            disabled={loading}
             className="flex-1 px-4 py-3 bg-dark-hover hover:bg-dark-border text-white font-semibold rounded-lg transition-colors"
           >
             Not Yet
