@@ -22,7 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Main plugin class for Server Admin Panel
+ * Main plugin class for PaperPanel
  * Provides a web-based admin interface for Minecraft Paper servers
  */
 public class ServerAdminPanelPlugin extends JavaPlugin {
@@ -85,7 +85,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         this.versionChecker = new PaperVersionChecker(this);
         this.versionChecker.startPeriodicCheck();
 
-        getLogger().info("ServerAdminPanel v" + getPluginMeta().getVersion() + " enabled!");
+        getLogger().info("PaperPanel v" + getPluginMeta().getVersion() + " enabled!");
     }
 
     @Override
@@ -110,15 +110,15 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
             consoleAppender.stop();
         }
 
-        getLogger().info("ServerAdminPanel disabled");
+        getLogger().info("PaperPanel disabled");
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command,
                             @NotNull String label, @NotNull String[] args) {
-        if (command.getName().equalsIgnoreCase("adminpanel")) {
+        if (command.getName().equalsIgnoreCase("paperpanel")) {
             if (args.length == 0) {
-                sender.sendMessage("§6=== Server Admin Panel ===");
+                sender.sendMessage("§6=== PaperPanel ===");
                 sender.sendMessage("§7Version: §f" + getPluginMeta().getVersion());
                 if (webServer != null) {
                     sender.sendMessage("§7Status: §aRunning");
@@ -128,9 +128,9 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                     sender.sendMessage("§7Status: §cDisabled");
                 }
                 sender.sendMessage("§7Commands:");
-                sender.sendMessage("§f  /adminpanel reload §7- Reload configuration");
-                sender.sendMessage("§f  /adminpanel status §7- Show server status");
-                sender.sendMessage("§f  /adminpanel resetpassword §7- Reset admin password to default");
+                sender.sendMessage("§f  /paperpanel reload §7- Reload configuration");
+                sender.sendMessage("§f  /paperpanel status §7- Show server status");
+                sender.sendMessage("§f  /paperpanel resetpassword §7- Reset admin password to default");
                 return true;
             }
 
@@ -138,7 +138,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
 
             switch (subCommand) {
                 case "reload":
-                    if (!sender.hasPermission("adminpanel.use")) {
+                    if (!sender.hasPermission("paperpanel.use")) {
                         sender.sendMessage("§cYou don't have permission to use this command");
                         return true;
                     }
@@ -150,12 +150,12 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                     return true;
 
                 case "status":
-                    if (!sender.hasPermission("adminpanel.use")) {
+                    if (!sender.hasPermission("paperpanel.use")) {
                         sender.sendMessage("§cYou don't have permission to use this command");
                         return true;
                     }
 
-                    sender.sendMessage("§6=== Admin Panel Status ===");
+                    sender.sendMessage("§6=== PaperPanel Status ===");
                     sender.sendMessage("§7Web Server: §f" + (webServer != null ? "Running" : "Stopped"));
                     if (webServer != null) {
                         sender.sendMessage("§7Port: §f" + configManager.getPort());
@@ -166,7 +166,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                     return true;
 
                 case "resetpassword":
-                    if (!sender.hasPermission("adminpanel.use")) {
+                    if (!sender.hasPermission("paperpanel.use")) {
                         sender.sendMessage("§cYou don't have permission to use this command");
                         return true;
                     }
@@ -179,7 +179,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                     return true;
 
                 default:
-                    sender.sendMessage("§cUnknown subcommand. Use /adminpanel for help");
+                    sender.sendMessage("§cUnknown subcommand. Use /paperpanel for help");
                     return true;
             }
         }

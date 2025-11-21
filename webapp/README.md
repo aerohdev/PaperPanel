@@ -1,4 +1,4 @@
-# Server Admin Panel - Frontend
+# PaperPanel - Frontend
 
 Modern React-based web interface for managing Minecraft Paper servers.
 
@@ -320,7 +320,7 @@ server {
 
 ## License
 
-Part of the Server Admin Panel project.
+Part of the PaperPanel project.
 
 ---
 

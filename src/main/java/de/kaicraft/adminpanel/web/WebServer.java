@@ -11,7 +11,7 @@ import io.javalin.http.Context;
 import java.util.Map;
 
 /**
- * Embedded Javalin web server for the admin panel
+ * Embedded Javalin web server for PaperPanel
  */
 public class WebServer {
     private final ServerAdminPanelPlugin plugin;
@@ -30,6 +30,7 @@ public class WebServer {
     private final BroadcastAPI broadcastAPI;
     private final WebSocketHandler webSocketHandler;
     private final UserManagementAPI userManagementAPI;
+    private final LogViewerAPI logViewerAPI;
 
     private Javalin app;
 
@@ -51,6 +52,7 @@ public class WebServer {
         this.broadcastAPI = new BroadcastAPI(plugin);
         this.webSocketHandler = new WebSocketHandler(plugin, authManager, consoleAPI, config);
         this.userManagementAPI = new UserManagementAPI(plugin, authManager);
+        this.logViewerAPI = new LogViewerAPI(plugin);
     }
 
     /**
@@ -92,7 +94,7 @@ public class WebServer {
             setupExceptionHandlers();
 
             plugin.getLogger().info("Web server started successfully!");
-            plugin.getLogger().info("Access the admin panel at: http://" +
+            plugin.getLogger().info("Access PaperPanel at: http://" +
                     (host.equals("0.0.0.0") ? "localhost" : host) + ":" + port);
 
         } catch (Exception e) {
@@ -163,13 +165,19 @@ public class WebServer {
         app.post("/api/v1/broadcast/actionbar", broadcastAPI::sendActionBar);
         app.post("/api/v1/broadcast/sound", broadcastAPI::playSound);
 
+        // Log viewer routes
+        app.get("/api/v1/logs/files", logViewerAPI::getLogFiles);
+        app.get("/api/v1/logs/read/{filename}", logViewerAPI::readLogFile);
+        app.post("/api/v1/logs/search", logViewerAPI::searchLogs);
+        app.get("/api/v1/logs/download/{filename}", logViewerAPI::downloadLogFile);
+
         // WebSocket route for live console
         app.ws("/ws/console", webSocketHandler.configure());
 
         // API info endpoint
         app.get("/api/v1/info", ctx -> {
             ctx.json(Map.of(
-                    "name", "Server Admin Panel",
+                    "name", "PaperPanel",
                     "version", plugin.getPluginMeta().getVersion(),
                     "status", "running",
                     "endpoints", Map.of(

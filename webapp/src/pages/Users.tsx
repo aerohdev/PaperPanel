@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import client from '../api/client';
 import { Shield, Plus, Trash2, Key, AlertCircle, CheckCircle, X } from 'lucide-react';
+import type { UserInfo } from '../types/api';
 
 export default function Users() {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [actionLoading, setActionLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(null);
-  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false); // ← NEU
+  const [users, setUsers] = useState<UserInfo[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     fetchUsers();
@@ -21,68 +22,60 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await client.get('/users');
-      if (response.data.success) {
-        setUsers(response.data.users);
-        // Check if current user is default admin
-        const currentUser = response.data.users.find(u => u.isCurrentUser);
-        setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
-      }
-    } catch (err) {
+      const response = await client.get<UserInfo[]>('/users');
+      setUsers(response.data);
+      // Check if current user is default admin
+      const currentUser = response.data.find(u => u.isCurrentUser);
+      setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
+    } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
   };
 
-  const showSuccess = (message) => {
+  const showSuccess = (message: string) => {
     setSuccessMessage(message);
     setTimeout(() => setSuccessMessage(null), 5000);
   };
 
-  const handleCreateUser = async (username, password) => {
+  const handleCreateUser = async (username: string, password: string) => {
     try {
       setActionLoading(true);
-      const response = await client.post('/users', { username, password });
-      if (response.data.success) {
-        showSuccess('User created successfully');
-        setShowCreateModal(false);
-        fetchUsers();
-      }
-    } catch (err) {
+      await client.post('/users', { username, password });
+      showSuccess('User created successfully');
+      setShowCreateModal(false);
+      fetchUsers();
+    } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to create user');
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleChangePassword = async (username, password) => {
+  const handleChangePassword = async (username: string, password: string) => {
     try {
       setActionLoading(true);
-      const response = await client.put(`/users/${username}/password`, { password });
-      if (response.data.success) {
-        showSuccess('Password changed successfully');
-        setShowPasswordModal(false);
-        setSelectedUser(null);
-      }
-    } catch (err) {
+      await client.put(`/users/${username}/password`, { password });
+      showSuccess('Password changed successfully');
+      setShowPasswordModal(false);
+      setSelectedUser(null);
+    } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to change password');
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleDeleteUser = async (username) => {
+  const handleDeleteUser = async (username: string) => {
     try {
       setActionLoading(true);
-      const response = await client.delete(`/users/${username}`);
-      if (response.data.success) {
-        showSuccess('User deleted successfully');
-        setShowDeleteModal(false);
-        setSelectedUser(null);
-        fetchUsers();
-      }
-    } catch (err) {
+      await client.delete(`/users/${username}`);
+      showSuccess('User deleted successfully');
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to delete user');
     } finally {
       setActionLoading(false);
@@ -166,7 +159,6 @@ export default function Users() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
-                    {/* Show Change Password button based on permissions */}
                     {(isCurrentUserAdmin || user.isCurrentUser) ? (
                       <button
                         onClick={() => {
@@ -188,7 +180,6 @@ export default function Users() {
                       </span>
                     )}
                     
-                    {/* Delete Button - only admin can delete, but not themselves or default admin */}
                     {isCurrentUserAdmin && !user.isCurrentUser && !user.isDefaultAdmin && (
                       <button
                         onClick={() => {
@@ -219,7 +210,7 @@ export default function Users() {
       )}
 
       {/* Change Password Modal */}
-      {showPasswordModal && (
+      {showPasswordModal && selectedUser && (
         <PasswordModal
           username={selectedUser}
           onClose={() => {
@@ -232,7 +223,7 @@ export default function Users() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
+      {showDeleteModal && selectedUser && (
         <DeleteModal
           username={selectedUser}
           onClose={() => {
@@ -248,13 +239,19 @@ export default function Users() {
 }
 
 // Create User Modal Component
-function CreateUserModal({ onClose, onCreate, loading }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [validationError, setValidationError] = useState(null);
+interface CreateUserModalProps {
+  onClose: () => void;
+  onCreate: (username: string, password: string) => void;
+  loading: boolean;
+}
 
-  const validatePassword = (pwd) => {
+function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return 'Password must be at least 8 characters long';
     if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter';
     if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter';
@@ -263,7 +260,7 @@ function CreateUserModal({ onClose, onCreate, loading }) {
     return null;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setValidationError(null);
 
@@ -301,7 +298,7 @@ function CreateUserModal({ onClose, onCreate, loading }) {
           <input
             type="text"
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
             className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter username"
             disabled={loading}
@@ -314,7 +311,7 @@ function CreateUserModal({ onClose, onCreate, loading }) {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter password"
             disabled={loading}
@@ -329,7 +326,7 @@ function CreateUserModal({ onClose, onCreate, loading }) {
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Confirm password"
             disabled={loading}
@@ -359,12 +356,19 @@ function CreateUserModal({ onClose, onCreate, loading }) {
 }
 
 // Password Modal Component
-function PasswordModal({ username, onClose, onSubmit, loading }) {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [validationError, setValidationError] = useState(null);
+interface PasswordModalProps {
+  username: string;
+  onClose: () => void;
+  onSubmit: (username: string, password: string) => void;
+  loading: boolean;
+}
 
-  const validatePassword = (pwd) => {
+function PasswordModal({ username, onClose, onSubmit, loading }: PasswordModalProps) {
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const validatePassword = (pwd: string): string | null => {
     if (pwd.length < 8) return 'Password must be at least 8 characters long';
     if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter';
     if (!/[a-z]/.test(pwd)) return 'Password must contain at least one lowercase letter';
@@ -373,7 +377,7 @@ function PasswordModal({ username, onClose, onSubmit, loading }) {
     return null;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setValidationError(null);
 
@@ -406,7 +410,7 @@ function PasswordModal({ username, onClose, onSubmit, loading }) {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter new password"
             disabled={loading}
@@ -422,7 +426,7 @@ function PasswordModal({ username, onClose, onSubmit, loading }) {
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
             className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Confirm new password"
             disabled={loading}
@@ -452,7 +456,14 @@ function PasswordModal({ username, onClose, onSubmit, loading }) {
 }
 
 // Delete Confirmation Modal
-function DeleteModal({ username, onClose, onConfirm, loading }) {
+interface DeleteModalProps {
+  username: string;
+  onClose: () => void;
+  onConfirm: (username: string) => void;
+  loading: boolean;
+}
+
+function DeleteModal({ username, onClose, onConfirm, loading }: DeleteModalProps) {
   return (
     <Modal title="Delete User" onClose={onClose}>
       <div className="space-y-4">
@@ -491,7 +502,13 @@ function DeleteModal({ username, onClose, onConfirm, loading }) {
 }
 
 // Reusable Modal Component
-function Modal({ title, children, onClose }) {
+interface ModalProps {
+  title: string;
+  children: React.ReactNode;
+  onClose: () => void;
+}
+
+function Modal({ title, children, onClose }: ModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-dark-surface border border-dark-border rounded-lg max-w-md w-full mx-4">

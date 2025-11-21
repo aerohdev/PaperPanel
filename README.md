@@ -1,15 +1,25 @@
-# Server Admin Panel
+# PaperPanel
 
-A comprehensive web-based administration panel for Minecraft Paper servers featuring real-time monitoring, player management, server control, and an intuitive React interface.
+A comprehensive web-based administration panel for Minecraft Paper servers featuring real-time monitoring, player management, server control, and an intuitive React + TypeScript interface.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
 ![Java](https://img.shields.io/badge/java-21-orange.svg)
 ![Paper](https://img.shields.io/badge/paper-1.21.1-green.svg)
 ![React](https://img.shields.io/badge/react-18.2.0-61dafb.svg)
+![TypeScript](https://img.shields.io/badge/typescript-5.3.3-blue.svg)
 
 ## 🎯 Overview
 
-A full-stack application that transforms Minecraft server management with a modern web interface. Built with Java 21 and React 18, this panel provides everything you need to manage your Paper server efficiently.
+A full-stack application that transforms Minecraft server management with a modern web interface. Built with Java 21, React 18, and TypeScript 5.3, this panel provides everything you need to manage your Paper server efficiently.
+
+**✨ What's New in v2.0.0:**
+- 🎯 **Full TypeScript Migration** - Complete type safety across the frontend
+- 📋 **Structured Audit Logging** - Daily-rotated logs (audit, security, API) with 7-day retention
+- 🔄 **API Versioning** - All endpoints at `/api/v1/*` with standardized responses
+- 📝 **Log Viewer** - Real-time log viewing with search and download capabilities
+- 🎨 **Skeleton Loading** - Improved UX with animated loading states
+- 🔐 **Enhanced Security** - Comprehensive audit trails and action tracking
+- 📦 **Automated Build** - Single command builds frontend + backend JAR
 
 ### ✨ Key Features
 
@@ -59,12 +69,27 @@ A full-stack application that transforms Minecraft server management with a mode
 - Play sounds globally
 - Quick action templates for common announcements
 
+**📝 Log Viewer (NEW in v2.0.0)**
+- View all server logs (audit, security, API, server)
+- Real-time log streaming with WebSocket support
+- Search across multiple logs with 200 result limit
+- Download logs for offline analysis
+- Auto-scroll toggle and line limits
+- File metadata (size, modified date, line count)
+
+**👥 User Management (NEW in v2.0.0)**
+- Create and delete admin users
+- Change passwords with validation
+- Role-based permissions (admin/user)
+- Protected operations for default admin
+
 **🔐 Security**
-- JWT-based authentication
+- JWT-based authentication with 1-hour expiry
 - BCrypt password hashing (12 rounds)
-- Session management
-- Protected API routes
+- Session management with concurrent tracking
+- Protected API routes with middleware
 - Auto-generated secure secrets
+- Comprehensive audit logging
 
 ## 🚀 Quick Start
 
@@ -76,54 +101,68 @@ A full-stack application that transforms Minecraft server management with a mode
 
 ### Installation
 
+**⚠️ IMPORTANT: v2.0.0 uses automated build process - no manual copying required!**
+
 ```bash
-# 1. Clone repo
+# 1. Clone repository
 git clone https://github.com/aerohdev/Minecraft-Admin-WebApp.git
 cd Minecraft-Admin-WebApp
 
-# 2. Install Node.js (Ubuntu/Debian)
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
-
-# 3. Build frontend
-cd webapp
-npm install
-npm run build
-cd ..
-
-# 4. Bundle frontend into plugin
-mkdir -p src/main/resources/webapp
-cp -r webapp/dist/* src/main/resources/webapp/
-
-# 5. Build plugin (contains frontend + backend)
+# 2. Build everything (frontend + backend in one command)
 mvn clean package
 
-# 6. Install to server
-cp target/ServerAdminPanel-*.jar /path/to/server/plugins/
+# This automatically:
+# - Installs npm dependencies
+# - Builds React TypeScript frontend
+# - Copies frontend to resources
+# - Compiles Java backend
+# - Generates annotation-processed types
+# - Creates deployable JAR
 
-# 7. Open firewall
+# 3. Install to server
+cp target/ServerAdminPanel-2.0.0.jar /path/to/server/plugins/
+
+# 4. Open firewall (if needed)
 sudo ufw allow 8080/tcp
 
-# 8. Restart server
+# 5. Start/restart server
 ```
 
 ### Access the Panel
 - Open browser: `http://YOUR_SERVER_IP:8080`
 - Login: `admin` / `changeme`
-- **⚠️ Change password immediately!**
+- **⚠️ Change password immediately via User Management page!**
+
+### First-Time Setup
+1. Login with default credentials
+2. Navigate to **User Management** (`/users`)
+3. Click **Change Password** for the admin user
+4. Create additional users if needed
+5. Review logs in **Log Viewer** (`/logs`)
 
 ---
 
 ## 🔄 Updating
 
+**v2.0.0 simplifies updates - single command!**
+
 ```bash
+# Pull latest changes
 git pull
-cd webapp && npm install && npm run build && cd ..
-cp -r webapp/dist/* src/main/resources/webapp/
+
+# Build and deploy (automated process)
 mvn clean package
-cp target/*.jar /server/plugins/
+cp target/ServerAdminPanel-2.0.0.jar /path/to/server/plugins/
+
 # Restart server
 ```
+
+**The Maven build automatically:**
+- Updates npm dependencies
+- Rebuilds TypeScript frontend
+- Processes Java annotations
+- Generates type definitions
+- Creates deployable JAR
 
 ---
 
@@ -131,11 +170,39 @@ cp target/*.jar /server/plugins/
 
 **Panel won't load:**
 ```bash
-# Check if frontend is bundled
-jar -tf target/ServerAdminPanel-*.jar | grep webapp/index.html
+# Verify frontend is bundled in JAR
+jar -tf target/ServerAdminPanel-2.0.0.jar | grep webapp/index.html
 
-# If empty, rebuild:
-cp -r webapp/dist/* src/main/resources/webapp/
+# Should show: webapp/index.html and other assets
+
+# If missing, rebuild with:
+mvn clean package
+```
+
+**Build fails:**
+```bash
+# Check Maven version (3.6+)
+mvn -version
+
+# Check Java version (21+)
+java -version
+
+# Check Node.js is available (18+)
+node -version
+
+# Clean build
+mvn clean
+rm -rf webapp/node_modules webapp/dist
+mvn package
+```
+
+**TypeScript errors during build:**
+```bash
+# Frontend build issues
+cd webapp
+npm install
+npm run build
+cd ..
 mvn clean package
 ```
 
@@ -147,9 +214,16 @@ grep "Web server" logs/latest.log
 # Check port is open
 sudo ufw status | grep 8080
 
-# Test connection
-curl http://localhost:8080
+# Test connection locally
+curl http://localhost:8080/api/v1/health
 ```
+
+**API v1 Migration Notice:**
+If upgrading from v1.x, note that all endpoints have moved to `/api/v1/*`:
+- Old: `http://server:8080/api/dashboard/stats`
+- New: `http://server:8080/api/v1/dashboard/stats`
+
+The frontend automatically uses v1 endpoints. No configuration needed.
 
 ---
 
@@ -166,37 +240,112 @@ curl http://localhost:8080
 
 ---
 
-## 🔨 Quick Build Script
+## 🔨 Build Configuration
 
-Create `build.sh`:
+### Automated Maven Build (v2.0.0)
+
+The `pom.xml` is configured to automatically build everything:
+
+```xml
+<build>
+  <plugins>
+    <!-- 1. Frontend build via npm -->
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>exec-maven-plugin</artifactId>
+      <executions>
+        <execution>
+          <id>npm-install</id>
+          <phase>generate-resources</phase>
+          <goals><goal>exec</goal></goals>
+          <configuration>
+            <executable>npm</executable>
+            <arguments>
+              <argument>install</argument>
+            </arguments>
+            <workingDirectory>${project.basedir}/webapp</workingDirectory>
+          </configuration>
+        </execution>
+        <execution>
+          <id>npm-build</id>
+          <phase>generate-resources</phase>
+          <goals><goal>exec</goal></goals>
+          <configuration>
+            <executable>npm</executable>
+            <arguments>
+              <argument>run</argument>
+              <argument>build</argument>
+            </arguments>
+            <workingDirectory>${project.basedir}/webapp</workingDirectory>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+
+    <!-- 2. Copy frontend to resources -->
+    <plugin>
+      <artifactId>maven-resources-plugin</artifactId>
+      <executions>
+        <execution>
+          <id>copy-webapp</id>
+          <phase>process-resources</phase>
+          <goals><goal>copy-resources</goal></goals>
+          <configuration>
+            <outputDirectory>${project.build.outputDirectory}/webapp</outputDirectory>
+            <resources>
+              <resource>
+                <directory>${project.basedir}/webapp/dist</directory>
+              </resource>
+            </resources>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
+
+    <!-- 3. Java compilation with annotation processing -->
+    <plugin>
+      <artifactId>maven-compiler-plugin</artifactId>
+      <configuration>
+        <source>21</source>
+        <target>21</target>
+        <annotationProcessorPaths>
+          <path>
+            <groupId>de.kaicraft</groupId>
+            <artifactId>adminpanel</artifactId>
+            <version>2.0.0</version>
+          </path>
+        </annotationProcessorPaths>
+      </configuration>
+    </plugin>
+
+    <!-- 4. Package with dependencies -->
+    <plugin>
+      <artifactId>maven-shade-plugin</artifactId>
+      <executions>
+        <execution>
+          <phase>package</phase>
+          <goals><goal>shade</goal></goals>
+        </execution>
+      </executions>
+    </plugin>
+  </plugins>
+</build>
+```
+
+### Manual Build (Development)
 
 ```bash
-#!/bin/bash
-set -e
-
-echo "Building admin panel..."
-
-# Frontend
+# Build frontend only
 cd webapp
 npm install
 npm run build
-cd ..
 
-# Bundle into plugin
-rm -rf src/main/resources/webapp
-mkdir -p src/main/resources/webapp
-cp -r webapp/dist/* src/main/resources/webapp/
+# Build backend only (requires pre-built frontend)
+mvn clean compile
 
-# Build plugin
+# Full build
 mvn clean package
-
-echo "✅ Done! JAR: target/ServerAdminPanel-*.jar"
-echo "Install: cp target/*.jar /server/plugins/"
 ```
-
-Make executable: `chmod +x build.sh`
-
-Run: `./build.sh`
 
 ---
 
@@ -205,64 +354,95 @@ Run: `./build.sh`
 ```
 Minecraft-Admin-WebApp/
 ├── src/main/java/de/kaicraft/adminpanel/
-│   ├── ServerAdminPanelPlugin.java       # Main plugin class
-│   ├── api/                              # REST API endpoints
-│   │   ├── AuthAPI.java                  # Authentication (login/logout)
-│   │   ├── BroadcastAPI.java             # Broadcast messages (NEW)
+│   ├── ServerAdminPanelPlugin.java       # Main plugin class (PaperPanel)
+│   ├── api/                              # REST API endpoints (v1)
+│   │   ├── AuthAPI.java                  # Authentication (login/logout/verify)
+│   │   ├── BroadcastAPI.java             # Broadcast messages
 │   │   ├── ConsoleAPI.java               # Console operations
 │   │   ├── DashboardAPI.java             # Server statistics
+│   │   ├── LogViewerAPI.java             # Log viewer (NEW v2.0.0)
 │   │   ├── PlayerAPI.java                # Player management
 │   │   ├── PluginAPI.java                # Plugin management
 │   │   ├── ServerControlAPI.java         # Server control
+│   │   ├── UserManagementAPI.java        # User CRUD (NEW v2.0.0)
 │   │   └── WorldAPI.java                 # World management
 │   ├── auth/                             # Authentication system
 │   │   ├── AuthManager.java              # User management
-│   │   ├── AuthMiddleware.java           # Route protection
+│   │   ├── AuthMiddleware.java           # Route protection (v1 paths)
 │   │   └── JWTUtil.java                  # JWT utilities
 │   ├── config/
 │   │   └── ConfigManager.java            # Configuration handling
-│   ├── database/                         # Database layer (NEW)
+│   ├── database/                         # Database layer
 │   │   └── DatabaseManager.java          # SQLite connection management
-│   ├── stats/                            # Player statistics (NEW)
+│   ├── model/                            # Data models (NEW v2.0.0)
+│   │   ├── AuthResponse.java             # @TypeScriptType annotations
+│   │   ├── DashboardStats.java
+│   │   ├── LogFileInfo.java
+│   │   ├── LogMatch.java
+│   │   ├── PlayerInfo.java
+│   │   ├── PluginInfo.java
+│   │   ├── SecurityStatus.java
+│   │   ├── UpdateStatus.java
+│   │   ├── UserInfo.java
+│   │   └── WorldInfo.java
+│   ├── stats/                            # Player statistics
 │   │   ├── PlayerStatsListener.java      # Event tracking
 │   │   └── PlayerStatsManager.java       # Stats management
+│   ├── update/                           # Update system (NEW v2.0.0)
+│   │   └── PaperVersionChecker.java      # Paper version checking
+│   ├── util/                             # Utilities (NEW v2.0.0)
+│   │   ├── ApiResponse.java              # Standardized API responses
+│   │   ├── AuditLogger.java              # Structured logging with rotation
+│   │   └── TypeScriptGenerator.java      # Annotation processor
 │   └── web/                              # Web server
-│       ├── WebServer.java                # Javalin setup & routing
+│       ├── WebServer.java                # Javalin setup & routing (v1 paths)
 │       └── WebSocketHandler.java         # WebSocket console
 ├── src/main/resources/
-│   ├── plugin.yml                        # Plugin metadata
-│   └── config.yml                        # Default configuration
-├── webapp/                               # React Frontend
+│   ├── plugin.yml                        # Plugin metadata (v2.0.0)
+│   ├── config.yml                        # Configuration (logging section added)
+│   └── webapp/                           # Built frontend (auto-generated)
+├── webapp/                               # React + TypeScript Frontend
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── client.js                 # Axios HTTP client
+│   │   │   ├── client.js                 # Axios HTTP client (v1 base URL)
+│   │   │   └── client.ts                 # TypeScript version (NEW v2.0.0)
 │   │   ├── components/
-│   │   │   ├── ConnectionStatus.jsx      # WebSocket status indicator (NEW)
-│   │   │   ├── Header.jsx                # Top navigation bar
-│   │   │   ├── Layout.jsx                # Main layout wrapper
-│   │   │   ├── ProtectedRoute.jsx        # Auth guard
-│   │   │   └── Sidebar.jsx               # Side navigation menu
+│   │   │   ├── ConnectionStatus.jsx      # WebSocket status indicator
+│   │   │   ├── Header.jsx
+│   │   │   ├── Layout.tsx                # TypeScript (v2.0.0)
+│   │   │   ├── ProtectedRoute.tsx        # TypeScript (v2.0.0)
+│   │   │   ├── Sidebar.tsx               # TypeScript (v2.0.0)
+│   │   │   └── Skeleton.tsx              # Loading states (NEW v2.0.0)
 │   │   ├── contexts/
-│   │   │   └── AuthContext.jsx           # Authentication state
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── AuthContext.tsx           # TypeScript (v2.0.0)
 │   │   ├── hooks/
-│   │   │   └── useWebSocket.js           # WebSocket hook with auto-reconnect
+│   │   │   ├── useWebSocket.js
+│   │   │   └── useWebSocket.ts           # TypeScript (v2.0.0)
 │   │   ├── pages/
-│   │   │   ├── Broadcast.jsx             # Broadcast messages (NEW)
-│   │   │   ├── Console.jsx               # Live console page
-│   │   │   ├── Dashboard.jsx             # Statistics dashboard
-│   │   │   ├── Login.jsx                 # Login page
-│   │   │   ├── Players.jsx               # Player management
-│   │   │   ├── Plugins.jsx               # Plugin management
-│   │   │   ├── ServerControl.jsx         # Server control
-│   │   │   └── Worlds.jsx                # World management
+│   │   │   ├── Broadcast.tsx             # TypeScript (v2.0.0)
+│   │   │   ├── Console.tsx               # TypeScript (v2.0.0)
+│   │   │   ├── Dashboard.tsx             # TypeScript (v2.0.0)
+│   │   │   ├── Login.tsx                 # TypeScript (v2.0.0)
+│   │   │   ├── LogViewer.tsx             # NEW v2.0.0
+│   │   │   ├── Players.tsx               # TypeScript (v2.0.0)
+│   │   │   ├── Plugins.tsx               # TypeScript (v2.0.0)
+│   │   │   ├── ServerControl.tsx         # TypeScript (v2.0.0)
+│   │   │   ├── Users.tsx                 # NEW v2.0.0
+│   │   │   └── Worlds.tsx                # TypeScript (v2.0.0)
 │   │   ├── styles/
 │   │   │   └── index.css                 # Global styles + Tailwind
-│   │   ├── App.jsx                       # Route configuration
-│   │   └── main.jsx                      # Entry point
-│   ├── package.json
+│   │   ├── types/
+│   │   │   └── api.ts                    # TypeScript interfaces (NEW v2.0.0)
+│   │   ├── App.tsx                       # TypeScript route config (v2.0.0)
+│   │   └── main.tsx                      # TypeScript entry (v2.0.0)
+│   ├── index.html
+│   ├── package.json                      # TypeScript deps (v2.0.0)
+│   ├── tsconfig.json                     # TypeScript config (NEW v2.0.0)
+│   ├── tsconfig.node.json                # Build config (NEW v2.0.0)
 │   ├── vite.config.js                    # Vite configuration
 │   └── tailwind.config.js                # TailwindCSS config
-├── pom.xml                               # Maven configuration
+├── pom.xml                               # Maven with automated build (v2.0.0)
 └── README.md                             # This file
 ```
 
@@ -270,28 +450,38 @@ Minecraft-Admin-WebApp/
 
 ### Backend
 - **Java 21** - Modern Java LTS version
-- **Paper API 1.21.1** - Minecraft server API
+- **Paper API 1.21.1-R0.1-SNAPSHOT** - Minecraft server API
 - **Javalin 6.1.3** - Lightweight web framework
 - **Auth0 java-jwt 4.4.0** - JWT authentication
-- **BCrypt 0.4** - Password hashing
+- **BCrypt (jBCrypt) 0.4** - Password hashing
 - **Gson 2.10.1** - JSON serialization
-- **SQLite JDBC 3.45.0.0** - Database driver
-- **SLF4J 2.0.12** - Logging
-- **Log4j2** - Console log interception
-- **Maven** - Build automation
+- **SQLite JDBC 3.45.0** - Database driver
+- **SLF4J Simple 2.0.12** - Logging facade
+- **Log4j2 Core 2.23.1** - Console log interception
+- **Maven 3.x** - Build automation with annotation processing
 
 ### Frontend
 - **React 18.2.0** - UI framework
+- **TypeScript 5.3.3** - Type-safe JavaScript (NEW v2.0.0)
 - **Vite 5.0.10** - Build tool & dev server
 - **TailwindCSS 3.4.0** - Utility-first CSS
-- **React Router 6.21.0** - Client-side routing
-- **Axios 1.6.0** - HTTP client
+- **React Router DOM 6.21.0** - Client-side routing
+- **Axios 1.6.0** - HTTP client with interceptors
 - **Lucide React 0.294.0** - Icon library
+- **tsx 4.7.0** - TypeScript execution (NEW v2.0.0)
+- **@types/node 20.10.0** - Node.js type definitions (NEW v2.0.0)
 - **WebSocket API** - Real-time communication
+
+### Architecture
+- **API Versioning** - All endpoints at `/api/v1/*` (v2.0.0)
+- **Standardized Responses** - `{ success: boolean, data?: any, message?: string }`
+- **Audit Logging** - Daily-rotated files with 7-day retention (v2.0.0)
+- **Type Generation** - Java annotations → TypeScript interfaces (v2.0.0)
+- **Skeleton UI** - Animated loading states for better UX (v2.0.0)
 
 ## ⚙️ Configuration
 
-### Backend Configuration (`plugins/ServerAdminPanel/config.yml`)
+### Backend Configuration (`plugins/PaperPanel/config.yml`)
 
 ```yaml
 web-server:
@@ -309,24 +499,56 @@ console:
   max-history-lines: 1000        # Console history buffer size
   allow-commands: true           # Enable remote command execution
 
+logging:                         # NEW in v2.0.0
+  enable-file-logging: true      # Enable structured file logging
+  log-directory: "logs"          # Relative to plugin folder
+  max-file-size-mb: 10           # Max size before rotation
+  retention-days: 7              # Days to keep old logs
+  audit-enabled: true            # Audit log (user actions)
+  security-enabled: true         # Security log (auth events)
+  api-enabled: true              # API log (endpoint calls)
+
 security:
   enable-cors: true              # CORS for frontend
   rate-limit: 60                 # Requests per minute per IP
 ```
 
-### Frontend Configuration (`webapp/src/api/client.js`)
+### Frontend Configuration
 
-```javascript
-const API_URL = 'http://localhost:8080/api';  // Backend URL
+The frontend automatically uses the correct API base URL. For development:
+
+**Development** (`webapp/.env.development`):
+```bash
+VITE_API_URL=http://localhost:8080/api/v1
 ```
 
-For production, update to your server's URL or use environment variables.
+**Production**: Uses relative paths automatically.
 
 ## 📡 API Documentation
 
+**Base URL:** `http://localhost:8080/api/v1` (v2.0.0+)
+
+**All responses follow standardized format:**
+```json
+{
+  "success": true,
+  "data": { /* response data */ },
+  "message": "Optional message"
+}
+```
+
+**Error responses:**
+```json
+{
+  "success": false,
+  "error": "Error description",
+  "message": "User-friendly message"
+}
+```
+
 ### Authentication Endpoints
 
-#### POST /api/auth/login
+#### POST /api/v1/auth/login
 Authenticate and receive JWT token.
 
 **Request:**
@@ -719,29 +941,182 @@ Play a sound effect for all online players.
 
 ---
 
+### Log Viewer Endpoints (NEW v2.0.0)
+
+#### GET /api/v1/logs/files
+List all available log files with metadata.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "audit-2025-11-21.log",
+      "type": "audit",
+      "size": 245760,
+      "modified": 1732204800000,
+      "lines": 1523
+    },
+    {
+      "name": "security-2025-11-21.log",
+      "type": "security",
+      "size": 12345,
+      "modified": 1732204800000,
+      "lines": 234
+    }
+  ]
+}
+```
+
+#### GET /api/v1/logs/read/{filename}
+Read log file content (last 5000 lines).
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "lines": [
+      "[2025-11-21 10:30:15] [INFO] Server started",
+      "[2025-11-21 10:30:16] [INFO] Player joined: TestPlayer"
+    ]
+  }
+}
+```
+
+#### POST /api/v1/logs/search
+Search across multiple log files.
+
+**Request:**
+```json
+{
+  "query": "ERROR",
+  "files": ["audit-2025-11-21.log", "security-2025-11-21.log"],
+  "limit": 200
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "file": "audit-2025-11-21.log",
+      "line": 152,
+      "content": "[2025-11-21 10:45:23] [ERROR] Failed to connect"
+    }
+  ]
+}
+```
+
+#### GET /api/v1/logs/download/{filename}
+Download a log file.
+
+**Response:** File stream with `Content-Disposition: attachment`
+
+---
+
+### User Management Endpoints (NEW v2.0.0)
+
+#### GET /api/v1/users
+List all admin panel users.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "username": "admin",
+      "isDefaultAdmin": true,
+      "isCurrentUser": true
+    },
+    {
+      "username": "moderator",
+      "isDefaultAdmin": false,
+      "isCurrentUser": false
+    }
+  ]
+}
+```
+
+#### POST /api/v1/users
+Create a new user.
+
+**Request:**
+```json
+{
+  "username": "newuser",
+  "password": "SecurePass123!"
+}
+```
+
+**Password Requirements:**
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+- At least one special character
+
+#### PUT /api/v1/users/{username}/password
+Change user password.
+
+**Request:**
+```json
+{
+  "password": "NewSecurePass123!"
+}
+```
+
+**Permissions:**
+- Admins can change any user's password
+- Users can change their own password
+
+#### DELETE /api/v1/users/{username}
+Delete a user (admin only).
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User deleted successfully"
+}
+```
+
+**Restrictions:**
+- Cannot delete default admin
+- Cannot delete yourself
+- Admin permission required
+
+---
+
 ## 🎮 In-Game Commands
 
-### /adminpanel
-Main command for the admin panel.
+### /paperpanel
+Main command for PaperPanel.
 
-**Aliases:** `/ap`, `/panel`
+**Aliases:** `/pp`, `/panel`
 
-**Permission:** `adminpanel.use` (default: op)
+**Permission:** `paperpanel.use` (default: op)
 
 **Usage:**
 ```
-/adminpanel              Show status and help
-/adminpanel reload       Reload configuration
-/adminpanel status       Show detailed server status
+/paperpanel              Show status and help
+/paperpanel reload       Reload configuration
+/paperpanel status       Show detailed server status
 ```
 
 **Example output:**
 ```
-=== Server Admin Panel ===
-Version: 1.0.0
+=== PaperPanel ===
+Version: 2.0.0
 Status: Running
 Port: 8080
 Access: http://localhost:8080
+TypeScript: Enabled
+Audit Logging: Enabled (7-day retention)
 ```
 
 ## 🎨 Frontend Features
@@ -750,21 +1125,31 @@ Access: http://localhost:8080
 
 **Dashboard** (`/dashboard`)
 - Real-time TPS monitoring with color-coded indicators
-- Memory usage with progress bar
+- Memory usage with progress bar and skeleton loading
 - Player count and server uptime
 - World and plugin statistics
+- Update status checking
 - Auto-refreshes every 5 seconds
 
 **Console** (`/console`)
 - Live log streaming via WebSocket
-- **Auto-reconnect with exponential backoff (5s - 30s)**
-- **Visual connection status indicator** (connected/reconnecting/disconnected)
-- **Message queuing during disconnection**
+- Auto-reconnect with exponential backoff (5s - 30s)
+- Visual connection status indicator (connected/reconnecting/disconnected)
+- Message queuing during disconnection
 - Manual "Retry Now" button
 - Command execution interface
 - Command history navigation (↑ ↓ arrows)
 - Auto-scroll to latest messages
 - Color-coded log levels
+
+**Log Viewer** (`/logs`) **NEW in v2.0.0**
+- View all server logs (audit, security, API, server)
+- Real-time log streaming with WebSocket support
+- Search across multiple logs (max 200 results)
+- Download logs for offline analysis
+- Auto-scroll toggle
+- File metadata display (size, modified, lines, type)
+- Color-coded log types
 
 **Players** (`/players`)
 - Online and offline player lists
@@ -806,12 +1191,22 @@ Access: http://localhost:8080
   - Maintenance notice
   - Event announcement with sound
 
+**User Management** (`/users`) **NEW in v2.0.0**
+- View all admin panel users
+- Create new users with password validation
+- Change user passwords (admin or self)
+- Delete users (admin only, restrictions apply)
+- Role indicators (Admin badge)
+- Password requirements enforced (8+ chars, mixed case, digit, special)
+
 ### Theme
 
-- **Dark Mode** - Optimized for long sessions
+- **Dark Mode** - Optimized for long sessions with v2.0.0 enhancements
 - **Responsive Design** - Works on desktop, tablet, and mobile
 - **Modern UI** - Clean, intuitive interface with smooth animations
+- **Skeleton Loading** - Animated placeholders for better perceived performance (NEW)
 - **Color-Coded Status** - Visual indicators for quick reference
+- **TypeScript** - Full type safety prevents runtime errors (NEW)
 
 ## 🔒 Security Best Practices
 
@@ -890,7 +1285,7 @@ mvn verify
 
 # Install to local Paper server
 mvn clean package
-cp target/ServerAdminPanel-1.0.0-SNAPSHOT.jar ~/paperserver/plugins/
+cp target/PaperPanel-2.0.0.jar ~/paperserver/plugins/
 ```
 
 ### Frontend Testing
@@ -912,7 +1307,7 @@ npm run preview
 
 **Login:**
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"changeme"}' \
   | jq -r '.token')
@@ -920,13 +1315,13 @@ TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
 
 **Get Dashboard Stats:**
 ```bash
-curl http://localhost:8080/api/dashboard/stats \
+curl http://localhost:8080/api/v1/dashboard/stats \
   -H "Authorization: Bearer $TOKEN" | jq
 ```
 
 **Execute Command:**
 ```bash
-curl -X POST http://localhost:8080/api/console/command \
+curl -X POST http://localhost:8080/api/v1/console/command \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"command":"list"}' | jq
@@ -934,7 +1329,7 @@ curl -X POST http://localhost:8080/api/console/command \
 
 **Kick Player:**
 ```bash
-curl -X POST "http://localhost:8080/api/players/{uuid}/kick" \
+curl -X POST "http://localhost:8080/api/v1/players/{uuid}/kick" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"reason":"Testing"}' | jq
@@ -942,7 +1337,7 @@ curl -X POST "http://localhost:8080/api/players/{uuid}/kick" \
 
 **Send Broadcast Message:**
 ```bash
-curl -X POST http://localhost:8080/api/broadcast/message \
+curl -X POST http://localhost:8080/api/v1/broadcast/message \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"message":"Server maintenance starting soon!","color":"#FFFF00"}' | jq
@@ -950,7 +1345,7 @@ curl -X POST http://localhost:8080/api/broadcast/message \
 
 **Send Title:**
 ```bash
-curl -X POST http://localhost:8080/api/broadcast/title \
+curl -X POST http://localhost:8080/api/v1/broadcast/title \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Welcome!","subtitle":"Enjoy your stay","fadeIn":1,"stay":3,"fadeOut":1}' | jq
@@ -958,10 +1353,38 @@ curl -X POST http://localhost:8080/api/broadcast/title \
 
 **Play Sound:**
 ```bash
-curl -X POST http://localhost:8080/api/broadcast/sound \
+curl -X POST http://localhost:8080/api/v1/broadcast/sound \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"sound":"ENTITY_PLAYER_LEVELUP","volume":1.0,"pitch":1.0}' | jq
+```
+
+**List Log Files (v2.0.0):**
+```bash
+curl http://localhost:8080/api/v1/logs/files \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+**Search Logs (v2.0.0):**
+```bash
+curl -X POST http://localhost:8080/api/v1/logs/search \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"ERROR","limit":50}' | jq
+```
+
+**List Users (v2.0.0):**
+```bash
+curl http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+**Create User (v2.0.0):**
+```bash
+curl -X POST http://localhost:8080/api/v1/users \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"newuser","password":"SecurePass123!"}' | jq
 ```
 
 ## 🐛 Troubleshooting
@@ -981,7 +1404,7 @@ curl -X POST http://localhost:8080/api/broadcast/sound \
 **Database errors:**
 - Ensure plugin folder has write permissions
 - Check SQLite JDBC driver is loaded
-- Review `plugins/ServerAdminPanel/players.db`
+- Review `plugins/PaperPanel/players.db`
 
 ### Frontend Issues
 
@@ -1016,34 +1439,59 @@ npm run dev
 
 ## 🗺 Roadmap
 
-### ✅ Completed
+### ✅ v1.0.0 - Initial Release
 
-- **Phase 1:** Backend Core
-  - Javalin web server
-  - JWT authentication
-  - RESTful API
-  - WebSocket console
+- Backend Core (Javalin, JWT, RESTful API, WebSocket)
+- React Frontend (TailwindCSS, real-time dashboard, live console)
+- Advanced Features (player management, server control, world management, SQLite)
+- WebSocket auto-reconnect, broadcast messaging
 
-- **Phase 2:** React Frontend
-  - Modern UI with TailwindCSS
-  - Real-time dashboard
-  - Live console
-  - Plugin management
+### ✅ v2.0.0 - TypeScript & Architecture Upgrade (November 2025)
 
-- **Phase 3:** Advanced Features
-  - Player management with stats
-  - Server control operations
-  - World management tools
-  - SQLite database integration
+- **🎯 Full TypeScript Migration**
+  - All React components migrated to TypeScript
+  - Complete type safety across frontend
+  - Type definitions for all API responses
+  - Proper event handler typing
 
-- **Phase 4:** WebSocket & Broadcast System
-  - WebSocket auto-reconnect with exponential backoff
-  - Connection status indicators
-  - Message queuing during disconnection
-  - Broadcast messaging (chat, titles, action bars, sounds)
-  - Quick action templates
+- **📋 Structured Audit Logging**
+  - Daily-rotated log files (audit, security, API)
+  - 7-day automatic retention
+  - 10MB file size limits
+  - Separate logs for different concerns
 
-### 🔮 Future Enhancements
+- **🔄 API Versioning**
+  - All endpoints moved to `/api/v1/*`
+  - Standardized response format
+  - ApiResponse utility class
+  - Consistent error handling
+
+- **📝 Log Viewer System**
+  - View all server logs in web interface
+  - Real-time log streaming (WebSocket ready)
+  - Search across multiple logs (200 result limit)
+  - Download logs for offline analysis
+  - File metadata display
+
+- **👥 User Management**
+  - Create/delete admin users via UI
+  - Password change with validation
+  - Role-based permissions
+  - Admin/user indicators
+
+- **🎨 UX Enhancements**
+  - Skeleton loading components
+  - Improved error messages
+  - Better loading states
+  - Enhanced visual feedback
+
+- **🔧 Build System**
+  - Automated Maven build process
+  - Single `mvn package` command
+  - Annotation processing for type generation
+  - Frontend/backend bundled in JAR
+
+### 🔮 v2.1.0 - Performance & Monitoring (Planned)
 
 - **Performance Monitoring**
   - TPS history graphs
@@ -1128,9 +1576,11 @@ Contributions are welcome! Please:
 
 <div align="center">
 
-**Server Admin Panel v1.0.0**
+**PaperPanel v2.0.0**
 
 Made with ❤️ for Minecraft Server Administrators
+
+TypeScript • Audit Logging • API Versioning • Log Viewer
 
 [Report Bug](https://github.com/aerohdev/Minecraft-Admin-WebApp/issues) •
 [Request Feature](https://github.com/aerohdev/Minecraft-Admin-WebApp/issues) •

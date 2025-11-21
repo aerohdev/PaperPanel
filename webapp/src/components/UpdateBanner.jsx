@@ -231,7 +231,7 @@ function InstallConfirmModal({ onClose, onInstall, version, loading }) {
 
           <div className="p-4 bg-red-500/10 border border-red-500 rounded-lg">
             <p className="text-red-400 text-sm font-medium">
-              ⚠️ You will be disconnected from the admin panel during restart.
+              ⚠️ You will be disconnected from PaperPanel during restart.
               Please reconnect after the server is back online.
             </p>
           </div>

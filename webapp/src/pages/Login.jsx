@@ -32,7 +32,7 @@ export default function Login() {
         <div className="flex items-center justify-center mb-8">
           <Server className="w-12 h-12 text-blue-500 mr-3" />
           <div>
-            <h1 className="text-3xl font-bold text-white">Admin Panel</h1>
+            <h1 className="text-3xl font-bold text-white">PaperPanel</h1>
             <p className="text-gray-400 text-sm">Server Management</p>
           </div>
         </div>

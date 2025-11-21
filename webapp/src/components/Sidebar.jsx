@@ -20,7 +20,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <Server className="w-8 h-8 text-blue-500" />
           <div>
-            <h1 className="text-xl font-bold text-white">Admin Panel</h1>
+            <h1 className="text-xl font-bold text-white">PaperPanel</h1>
             <p className="text-xs text-gray-400">Server Management</p>
           </div>
         </div>
@@ -52,7 +52,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-dark-border">
         <div className="text-xs text-gray-500 text-center">
-          <p>Server Admin Panel v1.3.1</p>
+          <p>PaperPanel v2.0.0</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

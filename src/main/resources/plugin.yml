@@ -1,4 +1,4 @@
-name: ServerAdminPanel
+name: PaperPanel
 version: '2.0.0'
 main: de.kaicraft.adminpanel.ServerAdminPanelPlugin
 api-version: '1.21'
@@ -7,16 +7,16 @@ description: Web-based admin panel for Minecraft Paper servers
 website: https://github.com/aerohdev/Minecraft-Admin-WebApp
 
 commands:
-  adminpanel:
-    description: Server Admin Panel commands
-    usage: /adminpanel [reload|status|resetpassword]
-    aliases: [ap, panel]
-    permission: adminpanel.use
+  paperpanel:
+    description: PaperPanel commands
+    usage: /paperpanel [reload|status|resetpassword]
+    aliases: [pp, panel]
+    permission: paperpanel.use
 
 permissions:
-  adminpanel.use:
-    description: Allows use of the admin panel plugin
+  paperpanel.use:
+    description: Allows use of PaperPanel
     default: op
-  adminpanel.webaccess:
+  paperpanel.webaccess:
     description: Allows access to the web panel
     default: op
