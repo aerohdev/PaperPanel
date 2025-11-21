@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     const response = await client.post('/auth/login', { username, password });
+    // Response is already unwrapped by interceptor: { token, username }
     const { token, username: returnedUsername } = response.data;
 
     localStorage.setItem('token', token);

@@ -52,7 +52,7 @@ public class AuthAPI {
             if (token != null) {
                 plugin.getAuditLogger().logSecurityEvent(username, "login", true);
                 AuthResponse authResponse = new AuthResponse(token, username);
-                ctx.status(200).json(ApiResponse.success("auth", authResponse));
+                ctx.status(200).json(ApiResponse.success(authResponse));
             } else {
                 plugin.getAuditLogger().logSecurityEvent(username, "login attempt", false);
                 ctx.status(401).json(ApiResponse.error("Invalid username or password", "Unauthorized"));

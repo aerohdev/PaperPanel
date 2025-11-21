@@ -26,13 +26,19 @@ client.interceptors.request.use(
 // Handle 401 responses (unauthorized) and unwrap API responses
 client.interceptors.response.use(
   (response) => {
-    // Auto-unwrap successful API responses: { success: true, data: {...} } -> {...}
-    if (response.data && response.data.success && response.data.data !== undefined) {
-      return { ...response, data: response.data.data };
-    }
-    if (response.data && response.data.success && response.data.stats !== undefined) {
-      // Handle legacy "stats" key from DashboardAPI
-      return { ...response, data: response.data.stats };
+    // Auto-unwrap successful API responses
+    if (response.data && response.data.success) {
+      // Extract the data from the response, excluding 'success' and 'message'
+      const { success, message, ...data } = response.data;
+      
+      // If there's only one key left, unwrap it
+      const keys = Object.keys(data);
+      if (keys.length === 1) {
+        return { ...response, data: data[keys[0]] };
+      }
+      
+      // Otherwise return all data keys
+      return { ...response, data };
     }
     return response;
   },
