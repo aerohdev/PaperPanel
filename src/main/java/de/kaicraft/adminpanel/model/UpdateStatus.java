@@ -11,13 +11,13 @@ public class UpdateStatus {
     private boolean updateDownloaded;
     private String currentVersion;
     private String latestVersion;
-    private int latestBuild;
+    private String latestBuild;
     private String downloadUrl;
     private long lastCheck;
     private boolean needsCheck;
     
     public UpdateStatus(boolean updateAvailable, boolean updateDownloaded, String currentVersion,
-                       String latestVersion, int latestBuild, String downloadUrl,
+                       String latestVersion, String latestBuild, String downloadUrl,
                        long lastCheck, boolean needsCheck) {
         this.updateAvailable = updateAvailable;
         this.updateDownloaded = updateDownloaded;
@@ -34,7 +34,7 @@ public class UpdateStatus {
     public boolean isUpdateDownloaded() { return updateDownloaded; }
     public String getCurrentVersion() { return currentVersion; }
     public String getLatestVersion() { return latestVersion; }
-    public int getLatestBuild() { return latestBuild; }
+    public String getLatestBuild() { return latestBuild; }
     public String getDownloadUrl() { return downloadUrl; }
     public long getLastCheck() { return lastCheck; }
     public boolean isNeedsCheck() { return needsCheck; }

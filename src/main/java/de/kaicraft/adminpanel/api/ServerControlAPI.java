@@ -7,6 +7,7 @@ import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**

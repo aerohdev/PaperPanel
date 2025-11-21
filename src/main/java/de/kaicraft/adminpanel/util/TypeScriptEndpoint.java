@@ -13,17 +13,22 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface TypeScriptEndpoint {
     /**
-     * The API endpoint path (e.g., "/api/v1/dashboard/stats")
+     * The API endpoint path (e.g., "/api/v1/dashboard/stats" or "GET /api/v1/dashboard/stats")
      */
     String path();
     
     /**
      * The HTTP method (GET, POST, PUT, DELETE, etc.)
      */
-    String method();
+    String method() default "";
     
     /**
      * Optional description of the endpoint
      */
     String description() default "";
+    
+    /**
+     * Optional TypeScript response type specification
+     */
+    String responseType() default "";
 }

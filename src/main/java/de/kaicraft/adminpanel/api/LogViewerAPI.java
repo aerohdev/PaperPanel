@@ -155,10 +155,7 @@ public class LogViewerAPI {
                     for (int i = 0; i < lines.size() && matches.size() < limit; i++) {
                         String line = lines.get(i);
                         if (line.toLowerCase().contains(searchTerm)) {
-                            LogMatch match = new LogMatch();
-                            match.setLineNumber(i + 1);
-                            match.setLine(line);
-                            match.setFile(file.getFileName().toString());
+                            LogMatch match = new LogMatch(i + 1, line, file.getFileName().toString());
                             matches.add(match);
                         }
                     }
@@ -212,33 +209,33 @@ public class LogViewerAPI {
      */
     private LogFileInfo createLogFileInfo(Path path) {
         try {
-            LogFileInfo info = new LogFileInfo();
-            info.setName(path.getFileName().toString());
+            String name = path.getFileName().toString();
             
             // Determine log type from filename
-            String filename = path.getFileName().toString().toLowerCase();
+            String filename = name.toLowerCase();
+            String type;
             if (filename.contains("audit")) {
-                info.setType("audit");
+                type = "audit";
             } else if (filename.contains("security")) {
-                info.setType("security");
+                type = "security";
             } else if (filename.contains("api")) {
-                info.setType("api");
+                type = "api";
             } else {
-                info.setType("server");
+                type = "server";
             }
             
-            info.setSize(Files.size(path));
-            info.setModified(Files.getLastModifiedTime(path).toMillis());
+            long size = Files.size(path);
+            long modified = Files.getLastModifiedTime(path).toMillis();
             
             // Count lines (optional, can be slow for large files)
+            int lines = 0;
             try {
-                long lineCount = Files.lines(path).count();
-                info.setLines((int) lineCount);
+                lines = (int) Files.lines(path).count();
             } catch (Exception e) {
                 // Skip line count if it fails
             }
             
-            return info;
+            return new LogFileInfo(name, type, size, modified, lines);
         } catch (IOException e) {
             plugin.getLogger().warning("Failed to get info for log file " + path.getFileName() + ": " + e.getMessage());
             return null;
