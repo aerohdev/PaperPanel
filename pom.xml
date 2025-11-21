@@ -100,34 +100,6 @@
                         <arg>-Xlint:unchecked</arg>
                     </compilerArgs>
                 </configuration>
-                <executions>
-                    <!-- First execution: annotation processing -->
-                    <execution>
-                        <id>annotation-processing</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <proc>only</proc>
-                            <compilerArgs>
-                                <arg>-processor</arg>
-                                <arg>de.kaicraft.adminpanel.util.TypeScriptGenerator</arg>
-                            </compilerArgs>
-                        </configuration>
-                    </execution>
-                    <!-- Second execution: actual compilation -->
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <proc>none</proc>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <!-- Frontend build with exec plugin -->
