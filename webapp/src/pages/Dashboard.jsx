@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
 import client from '../api/client';
 import { Activity, Users, HardDrive, Clock, Server, Boxes, RefreshCw } from 'lucide-react';
 
