@@ -151,6 +151,7 @@ public class WebServer {
         app.get("/api/worlds", worldAPI::getWorlds);
         app.get("/api/worlds/{name}", worldAPI::getWorld);
         app.post("/api/worlds/{name}/settings", worldAPI::updateWorldSettings);
+        app.post("/api/worlds/bulk/settings", worldAPI::updateAllWorldSettings); // ← NEU
 
         // Broadcast routes
         app.post("/api/broadcast/message", broadcastAPI::sendChatMessage);
