@@ -25,3 +25,26 @@ security:
   enable-cors: true
   # Rate limiting per IP (requests per minute)
   rate-limit: 60
+
+logging:
+  # Log level: INFO, WARNING, SEVERE, FINE, FINER, FINEST
+  level: INFO
+  # Print full stack traces for exceptions (useful for debugging)
+  print-stack-traces: false
+  # Enable file logging to plugins/ServerAdminPanel/logs/
+  file-logging-enabled: true
+  # Log rotation settings
+  rotation:
+    # Rotation type: daily (currently only daily is supported)
+    type: daily
+    # How many days to keep old log files
+    retention-days: 7
+  # Maximum file size limits before rotation (in MB)
+  file-size-limits:
+    audit-mb: 10
+    security-mb: 10
+    api-mb: 10
+    # Allow different limits per log type
+    configurable: true
+  # Buffer size for file writing (in bytes)
+  buffer-size: 8192

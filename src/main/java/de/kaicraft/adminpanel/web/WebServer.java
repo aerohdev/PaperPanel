@@ -106,87 +106,87 @@ public class WebServer {
      */
     private void setupRoutes() {
         // Health check endpoint (no auth required)
-        app.get("/api/health", this::healthCheck);
+        app.get("/api/v1/health", this::healthCheck);
 
         // Authentication routes (no auth required for login)
-        app.post("/api/auth/login", authAPI::login);
+        app.post("/api/v1/auth/login", authAPI::login);
 
-        // Apply authentication middleware to all /api/* routes except login
-        app.before("/api/*", authMiddleware.asHandler());
+        // Apply authentication middleware to all /api/v1/* routes except login
+        app.before("/api/v1/*", authMiddleware.asHandler());
 
         // Authentication routes (with auth)
-        app.post("/api/auth/logout", authAPI::logout);
-        app.get("/api/auth/verify", authAPI::verify);
-        app.get("/api/auth/security-status", authAPI::getSecurityStatus);
+        app.post("/api/v1/auth/logout", authAPI::logout);
+        app.get("/api/v1/auth/verify", authAPI::verify);
+        app.get("/api/v1/auth/security-status", authAPI::getSecurityStatus);
 
         // Dashboard routes
-        app.get("/api/dashboard/stats", dashboardAPI::getStats);
-        app.get("/api/dashboard/update-status", dashboardAPI::getUpdateStatus);
-        app.post("/api/dashboard/check-updates", dashboardAPI::checkForUpdates);
-        app.post("/api/dashboard/download-update", dashboardAPI::downloadUpdate);
-        app.post("/api/dashboard/install-update", dashboardAPI::installUpdate);
+        app.get("/api/v1/dashboard/stats", dashboardAPI::getStats);
+        app.get("/api/v1/dashboard/update-status", dashboardAPI::getUpdateStatus);
+        app.post("/api/v1/dashboard/check-updates", dashboardAPI::checkForUpdates);
+        app.post("/api/v1/dashboard/download-update", dashboardAPI::downloadUpdate);
+        app.post("/api/v1/dashboard/install-update", dashboardAPI::installUpdate);
 
         // Console routes
-        app.get("/api/console/history", consoleAPI::getHistory);
-        app.post("/api/console/command", consoleAPI::executeCommand);
-        app.post("/api/console/clear", consoleAPI::clearHistory);
+        app.get("/api/v1/console/history", consoleAPI::getHistory);
+        app.post("/api/v1/console/command", consoleAPI::executeCommand);
+        app.post("/api/v1/console/clear", consoleAPI::clearHistory);
 
         // Plugin routes
-        app.get("/api/plugins", pluginAPI::getPlugins);
-        app.get("/api/plugins/{name}", pluginAPI::getPlugin);
-        app.post("/api/plugins/{name}/enable", pluginAPI::enablePlugin);
-        app.post("/api/plugins/{name}/disable", pluginAPI::disablePlugin);
-        app.post("/api/plugins/{name}/reload", pluginAPI::reloadPlugin);
+        app.get("/api/v1/plugins", pluginAPI::getPlugins);
+        app.get("/api/v1/plugins/{name}", pluginAPI::getPlugin);
+        app.post("/api/v1/plugins/{name}/enable", pluginAPI::enablePlugin);
+        app.post("/api/v1/plugins/{name}/disable", pluginAPI::disablePlugin);
+        app.post("/api/v1/plugins/{name}/reload", pluginAPI::reloadPlugin);
 
         // Player routes
-        app.get("/api/players", playerAPI::getPlayers);
-        app.get("/api/players/{uuid}", playerAPI::getPlayer);
-        app.post("/api/players/{uuid}/kick", playerAPI::kickPlayer);
-        app.post("/api/players/{uuid}/message", playerAPI::messagePlayer);
+        app.get("/api/v1/players", playerAPI::getPlayers);
+        app.get("/api/v1/players/{uuid}", playerAPI::getPlayer);
+        app.post("/api/v1/players/{uuid}/kick", playerAPI::kickPlayer);
+        app.post("/api/v1/players/{uuid}/message", playerAPI::messagePlayer);
 
         // Server control routes
-        app.post("/api/server/restart", serverControlAPI::scheduleRestart);
-        app.post("/api/server/stop", serverControlAPI::stopServer);
-        app.post("/api/server/save-all", serverControlAPI::saveAll);
-        app.post("/api/server/weather/{world}/{type}", serverControlAPI::setWeather);
-        app.post("/api/server/time/{world}/{time}", serverControlAPI::setTime);
+        app.post("/api/v1/server/restart", serverControlAPI::scheduleRestart);
+        app.post("/api/v1/server/stop", serverControlAPI::stopServer);
+        app.post("/api/v1/server/save-all", serverControlAPI::saveAll);
+        app.post("/api/v1/server/weather/{world}/{type}", serverControlAPI::setWeather);
+        app.post("/api/v1/server/time/{world}/{time}", serverControlAPI::setTime);
 
         // World routes
-        app.get("/api/worlds", worldAPI::getWorlds);
-        app.get("/api/worlds/{name}", worldAPI::getWorld);
-        app.post("/api/worlds/{name}/settings", worldAPI::updateWorldSettings);
-        app.post("/api/worlds/bulk/settings", worldAPI::updateAllWorldSettings); // ← NEU
+        app.get("/api/v1/worlds", worldAPI::getWorlds);
+        app.get("/api/v1/worlds/{name}", worldAPI::getWorld);
+        app.post("/api/v1/worlds/{name}/settings", worldAPI::updateWorldSettings);
+        app.post("/api/v1/worlds/bulk/settings", worldAPI::updateAllWorldSettings);
 
         // Broadcast routes
-        app.post("/api/broadcast/message", broadcastAPI::sendChatMessage);
-        app.post("/api/broadcast/title", broadcastAPI::sendTitle);
-        app.post("/api/broadcast/actionbar", broadcastAPI::sendActionBar);
-        app.post("/api/broadcast/sound", broadcastAPI::playSound);
+        app.post("/api/v1/broadcast/message", broadcastAPI::sendChatMessage);
+        app.post("/api/v1/broadcast/title", broadcastAPI::sendTitle);
+        app.post("/api/v1/broadcast/actionbar", broadcastAPI::sendActionBar);
+        app.post("/api/v1/broadcast/sound", broadcastAPI::playSound);
 
         // WebSocket route for live console
         app.ws("/ws/console", webSocketHandler.configure());
 
-        // API info endpoint (moved from root)
-        app.get("/api/info", ctx -> {
+        // API info endpoint
+        app.get("/api/v1/info", ctx -> {
             ctx.json(Map.of(
                     "name", "Server Admin Panel",
                     "version", plugin.getPluginMeta().getVersion(),
                     "status", "running",
                     "endpoints", Map.of(
-                            "health", "/api/health",
-                            "login", "POST /api/auth/login",
-                            "dashboard", "/api/dashboard/stats",
+                            "health", "/api/v1/health",
+                            "login", "POST /api/v1/auth/login",
+                            "dashboard", "/api/v1/dashboard/stats",
                             "console", "/ws/console",
-                            "plugins", "/api/plugins"
+                            "plugins", "/api/v1/plugins"
                     )
             ));
         });
 
         // User management routes
-        app.get("/api/users", userManagementAPI::getUsers);
-        app.post("/api/users", userManagementAPI::createUser);
-        app.put("/api/users/{username}/password", userManagementAPI::changePassword);
-        app.delete("/api/users/{username}", userManagementAPI::deleteUser);
+        app.get("/api/v1/users", userManagementAPI::getUsers);
+        app.post("/api/v1/users", userManagementAPI::createUser);
+        app.put("/api/v1/users/{username}/password", userManagementAPI::changePassword);
+        app.delete("/api/v1/users/{username}", userManagementAPI::deleteUser);
     }
 
     /**
@@ -198,7 +198,7 @@ public class WebServer {
             String path = ctx.path();
 
             // If it's an API or WebSocket request, return JSON error
-            if (path.startsWith("/api/") || path.startsWith("/ws/")) {
+            if (path.startsWith("/api/v1/") || path.startsWith("/ws/")) {
                 ctx.json(Map.of(
                         "success", false,
                         "error", "Not Found",

@@ -1,6 +1,8 @@
 package de.kaicraft.adminpanel.api;
 
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import io.papermc.paper.plugin.configuration.PluginMeta;
 import org.bukkit.Bukkit;
@@ -23,6 +25,7 @@ public class PluginAPI {
      * GET /api/plugins
      * Get list of all plugins
      */
+    @TypeScriptEndpoint(path = "GET /api/v1/plugins", responseType = "{ plugins: PluginInfo[], total: number }")
     public void getPlugins(Context ctx) {
         try {
             Plugin[] plugins = Bukkit.getPluginManager().getPlugins();
@@ -56,18 +59,13 @@ public class PluginAPI {
             // Sort by name
             pluginList.sort(Comparator.comparing(p -> (String) p.get("name")));
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "plugins", pluginList,
-                    "total", pluginList.size()
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("plugins", pluginList);
+            data.put("total", pluginList.size());
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting plugin list: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve plugin list"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/plugins", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve plugin list"));
         }
     }
 
@@ -75,17 +73,14 @@ public class PluginAPI {
      * GET /api/plugins/{name}
      * Get detailed information about a specific plugin
      */
+    @TypeScriptEndpoint(path = "GET /api/v1/plugins/{name}", responseType = "{ plugin: PluginInfo }")
     public void getPlugin(Context ctx) {
         try {
             String pluginName = ctx.pathParam("name");
             Plugin p = Bukkit.getPluginManager().getPlugin(pluginName);
 
             if (p == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "Plugin '" + pluginName + "' not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("Plugin '" + pluginName + "' not found"));
                 return;
             }
 
@@ -111,17 +106,10 @@ public class PluginAPI {
             // Get permissions - PluginMeta doesn't expose permissions
             pluginInfo.put("permissions", Collections.emptyList());
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "plugin", pluginInfo
-            ));
+            ctx.status(200).json(ApiResponse.success("plugin", pluginInfo));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting plugin info: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve plugin information"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/plugins/{name}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve plugin information"));
         }
     }
 
@@ -129,49 +117,37 @@ public class PluginAPI {
      * POST /api/plugins/{name}/enable
      * Enable a plugin
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/plugins/{name}/enable", responseType = "{ message: string, plugin: string }")
     public void enablePlugin(Context ctx) {
         try {
             String pluginName = ctx.pathParam("name");
             Plugin p = Bukkit.getPluginManager().getPlugin(pluginName);
 
             if (p == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "Plugin '" + pluginName + "' not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("Plugin '" + pluginName + "' not found"));
                 return;
             }
 
             if (p.isEnabled()) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Plugin is already enabled"
-                ));
+                ctx.status(400).json(ApiResponse.error("Plugin is already enabled"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' enabling plugin: " + pluginName);
+            plugin.getAuditLogger().logUserAction(username, "enable-plugin", pluginName);
 
             // Enable plugin on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Bukkit.getPluginManager().enablePlugin(p);
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Plugin '" + pluginName + "' enabled",
-                    "plugin", pluginName
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Plugin '" + pluginName + "' enabled");
+            data.put("plugin", pluginName);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error enabling plugin: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to enable plugin"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/plugins/{name}/enable", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to enable plugin"));
         }
     }
 
@@ -179,6 +155,7 @@ public class PluginAPI {
      * POST /api/plugins/{name}/disable
      * Disable a plugin
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/plugins/{name}/disable", responseType = "{ message: string, plugin: string }")
     public void disablePlugin(Context ctx) {
         try {
             String pluginName = ctx.pathParam("name");
@@ -194,44 +171,31 @@ public class PluginAPI {
             }
 
             if (!p.isEnabled()) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Plugin is already disabled"
-                ));
+                ctx.status(400).json(ApiResponse.error("Plugin is already disabled"));
                 return;
             }
 
             // Prevent disabling self
             if (p.getName().equals(plugin.getName())) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Cannot disable ServerAdminPanel itself"
-                ));
+                ctx.status(400).json(ApiResponse.error("Cannot disable ServerAdminPanel itself"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' disabling plugin: " + pluginName);
+            plugin.getAuditLogger().logUserAction(username, "disable-plugin", pluginName);
 
             // Disable plugin on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Bukkit.getPluginManager().disablePlugin(p);
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Plugin '" + pluginName + "' disabled",
-                    "plugin", pluginName
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Plugin '" + pluginName + "' disabled");
+            data.put("plugin", pluginName);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error disabling plugin: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to disable plugin"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/plugins/{name}/disable", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to disable plugin"));
         }
     }
 
@@ -239,40 +203,32 @@ public class PluginAPI {
      * POST /api/plugins/{name}/reload
      * Reload a plugin's configuration
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/plugins/{name}/reload", responseType = "{ message: string, plugin: string }")
     public void reloadPlugin(Context ctx) {
         try {
             String pluginName = ctx.pathParam("name");
             Plugin p = Bukkit.getPluginManager().getPlugin(pluginName);
 
             if (p == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "Plugin '" + pluginName + "' not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("Plugin '" + pluginName + "' not found"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' reloading plugin config: " + pluginName);
+            plugin.getAuditLogger().logUserAction(username, "reload-plugin", pluginName);
 
             // Reload config on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 p.reloadConfig();
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Plugin '" + pluginName + "' configuration reloaded",
-                    "plugin", pluginName
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Plugin '" + pluginName + "' configuration reloaded");
+            data.put("plugin", pluginName);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error reloading plugin config: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to reload plugin configuration"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/plugins/{name}/reload", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to reload plugin configuration"));
         }
     }
 }

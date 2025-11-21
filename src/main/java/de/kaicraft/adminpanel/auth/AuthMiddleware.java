@@ -23,7 +23,7 @@ public class AuthMiddleware {
      */
     public void handle(Context ctx) {
         // Skip authentication for login endpoint
-        if (ctx.path().equals("/api/auth/login")) {
+        if (ctx.path().equals("/api/v1/auth/login")) {
             return;
         }
 
@@ -36,7 +36,7 @@ public class AuthMiddleware {
                     "error", "Unauthorized",
                     "message", "Missing or invalid Authorization header"
             ));
-            ctx.skipRemainingHandlers(); // ← WICHTIG: Stoppe weitere Handler
+            ctx.skipRemainingHandlers();
             return;
         }
 
@@ -51,7 +51,7 @@ public class AuthMiddleware {
                     "error", "Unauthorized",
                     "message", "Invalid or expired token"
             ));
-            ctx.skipRemainingHandlers(); // ← WICHTIG: Stoppe weitere Handler
+            ctx.skipRemainingHandlers();
             return;
         }
 
@@ -59,8 +59,8 @@ public class AuthMiddleware {
         ctx.attribute("username", username);
         ctx.attribute("token", token);
         
-        // Log successful auth (optional, für debugging)
-        plugin.getLogger().fine("Authenticated request from user: " + username);
+        // Log successful auth
+        plugin.getAuditLogger().logApiInfo(ctx.path(), "Authenticated request from user: " + username);
     }
 
     /**

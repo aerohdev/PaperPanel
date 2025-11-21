@@ -1,6 +1,8 @@
 package de.kaicraft.adminpanel.api;
 
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -21,22 +23,19 @@ public class ServerControlAPI {
      * POST /api/server/restart
      * Schedule a server restart
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/server/restart", responseType = "{ message: string, delay: number }")
     public void scheduleRestart(Context ctx) {
         try {
             String delayParam = ctx.queryParam("delay");
             int delay = Integer.parseInt(delayParam != null ? delayParam : "60");
 
             if (delay < 10) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Delay must be at least 10 seconds"
-                ));
+                ctx.status(400).json(ApiResponse.error("Delay must be at least 10 seconds"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' scheduled restart in " + delay + " seconds");
+            plugin.getAuditLogger().logSecurityEvent(username, "schedule-restart (" + delay + "s)", true);
 
             // Schedule warnings
             int[] warnings = {300, 60, 30, 10, 5, 3, 2, 1};
@@ -63,24 +62,15 @@ public class ServerControlAPI {
                 Bukkit.shutdown();
             }, delay * 20L);
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Server restart scheduled",
-                    "delay", delay
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Server restart scheduled");
+            data.put("delay", delay);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (NumberFormatException e) {
-            ctx.status(400).json(Map.of(
-                    "success", false,
-                    "error", "Bad Request",
-                    "message", "Invalid delay value"
-            ));
+            ctx.status(400).json(ApiResponse.error("Invalid delay value"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error scheduling restart: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to schedule restart"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/server/restart", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to schedule restart"));
         }
     }
 
@@ -88,15 +78,13 @@ public class ServerControlAPI {
      * POST /api/server/stop
      * Stop the server immediately
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/server/stop", responseType = "{ message: string }")
     public void stopServer(Context ctx) {
         try {
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' stopped the server");
+            plugin.getAuditLogger().logSecurityEvent(username, "stop-server", true);
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Server stopping..."
-            ));
+            ctx.status(200).json(ApiResponse.successMessage("Server stopping..."));
 
             // Stop server after a short delay to allow response
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -105,12 +93,8 @@ public class ServerControlAPI {
                 Bukkit.shutdown();
             }, 20L);
         } catch (Exception e) {
-            plugin.getLogger().severe("Error stopping server: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to stop server"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/server/stop", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to stop server"));
         }
     }
 
@@ -118,27 +102,21 @@ public class ServerControlAPI {
      * POST /api/server/save-all
      * Save all worlds
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/server/save-all", responseType = "{ message: string }")
     public void saveAll(Context ctx) {
         try {
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' triggered save-all");
+            plugin.getAuditLogger().logUserAction(username, "save-all", "Saving all worlds");
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Bukkit.savePlayers();
                 Bukkit.getWorlds().forEach(World::save);
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "All worlds saved"
-            ));
+            ctx.status(200).json(ApiResponse.successMessage("All worlds saved"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error saving worlds: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to save worlds"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/server/save-all", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to save worlds"));
         }
     }
 
@@ -146,6 +124,7 @@ public class ServerControlAPI {
      * POST /api/server/weather/{world}/{type}
      * Set weather in a world
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/server/weather/{world}/{type}", responseType = "{ message: string, world: string, weather: string }")
     public void setWeather(Context ctx) {
         try {
             String worldName = ctx.pathParam("world");
@@ -154,16 +133,12 @@ public class ServerControlAPI {
             World world = Bukkit.getWorld(worldName);
 
             if (world == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "World not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("World not found"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' set weather to " + weatherType + " in " + worldName);
+            plugin.getAuditLogger().logUserAction(username, "set-weather", worldName + " - " + weatherType);
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 switch (weatherType.toLowerCase()) {
@@ -184,19 +159,14 @@ public class ServerControlAPI {
                 }
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Weather updated",
-                    "world", worldName,
-                    "weather", weatherType
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Weather updated");
+            data.put("world", worldName);
+            data.put("weather", weatherType);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error setting weather: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to set weather"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/server/weather/{world}/{type}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to set weather"));
         }
     }
 
@@ -248,19 +218,59 @@ public class ServerControlAPI {
                 }
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Time updated",
-                    "world", worldName,
-                    "time", timeType
-            ));
+    /**
+     * POST /api/server/time/{world}/{time}
+     * Set time in a world
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/server/time/{world}/{time}", responseType = "{ message: string, world: string, time: string }")
+    public void setTime(Context ctx) {
+        try {
+            String worldName = ctx.pathParam("world");
+            String timeType = ctx.pathParam("time");
+
+            World world = Bukkit.getWorld(worldName);
+
+            if (world == null) {
+                ctx.status(404).json(ApiResponse.error("World not found"));
+                return;
+            }
+
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "set-time", worldName + " - " + timeType);
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                switch (timeType.toLowerCase()) {
+                    case "day":
+                        world.setTime(1000);
+                        break;
+                    case "night":
+                        world.setTime(13000);
+                        break;
+                    case "noon":
+                        world.setTime(6000);
+                        break;
+                    case "midnight":
+                        world.setTime(18000);
+                        break;
+                    default:
+                        // Try to parse as number
+                        try {
+                            long time = Long.parseLong(timeType);
+                            world.setTime(time);
+                        } catch (NumberFormatException ignored) {
+                        }
+                        break;
+                }
+            });
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Time updated");
+            data.put("world", worldName);
+            data.put("time", timeType);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error setting time: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to set time"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/server/time/{world}/{time}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to set time"));
         }
     }
 }

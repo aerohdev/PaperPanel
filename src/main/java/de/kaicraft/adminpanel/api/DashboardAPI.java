@@ -2,7 +2,11 @@ package de.kaicraft.adminpanel.api;
 
 import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.model.DashboardStats;
+import de.kaicraft.adminpanel.model.UpdateStatus;
 import de.kaicraft.adminpanel.update.PaperVersionChecker;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 
@@ -23,68 +27,62 @@ public class DashboardAPI {
     }
 
     /**
-     * GET /api/dashboard/stats
+     * GET /api/v1/dashboard/stats
      * Get server statistics for dashboard
      */
+    @TypeScriptEndpoint(path = "/api/v1/dashboard/stats", method = "GET", description = "Get server statistics")
     public void getStats(Context ctx) {
         try {
-            Map<String, Object> stats = new HashMap<>();
-
             // TPS (Ticks Per Second)
-            double tps = getTPS();
-            stats.put("tps", Math.round(tps * 100.0) / 100.0);
+            double tps = Math.round(getTPS() * 100.0) / 100.0;
 
             // Player counts
-            stats.put("onlinePlayers", Bukkit.getOnlinePlayers().size());
-            stats.put("maxPlayers", Bukkit.getMaxPlayers());
+            int onlinePlayers = Bukkit.getOnlinePlayers().size();
+            int maxPlayers = Bukkit.getMaxPlayers();
 
             // Memory usage
             Runtime runtime = Runtime.getRuntime();
             long usedMemory = runtime.totalMemory() - runtime.freeMemory();
             long maxMemory = runtime.maxMemory();
 
-            Map<String, Object> memory = new HashMap<>();
-            memory.put("used", usedMemory);
-            memory.put("max", maxMemory);
-            memory.put("usedMB", usedMemory / (1024 * 1024));
-            memory.put("maxMB", maxMemory / (1024 * 1024));
-            memory.put("percentage", Math.round((double) usedMemory / maxMemory * 100));
-            stats.put("memory", memory);
+            DashboardStats.MemoryInfo memory = new DashboardStats.MemoryInfo(
+                usedMemory,
+                maxMemory,
+                usedMemory / (1024 * 1024),
+                maxMemory / (1024 * 1024),
+                (int) Math.round((double) usedMemory / maxMemory * 100)
+            );
 
             // Uptime
             long uptime = ManagementFactory.getRuntimeMXBean().getUptime();
-            stats.put("uptime", uptime);
-            stats.put("uptimeFormatted", formatUptime(uptime));
+            String uptimeFormatted = formatUptime(uptime);
 
             // Server version
-            stats.put("version", Bukkit.getVersion());
-            stats.put("bukkitVersion", Bukkit.getBukkitVersion());
+            String version = Bukkit.getVersion();
+            String bukkitVersion = Bukkit.getBukkitVersion();
 
             // World information
-            stats.put("worlds", Bukkit.getWorlds().size());
+            int worlds = Bukkit.getWorlds().size();
 
             // Loaded chunks
             int totalChunks = 0;
             for (org.bukkit.World world : Bukkit.getWorlds()) {
                 totalChunks += world.getLoadedChunks().length;
             }
-            stats.put("loadedChunks", totalChunks);
 
             // Plugin count
-            stats.put("plugins", Bukkit.getPluginManager().getPlugins().length);
+            int plugins = Bukkit.getPluginManager().getPlugins().length;
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "stats", stats
-            ));
+            DashboardStats stats = new DashboardStats(
+                tps, onlinePlayers, maxPlayers, memory, uptime, uptimeFormatted,
+                version, bukkitVersion, worlds, totalChunks, plugins
+            );
+
+            ctx.status(200).json(ApiResponse.success("stats", stats));
+            
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting dashboard stats: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve server statistics"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/dashboard/stats", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve server statistics"));
         }
     }
 
@@ -126,108 +124,102 @@ public class DashboardAPI {
     }
 
     /**
+     * GET /api/v1/dashboard/update-status
      * Get server update status
      */
+    @TypeScriptEndpoint(path = "/api/v1/dashboard/update-status", method = "GET", description = "Get update status")
     public void getUpdateStatus(Context ctx) {
         try {
             PaperVersionChecker checker = plugin.getVersionChecker();
             PaperVersionChecker.UpdateStatus status = checker.getStatus();
             
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("updateAvailable", status.updateAvailable);
-            response.put("updateDownloaded", status.updateDownloaded);
-            response.put("currentVersion", status.currentVersion);
-            response.put("latestVersion", status.latestVersion);
-            response.put("latestBuild", status.latestBuild);
-            response.put("downloadUrl", status.downloadUrl);
-            response.put("lastCheck", status.lastCheck);
-            response.put("needsCheck", status.needsCheck);
+            UpdateStatus updateStatus = new UpdateStatus(
+                status.updateAvailable,
+                status.updateDownloaded,
+                status.currentVersion,
+                status.latestVersion,
+                status.latestBuild,
+                status.downloadUrl,
+                status.lastCheck,
+                status.needsCheck
+            );
             
-            ctx.json(response);
+            ctx.json(ApiResponse.success("updateStatus", updateStatus));
+            
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting update status: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to get update status"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/dashboard/update-status", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to get update status"));
         }
     }
 
     /**
+     * POST /api/v1/dashboard/check-updates
      * Manually check for updates
      */
+    @TypeScriptEndpoint(path = "/api/v1/dashboard/check-updates", method = "POST", description = "Check for updates")
     public void checkForUpdates(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
-            plugin.getLogger().info("User '" + currentUser + "' initiated manual update check");
+            plugin.getAuditLogger().logUserAction(currentUser, "initiated manual update check", "");
             
             PaperVersionChecker checker = plugin.getVersionChecker();
             
             // Start check asynchronously
             checker.checkForUpdates().thenAccept(updateAvailable -> {
-                plugin.getLogger().info("Update check complete. Update available: " + updateAvailable);
+                plugin.getAuditLogger().logApiInfo("POST /api/v1/dashboard/check-updates", 
+                    "Update check complete. Update available: " + updateAvailable);
             });
             
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Update check started"
-            ));
+            ctx.json(ApiResponse.successMessage("Update check started"));
             
         } catch (Exception e) {
-            plugin.getLogger().severe("Error checking for updates: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to check for updates"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/dashboard/check-updates", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to check for updates"));
         }
     }
 
     /**
+     * POST /api/v1/dashboard/download-update
      * Download Paper update
      */
+    @TypeScriptEndpoint(path = "/api/v1/dashboard/download-update", method = "POST", description = "Download update")
     public void downloadUpdate(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
-            plugin.getLogger().warning("User '" + currentUser + "' initiated update download");
+            plugin.getAuditLogger().logUserAction(currentUser, "initiated update download", "");
             
             PaperVersionChecker checker = plugin.getVersionChecker();
             PaperVersionChecker.UpdateStatus status = checker.getStatus();
             
             if (!status.updateAvailable) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", "No update available"
-                ));
+                ctx.status(400).json(ApiResponse.error("No update available"));
                 return;
             }
             
             // Start download asynchronously
             checker.downloadUpdate().thenAccept(result -> {
                 if (result.success) {
-                    plugin.getLogger().info("Update download completed successfully");
+                    plugin.getAuditLogger().logApiInfo("POST /api/v1/dashboard/download-update", 
+                        "Update download completed successfully");
                 } else {
-                    plugin.getLogger().severe("Update download failed: " + result.message);
+                    plugin.getAuditLogger().logApiError("POST /api/v1/dashboard/download-update", 
+                        result.message, null);
                 }
             });
             
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Update download started. Check server logs for progress."
-            ));
+            ctx.json(ApiResponse.successMessage("Update download started. Check server logs for progress."));
             
         } catch (Exception e) {
-            plugin.getLogger().severe("Error starting download: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to start download"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/dashboard/download-update", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to start download"));
         }
     }
 
     /**
+     * POST /api/v1/dashboard/install-update
      * Install Paper update (full workflow)
      */
+    @TypeScriptEndpoint(path = "/api/v1/dashboard/install-update", method = "POST", description = "Install update")
     public void installUpdate(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
@@ -236,39 +228,28 @@ public class DashboardAPI {
             PaperVersionChecker.UpdateStatus status = checker.getStatus();
             
             if (!status.updateDownloaded) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", "Update not downloaded yet"
-                ));
+                ctx.status(400).json(ApiResponse.error("Update not downloaded yet"));
                 return;
             }
             
-            plugin.getLogger().warning("========================================");
-            plugin.getLogger().warning("User '" + currentUser + "' initiated update installation");
-            plugin.getLogger().warning("Full installation workflow starting...");
-            plugin.getLogger().warning("========================================");
+            plugin.getAuditLogger().logSecurityEvent(currentUser, "initiated update installation", true);
             
             // Start installation
             checker.installUpdate().thenAccept(result -> {
                 if (result.success) {
-                    plugin.getLogger().info("Update installation workflow initiated");
+                    plugin.getAuditLogger().logApiInfo("POST /api/v1/dashboard/install-update", 
+                        "Update installation workflow initiated");
                 } else {
-                    plugin.getLogger().severe("Update installation failed: " + result.message);
+                    plugin.getAuditLogger().logApiError("POST /api/v1/dashboard/install-update", 
+                        result.message, null);
                 }
             });
             
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Update installation started. Server will restart in 5 minutes."
-            ));
+            ctx.json(ApiResponse.successMessage("Update installation started. Server will restart in 5 minutes."));
             
         } catch (Exception e) {
-            plugin.getLogger().severe("Error starting installation: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to start installation: " + e.getMessage()
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/dashboard/install-update", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to start installation: " + e.getMessage()));
         }
     }
 }

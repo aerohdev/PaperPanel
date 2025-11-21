@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = '/api';
+const API_URL = '/api/v1';
 
 const client = axios.create({
   baseURL: API_URL,
@@ -23,9 +23,19 @@ client.interceptors.request.use(
   }
 );
 
-// Handle 401 responses (unauthorized)
+// Handle 401 responses (unauthorized) and unwrap API responses
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Auto-unwrap successful API responses: { success: true, data: {...} } -> {...}
+    if (response.data && response.data.success && response.data.data !== undefined) {
+      return { ...response, data: response.data.data };
+    }
+    if (response.data && response.data.success && response.data.stats !== undefined) {
+      // Handle legacy "stats" key from DashboardAPI
+      return { ...response, data: response.data.stats };
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');

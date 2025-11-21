@@ -1,6 +1,8 @@
 package de.kaicraft.adminpanel.api;
 
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -17,6 +19,7 @@ public class WorldAPI {
         this.plugin = plugin;
     }
 
+    @TypeScriptEndpoint(path = "GET /api/v1/worlds", responseType = "{ worlds: WorldInfo[] }")
     public void getWorlds(Context ctx) {
         try {
             // Führe synchron im Hauptthread aus und warte auf Ergebnis
@@ -26,18 +29,14 @@ public class WorldAPI {
                     .collect(Collectors.toList());
             }).get();
             
-            ctx.json(Map.of("success", true, "worlds", worlds));
+            ctx.json(ApiResponse.success("worlds", worlds));
         } catch (InterruptedException | ExecutionException e) {
-            plugin.getLogger().severe("Error getting worlds: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false, 
-                "message", "Failed to retrieve worlds",
-                "error", e.getMessage()
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/worlds", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve worlds"));
         }
     }
 
+    @TypeScriptEndpoint(path = "GET /api/v1/worlds/{name}", responseType = "{ world: WorldInfo }")
     public void getWorld(Context ctx) {
         String worldName = ctx.pathParam("name");
         
@@ -51,27 +50,21 @@ public class WorldAPI {
             }).get();
             
             if (worldInfo == null) {
-                ctx.status(404).json(Map.of(
-                    "success", false,
-                    "message", "World not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("World not found"));
                 return;
             }
             
-            ctx.json(Map.of("success", true, "world", worldInfo));
+            ctx.json(ApiResponse.success("world", worldInfo));
         } catch (InterruptedException | ExecutionException e) {
-            plugin.getLogger().severe("Error getting world: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to retrieve world"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/worlds/{name}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve world"));
         }
     }
 
     /**
      * Update world settings
      */
+    @TypeScriptEndpoint(path = "PUT /api/v1/worlds/{name}/settings", responseType = "{ message: string }")
     public void updateWorldSettings(Context ctx) {
         String worldName = ctx.pathParam("name");
         @SuppressWarnings("unchecked")
@@ -89,35 +82,25 @@ public class WorldAPI {
             }).get();
             
             if (!success) {
-                ctx.status(404).json(Map.of(
-                    "success", false,
-                    "message", "World not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("World not found"));
                 return;
             }
             
             // Log the changes
             String currentUser = (String) ctx.attribute("username");
-            plugin.getLogger().info("User '" + currentUser + "' updated settings for world '" + worldName + "': " + 
-                                   settings.keySet());
+            plugin.getAuditLogger().logUserAction(currentUser, "update-world-settings", worldName + " - " + settings.keySet());
             
-            ctx.json(Map.of(
-                "success", true,
-                "message", "World settings updated successfully"
-            ));
+            ctx.json(ApiResponse.successMessage("World settings updated successfully"));
         } catch (InterruptedException | ExecutionException e) {
-            plugin.getLogger().severe("Error updating world settings: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to update world settings"
-            ));
+            plugin.getAuditLogger().logApiError("PUT /api/v1/worlds/{name}/settings", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to update world settings"));
         }
     }
 
     /**
      * Update settings for all worlds (bulk operation)
      */
+    @TypeScriptEndpoint(path = "PUT /api/v1/worlds/bulk/settings", responseType = "{ message: string, worldsUpdated: number }")
     public void updateAllWorldSettings(Context ctx) {
         @SuppressWarnings("unchecked")
         Map<String, Object> settings = ctx.bodyAsClass(Map.class);
@@ -134,21 +117,15 @@ public class WorldAPI {
             
             // Log the bulk changes
             String currentUser = (String) ctx.attribute("username");
-            plugin.getLogger().info("User '" + currentUser + "' updated settings for all " + updatedCount + 
-                                   " world(s): " + settings.keySet());
+            plugin.getAuditLogger().logUserAction(currentUser, "update-all-worlds", updatedCount + " worlds - " + settings.keySet());
             
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Updated " + updatedCount + " world(s) successfully",
-                "worldsUpdated", updatedCount
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Updated " + updatedCount + " world(s) successfully");
+            data.put("worldsUpdated", updatedCount);
+            ctx.json(ApiResponse.success(data));
         } catch (InterruptedException | ExecutionException e) {
-            plugin.getLogger().severe("Error updating all worlds settings: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to update world settings"
-            ));
+            plugin.getAuditLogger().logApiError("PUT /api/v1/worlds/bulk/settings", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to update world settings"));
         }
     }
 

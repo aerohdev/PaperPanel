@@ -2,6 +2,8 @@ package de.kaicraft.adminpanel.api;
 
 import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,7 +13,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -63,9 +64,10 @@ public class BroadcastAPI {
     }
 
     /**
-     * POST /api/broadcast/message
+     * POST /api/v1/broadcast/message
      * Send chat message to all players
      */
+    @TypeScriptEndpoint(path = "/api/v1/broadcast/message", method = "POST", description = "Send chat message to all online players")
     public void sendChatMessage(Context ctx) {
         try {
             ChatMessageRequest body = gson.fromJson(ctx.body(), ChatMessageRequest.class);
@@ -73,33 +75,32 @@ public class BroadcastAPI {
             String colorHex = body.color != null ? body.color : "#FFFFFF";
 
             if (message == null || message.trim().isEmpty()) {
-                ctx.status(400).json(Map.of("error", "Message is required"));
+                ctx.status(400).json(ApiResponse.error("Message is required"));
                 return;
             }
 
             // Run on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
-                Component component = Component.text(message)
-                        .color(parseColor(colorHex));
-
+                Component component = Component.text(message).color(parseColor(colorHex));
                 Bukkit.getServer().sendMessage(component);
             });
 
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Broadcast sent to " + Bukkit.getOnlinePlayers().size() + " players"
-            ));
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "sent broadcast message", message);
+
+            ctx.json(ApiResponse.successMessage("Broadcast sent to " + Bukkit.getOnlinePlayers().size() + " players"));
 
         } catch (Exception e) {
-            plugin.getLogger().severe("Error sending broadcast: " + e.getMessage());
-            ctx.status(500).json(Map.of("error", "Failed to send broadcast"));
+            plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/message", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to send broadcast"));
         }
     }
 
     /**
-     * POST /api/broadcast/title
+     * POST /api/v1/broadcast/title
      * Send title message to all players
      */
+    @TypeScriptEndpoint(path = "/api/v1/broadcast/title", method = "POST", description = "Send title message to all online players")
     public void sendTitle(Context ctx) {
         try {
             TitleRequest body = gson.fromJson(ctx.body(), TitleRequest.class);
@@ -110,7 +111,7 @@ public class BroadcastAPI {
             int fadeOut = body.fadeOut != null ? body.fadeOut.intValue() : 1;
 
             if (title == null || title.trim().isEmpty()) {
-                ctx.status(400).json(Map.of("error", "Title is required"));
+                ctx.status(400).json(ApiResponse.error("Title is required"));
                 return;
             }
 
@@ -131,28 +132,29 @@ public class BroadcastAPI {
                 }
             });
 
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Title sent to " + Bukkit.getOnlinePlayers().size() + " players"
-            ));
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "sent title broadcast", title);
+
+            ctx.json(ApiResponse.successMessage("Title sent to " + Bukkit.getOnlinePlayers().size() + " players"));
 
         } catch (Exception e) {
-            plugin.getLogger().severe("Error sending title: " + e.getMessage());
-            ctx.status(500).json(Map.of("error", "Failed to send title"));
+            plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/title", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to send title"));
         }
     }
 
     /**
-     * POST /api/broadcast/actionbar
+     * POST /api/v1/broadcast/actionbar
      * Send actionbar message to all players
      */
+    @TypeScriptEndpoint(path = "/api/v1/broadcast/actionbar", method = "POST", description = "Send action bar message to all online players")
     public void sendActionBar(Context ctx) {
         try {
             ActionBarRequest body = gson.fromJson(ctx.body(), ActionBarRequest.class);
             String message = body.message;
 
             if (message == null || message.trim().isEmpty()) {
-                ctx.status(400).json(Map.of("error", "Message is required"));
+                ctx.status(400).json(ApiResponse.error("Message is required"));
                 return;
             }
 
@@ -165,21 +167,22 @@ public class BroadcastAPI {
                 }
             });
 
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Action bar sent to " + Bukkit.getOnlinePlayers().size() + " players"
-            ));
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "sent action bar message", message);
+
+            ctx.json(ApiResponse.successMessage("Action bar sent to " + Bukkit.getOnlinePlayers().size() + " players"));
 
         } catch (Exception e) {
-            plugin.getLogger().severe("Error sending action bar: " + e.getMessage());
-            ctx.status(500).json(Map.of("error", "Failed to send action bar"));
+            plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/actionbar", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to send action bar"));
         }
     }
 
     /**
-     * POST /api/broadcast/sound
+     * POST /api/v1/broadcast/sound
      * Play sound for all players
      */
+    @TypeScriptEndpoint(path = "/api/v1/broadcast/sound", method = "POST", description = "Play sound for all online players")
     public void playSound(Context ctx) {
         try {
             SoundRequest body = gson.fromJson(ctx.body(), SoundRequest.class);
@@ -188,7 +191,7 @@ public class BroadcastAPI {
             float pitch = body.pitch != null ? body.pitch.floatValue() : 1.0f;
 
             if (soundName == null) {
-                ctx.status(400).json(Map.of("error", "Sound name is required"));
+                ctx.status(400).json(ApiResponse.error("Sound name is required"));
                 return;
             }
 
@@ -196,7 +199,7 @@ public class BroadcastAPI {
             try {
                 sound = Sound.valueOf(soundName.toUpperCase());
             } catch (IllegalArgumentException e) {
-                ctx.status(400).json(Map.of("error", "Invalid sound name: " + soundName));
+                ctx.status(400).json(ApiResponse.error("Invalid sound name: " + soundName));
                 return;
             }
 
@@ -207,14 +210,14 @@ public class BroadcastAPI {
                 }
             });
 
-            ctx.json(Map.of(
-                "success", true,
-                "message", "Sound played for " + Bukkit.getOnlinePlayers().size() + " players"
-            ));
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "played sound", soundName);
+
+            ctx.json(ApiResponse.successMessage("Sound played for " + Bukkit.getOnlinePlayers().size() + " players"));
 
         } catch (Exception e) {
-            plugin.getLogger().severe("Error playing sound: " + e.getMessage());
-            ctx.status(500).json(Map.of("error", "Failed to play sound"));
+            plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/sound", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to play sound"));
         }
     }
 

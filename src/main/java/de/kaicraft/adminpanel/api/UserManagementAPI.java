@@ -3,6 +3,8 @@ package de.kaicraft.adminpanel.api;
 import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import de.kaicraft.adminpanel.auth.AuthManager;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 
 import java.util.*;
@@ -32,6 +34,7 @@ public class UserManagementAPI {
     /**
      * Get all users
      */
+    @TypeScriptEndpoint(path = "GET /api/v1/users", responseType = "{ users: UserInfo[] }")
     public void getUsers(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
@@ -46,25 +49,19 @@ public class UserManagementAPI {
                 users.add(user);
             }
             
-            plugin.getLogger().info("User '" + currentUser + "' listed all users (" + users.size() + " total)");
+            plugin.getAuditLogger().logApiInfo("GET /api/v1/users", "User '" + currentUser + "' listed all users (" + users.size() + " total)");
             
-            ctx.json(Map.of(
-                "success", true,
-                "users", users
-            ));
+            ctx.json(ApiResponse.success("users", users));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting users: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to retrieve users"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/users", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve users"));
         }
     }
 
     /**
      * Create a new user
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/users", responseType = "{ message: string }")
     public void createUser(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
@@ -76,57 +73,39 @@ public class UserManagementAPI {
             
             // Validation
             if (username == null || username.trim().isEmpty()) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", "Username is required"
-                ));
+                ctx.status(400).json(ApiResponse.error("Username is required"));
                 return;
             }
             
             if (password == null || password.isEmpty()) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", "Password is required"
-                ));
+                ctx.status(400).json(ApiResponse.error("Password is required"));
                 return;
             }
             
             // Validate password strength
             String passwordError = validatePassword(password);
             if (passwordError != null) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", passwordError
-                ));
+                ctx.status(400).json(ApiResponse.error(passwordError));
                 return;
             }
             
             // Attempt to create user
             if (authManager.addUser(username, password)) {
-                plugin.getLogger().info("User '" + currentUser + "' created new user: '" + username + "'");
-                ctx.json(Map.of(
-                    "success", true,
-                    "message", "User created successfully"
-                ));
+                plugin.getAuditLogger().logUserAction(currentUser, "create-user", username);
+                ctx.json(ApiResponse.successMessage("User created successfully"));
             } else {
-                ctx.status(409).json(Map.of(
-                    "success", false,
-                    "message", "User already exists"
-                ));
+                ctx.status(409).json(ApiResponse.error("User already exists"));
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("Error creating user: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to create user"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/users", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to create user"));
         }
     }
 
     /**
      * Change user password
      */
+    @TypeScriptEndpoint(path = "PUT /api/v1/users/{username}/password", responseType = "{ message: string }")
     public void changePassword(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
@@ -138,10 +117,7 @@ public class UserManagementAPI {
             
             // Validation
             if (newPassword == null || newPassword.isEmpty()) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", "Password is required"
-                ));
+                ctx.status(400).json(ApiResponse.error("Password is required"));
                 return;
             }
             
@@ -155,21 +131,15 @@ public class UserManagementAPI {
                 // Regular user trying to change password
                 if (!isSelfPasswordChange) {
                     // Trying to change someone else's password
-                    plugin.getLogger().warning("User '" + currentUser + "' attempted to change password for '" + targetUsername + "' (denied - not admin)");
-                    ctx.status(403).json(Map.of(
-                        "success", false,
-                        "message", "You can only change your own password"
-                    ));
+                    plugin.getAuditLogger().logSecurityEvent(currentUser, "change-password (denied - not admin)", false);
+                    ctx.status(403).json(ApiResponse.error("You can only change your own password"));
                     return;
                 }
                 
                 if (isTargetDefaultAdmin) {
                     // This should never happen (same as above), but extra safety
-                    plugin.getLogger().warning("User '" + currentUser + "' attempted to change default admin password (denied)");
-                    ctx.status(403).json(Map.of(
-                        "success", false,
-                        "message", "You cannot change the default admin password"
-                    ));
+                    plugin.getAuditLogger().logSecurityEvent(currentUser, "change-default-admin-password (denied)", false);
+                    ctx.status(403).json(ApiResponse.error("You cannot change the default admin password"));
                     return;
                 }
             }
@@ -177,43 +147,31 @@ public class UserManagementAPI {
             // Validate password strength
             String passwordError = validatePassword(newPassword);
             if (passwordError != null) {
-                ctx.status(400).json(Map.of(
-                    "success", false,
-                    "message", passwordError
-                ));
+                ctx.status(400).json(ApiResponse.error(passwordError));
                 return;
             }
             
             // Attempt to change password
             if (authManager.changePassword(targetUsername, newPassword)) {
                 if (isSelfPasswordChange) {
-                    plugin.getLogger().info("User '" + currentUser + "' changed their own password");
+                    plugin.getAuditLogger().logUserAction(currentUser, "change-own-password", "Password changed");
                 } else {
-                    plugin.getLogger().info("Admin '" + currentUser + "' changed password for user: '" + targetUsername + "'");
+                    plugin.getAuditLogger().logSecurityEvent(currentUser, "change-password for " + targetUsername, true);
                 }
-                ctx.json(Map.of(
-                    "success", true,
-                    "message", "Password changed successfully"
-                ));
+                ctx.json(ApiResponse.successMessage("Password changed successfully"));
             } else {
-                ctx.status(404).json(Map.of(
-                    "success", false,
-                    "message", "User not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("User not found"));
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("Error changing password: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to change password"
-            ));
+            plugin.getAuditLogger().logApiError("PUT /api/v1/users/{username}/password", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to change password"));
         }
     }
 
     /**
      * Delete a user
      */
+    @TypeScriptEndpoint(path = "DELETE /api/v1/users/{username}", responseType = "{ message: string }")
     public void deleteUser(Context ctx) {
         try {
             String currentUser = (String) ctx.attribute("username");
@@ -221,52 +179,33 @@ public class UserManagementAPI {
             
             // Prevent self-deletion
             if (targetUsername.equals(currentUser)) {
-                ctx.status(403).json(Map.of(
-                    "success", false,
-                    "message", "You cannot delete your own account"
-                ));
+                ctx.status(403).json(ApiResponse.error("You cannot delete your own account"));
                 return;
             }
             
             // Prevent deletion of last user
             List<String> allUsers = authManager.getAllUsernames();
             if (allUsers.size() <= 1) {
-                ctx.status(403).json(Map.of(
-                    "success", false,
-                    "message", "Cannot delete the last user"
-                ));
+                ctx.status(403).json(ApiResponse.error("Cannot delete the last user"));
                 return;
             }
             
             // Prevent deletion of default admin user
             if (authManager.isDefaultAdmin(targetUsername)) {
-                ctx.status(403).json(Map.of(
-                    "success", false,
-                    "message", "The default admin user cannot be deleted"
-                ));
+                ctx.status(403).json(ApiResponse.error("The default admin user cannot be deleted"));
                 return;
             }
             
             // Attempt to delete user
             if (authManager.removeUser(targetUsername)) {
-                plugin.getLogger().warning("User '" + currentUser + "' deleted user: '" + targetUsername + "'");
-                ctx.json(Map.of(
-                    "success", true,
-                    "message", "User deleted successfully"
-                ));
+                plugin.getAuditLogger().logSecurityEvent(currentUser, "delete-user " + targetUsername, true);
+                ctx.json(ApiResponse.successMessage("User deleted successfully"));
             } else {
-                ctx.status(404).json(Map.of(
-                    "success", false,
-                    "message", "User not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("User not found"));
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("Error deleting user: " + e.getMessage());
-            e.printStackTrace();
-            ctx.status(500).json(Map.of(
-                "success", false,
-                "message", "Failed to delete user"
-            ));
+            plugin.getAuditLogger().logApiError("DELETE /api/v1/users/{username}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to delete user"));
         }
     }
 

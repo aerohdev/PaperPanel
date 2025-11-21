@@ -3,6 +3,8 @@ package de.kaicraft.adminpanel.api;
 import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import de.kaicraft.adminpanel.config.ConfigManager;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -44,6 +46,7 @@ public class ConsoleAPI {
      * GET /api/console/history
      * Get console output history
      */
+    @TypeScriptEndpoint(path = "GET /api/v1/console/history", responseType = "{ lines: string[], total: number }")
     public void getHistory(Context ctx) {
         try {
             // Get optional limit parameter
@@ -60,18 +63,13 @@ public class ConsoleAPI {
                 count++;
             }
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "lines", lines,
-                    "total", consoleHistory.size()
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("lines", lines);
+            data.put("total", consoleHistory.size());
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting console history: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve console history"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/console/history", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve console history"));
         }
     }
 
@@ -79,15 +77,12 @@ public class ConsoleAPI {
      * POST /api/console/command
      * Execute a console command
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/console/command", responseType = "{ message: string, command: string }")
     public void executeCommand(Context ctx) {
         try {
             // Check if command execution is allowed
             if (!config.isCommandExecutionAllowed()) {
-                ctx.status(403).json(Map.of(
-                        "success", false,
-                        "error", "Forbidden",
-                        "message", "Command execution is disabled in configuration"
-                ));
+                ctx.status(403).json(ApiResponse.error("Command execution is disabled in configuration"));
                 return;
             }
 
@@ -100,16 +95,12 @@ public class ConsoleAPI {
 
             // Validate input
             if (command == null || command.trim().isEmpty()) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Command is required"
-                ));
+                ctx.status(400).json(ApiResponse.error("Command is required"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' executing command: " + command);
+            plugin.getAuditLogger().logUserAction(username, "execute-command", command);
 
             // Execute command on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -118,25 +109,20 @@ public class ConsoleAPI {
                     boolean success = Bukkit.dispatchCommand(consoleSender, command);
 
                     if (!success) {
-                        plugin.getLogger().warning("Command execution returned false: " + command);
+                        plugin.getAuditLogger().logApiInfo("POST /api/v1/console/command", "Command returned false: " + command);
                     }
                 } catch (Exception e) {
-                    plugin.getLogger().severe("Error executing command: " + e.getMessage());
+                    plugin.getAuditLogger().logApiError("POST /api/v1/console/command", "Command execution failed", e);
                 }
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Command sent to server",
-                    "command", command
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Command sent to server");
+            data.put("command", command);
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error processing command request: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to execute command"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/console/command", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to execute command"));
         }
     }
 
@@ -144,23 +130,17 @@ public class ConsoleAPI {
      * POST /api/console/clear
      * Clear console history
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/console/clear", responseType = "{ message: string }")
     public void clearHistory(Context ctx) {
         try {
             consoleHistory.clear();
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' cleared console history");
+            plugin.getAuditLogger().logUserAction(username, "clear-console", "Console history cleared");
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Console history cleared"
-            ));
+            ctx.status(200).json(ApiResponse.successMessage("Console history cleared"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error clearing console history: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to clear console history"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/console/clear", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to clear console history"));
         }
     }
 

@@ -9,6 +9,7 @@ import de.kaicraft.adminpanel.database.DatabaseManager;
 import de.kaicraft.adminpanel.stats.PlayerStatsListener;
 import de.kaicraft.adminpanel.stats.PlayerStatsManager;
 import de.kaicraft.adminpanel.update.PaperVersionChecker;
+import de.kaicraft.adminpanel.util.AuditLogger;
 import de.kaicraft.adminpanel.web.WebServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LogEvent;
@@ -32,6 +33,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
     private WebServer webServer;
     private ConsoleAppender consoleAppender;
     private PaperVersionChecker versionChecker;
+    private AuditLogger auditLogger;
 
     @Override
     public void onEnable() {
@@ -41,6 +43,10 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         // Initialize configuration manager
         configManager = new ConfigManager(this);
         getLogger().info("Configuration loaded");
+
+        // Initialize audit logger
+        auditLogger = new AuditLogger(this);
+        getLogger().info("Audit logging system initialized");
 
         // Initialize database
         databaseManager = new DatabaseManager(this);
@@ -92,6 +98,11 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         // Close database connection
         if (databaseManager != null) {
             databaseManager.close();
+        }
+
+        // Close audit logger
+        if (auditLogger != null) {
+            auditLogger.close();
         }
 
         // Remove console appender
@@ -245,5 +256,9 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
 
     public PaperVersionChecker getVersionChecker() {
         return versionChecker;
+    }
+
+    public AuditLogger getAuditLogger() {
+        return auditLogger;
     }
 }

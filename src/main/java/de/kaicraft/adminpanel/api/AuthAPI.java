@@ -3,6 +3,10 @@ package de.kaicraft.adminpanel.api;
 import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import de.kaicraft.adminpanel.auth.AuthManager;
+import de.kaicraft.adminpanel.model.AuthResponse;
+import de.kaicraft.adminpanel.model.SecurityStatus;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 
 import java.util.Map;
@@ -22,9 +26,10 @@ public class AuthAPI {
     }
 
     /**
-     * POST /api/auth/login
+     * POST /api/v1/auth/login
      * Authenticate user and return JWT token
      */
+    @TypeScriptEndpoint(path = "/api/v1/auth/login", method = "POST", description = "Authenticate user")
     public void login(Context ctx) {
         try {
             // Parse request body
@@ -37,11 +42,7 @@ public class AuthAPI {
 
             // Validate input
             if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Username and password are required"
-                ));
+                ctx.status(400).json(ApiResponse.error("Username and password are required"));
                 return;
             }
 
@@ -49,32 +50,24 @@ public class AuthAPI {
             String token = authManager.authenticate(username, password);
 
             if (token != null) {
-                ctx.status(200).json(Map.of(
-                        "success", true,
-                        "token", token,
-                        "username", username
-                ));
+                plugin.getAuditLogger().logSecurityEvent(username, "login", true);
+                AuthResponse authResponse = new AuthResponse(token, username);
+                ctx.status(200).json(ApiResponse.success("auth", authResponse));
             } else {
-                ctx.status(401).json(Map.of(
-                        "success", false,
-                        "error", "Unauthorized",
-                        "message", "Invalid username or password"
-                ));
+                plugin.getAuditLogger().logSecurityEvent(username, "login attempt", false);
+                ctx.status(401).json(ApiResponse.error("Invalid username or password", "Unauthorized"));
             }
         } catch (Exception e) {
-            plugin.getLogger().severe("Error during login: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "An error occurred during login"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/auth/login", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("An error occurred during login"));
         }
     }
 
     /**
-     * POST /api/auth/logout
+     * POST /api/v1/auth/logout
      * Invalidate user's JWT token
      */
+    @TypeScriptEndpoint(path = "/api/v1/auth/logout", method = "POST", description = "Logout user")
     public void logout(Context ctx) {
         try {
             String token = ctx.attribute("token");
@@ -82,27 +75,21 @@ public class AuthAPI {
 
             if (token != null) {
                 authManager.logout(token);
-                plugin.getLogger().info("User '" + username + "' logged out");
+                plugin.getAuditLogger().logSecurityEvent(username, "logout", true);
             }
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Logged out successfully"
-            ));
+            ctx.status(200).json(ApiResponse.successMessage("Logged out successfully"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error during logout: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "An error occurred during logout"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/auth/logout", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("An error occurred during logout"));
         }
     }
 
     /**
-     * GET /api/auth/verify
+     * GET /api/v1/auth/verify
      * Verify if current token is valid
      */
+    @TypeScriptEndpoint(path = "/api/v1/auth/verify", method = "GET", description = "Verify token")
     public void verify(Context ctx) {
         String username = ctx.attribute("username");
         ctx.status(200).json(Map.of(
@@ -113,26 +100,21 @@ public class AuthAPI {
     }
 
     /**
+     * GET /api/v1/auth/security-status
      * Check security status (default password warning)
      */
+    @TypeScriptEndpoint(path = "/api/v1/auth/security-status", method = "GET", description = "Get security status")
     public void getSecurityStatus(Context ctx) {
         try {
             String username = (String) ctx.attribute("username");
             boolean usingDefaultPassword = authManager.isUsingDefaultPassword(username);
-            boolean isDefaultAdmin = authManager.isDefaultAdmin(username);
-
-            ctx.json(Map.of(
-                    "success", true,
-                    "usingDefaultPassword", usingDefaultPassword,
-                    "isDefaultAdmin", isDefaultAdmin,
-                    "username", username
-            ));
+            
+            SecurityStatus status = new SecurityStatus(usingDefaultPassword);
+            ctx.json(ApiResponse.success("securityStatus", status));
+            
         } catch (Exception e) {
-            plugin.getLogger().severe("Error checking security status: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "message", "Failed to check security status"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/auth/security-status", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to check security status"));
         }
     }
 }

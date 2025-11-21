@@ -2,6 +2,8 @@ package de.kaicraft.adminpanel.api;
 
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import de.kaicraft.adminpanel.stats.PlayerStatsManager;
+import de.kaicraft.adminpanel.util.ApiResponse;
+import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -39,6 +41,7 @@ public class PlayerAPI {
      * GET /api/players
      * Get list of all players (online and offline)
      */
+    @TypeScriptEndpoint(path = "GET /api/v1/players", responseType = "{ players: PlayerInfo[] }")
     public void getPlayers(Context ctx) {
         try {
             List<Map<String, Object>> allPlayers = statsManager.getAllPlayers();
@@ -68,17 +71,10 @@ public class PlayerAPI {
                 }
             }
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "players", allPlayers
-            ));
+            ctx.status(200).json(ApiResponse.success("players", allPlayers));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting players: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve players"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/players", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve players"));
         }
     }
 
@@ -86,6 +82,7 @@ public class PlayerAPI {
      * GET /api/players/{uuid}
      * Get specific player details
      */
+    @TypeScriptEndpoint(path = "GET /api/v1/players/{uuid}", responseType = "{ player: PlayerInfo }")
     public void getPlayer(Context ctx) {
         try {
             String uuidStr = ctx.pathParam("uuid");
@@ -94,11 +91,7 @@ public class PlayerAPI {
             Map<String, Object> playerData = statsManager.getPlayerStats(uuid);
 
             if (playerData.isEmpty()) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "Player not found"
-                ));
+                ctx.status(404).json(ApiResponse.error("Player not found"));
                 return;
             }
 
@@ -119,23 +112,12 @@ public class PlayerAPI {
                 ));
             }
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "player", playerData
-            ));
+            ctx.status(200).json(ApiResponse.success("player", playerData));
         } catch (IllegalArgumentException e) {
-            ctx.status(400).json(Map.of(
-                    "success", false,
-                    "error", "Bad Request",
-                    "message", "Invalid UUID format"
-            ));
+            ctx.status(400).json(ApiResponse.error("Invalid UUID format"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error getting player: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to retrieve player data"
-            ));
+            plugin.getAuditLogger().logApiError("GET /api/v1/players/{uuid}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve player data"));
         }
     }
 
@@ -143,6 +125,7 @@ public class PlayerAPI {
      * POST /api/players/{uuid}/kick
      * Kick a player from the server
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/players/{uuid}/kick", responseType = "{ message: string, player: string }")
     public void kickPlayer(Context ctx) {
         try {
             String uuidStr = ctx.pathParam("uuid");
@@ -151,11 +134,7 @@ public class PlayerAPI {
             Player player = Bukkit.getPlayer(uuid);
 
             if (player == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "Player is not online"
-                ));
+                ctx.status(404).json(ApiResponse.error("Player is not online"));
                 return;
             }
 
@@ -165,31 +144,22 @@ public class PlayerAPI {
                     : "Kicked by administrator";
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' kicked player: " + player.getName());
+            plugin.getAuditLogger().logUserAction(username, "kick-player", player.getName() + " - " + reason);
 
             // Kick player on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 player.kick(net.kyori.adventure.text.Component.text(reason));
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Player kicked successfully",
-                    "player", player.getName()
-            ));
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Player kicked successfully");
+            data.put("player", player.getName());
+            ctx.status(200).json(ApiResponse.success(data));
         } catch (IllegalArgumentException e) {
-            ctx.status(400).json(Map.of(
-                    "success", false,
-                    "error", "Bad Request",
-                    "message", "Invalid UUID format"
-            ));
+            ctx.status(400).json(ApiResponse.error("Invalid UUID format"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error kicking player: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to kick player"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/players/{uuid}/kick", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to kick player"));
         }
     }
 
@@ -197,6 +167,7 @@ public class PlayerAPI {
      * POST /api/players/{uuid}/message
      * Send a message to a player
      */
+    @TypeScriptEndpoint(path = "POST /api/v1/players/{uuid}/message", responseType = "{ message: string }")
     public void messagePlayer(Context ctx) {
         try {
             String uuidStr = ctx.pathParam("uuid");
@@ -205,11 +176,7 @@ public class PlayerAPI {
             Player player = Bukkit.getPlayer(uuid);
 
             if (player == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "Player is not online"
-                ));
+                ctx.status(404).json(ApiResponse.error("Player is not online"));
                 return;
             }
 
@@ -217,33 +184,22 @@ public class PlayerAPI {
             String message = body.message;
 
             if (message == null || message.isEmpty()) {
-                ctx.status(400).json(Map.of(
-                        "success", false,
-                        "error", "Bad Request",
-                        "message", "Message is required"
-                ));
+                ctx.status(400).json(ApiResponse.error("Message is required"));
                 return;
             }
 
             String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' sent message to " + player.getName());
+            plugin.getAuditLogger().logUserAction(username, "message-player", player.getName() + " - " + message);
 
             // Send message on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 player.sendMessage("§e[Admin] §f" + message);
             });
 
-            ctx.status(200).json(Map.of(
-                    "success", true,
-                    "message", "Message sent successfully"
-            ));
+            ctx.status(200).json(ApiResponse.successMessage("Message sent successfully"));
         } catch (Exception e) {
-            plugin.getLogger().severe("Error sending message: " + e.getMessage());
-            ctx.status(500).json(Map.of(
-                    "success", false,
-                    "error", "Internal Server Error",
-                    "message", "Failed to send message"
-            ));
+            plugin.getAuditLogger().logApiError("POST /api/v1/players/{uuid}/message", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to send message"));
         }
     }
 }
