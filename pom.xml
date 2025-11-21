@@ -95,19 +95,9 @@
                 <configuration>
                     <source>21</source>
                     <target>21</target>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>${project.groupId}</groupId>
-                            <artifactId>${project.artifactId}</artifactId>
-                            <version>${project.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
                     <compilerArgs>
                         <arg>-Xlint:deprecation</arg>
                         <arg>-Xlint:unchecked</arg>
-                        <arg>-proc:only</arg>
-                        <arg>-processor</arg>
-                        <arg>de.kaicraft.adminpanel.util.TypeScriptGenerator</arg>
                     </compilerArgs>
                 </configuration>
                 <executions>
@@ -120,6 +110,10 @@
                         </goals>
                         <configuration>
                             <proc>only</proc>
+                            <compilerArgs>
+                                <arg>-processor</arg>
+                                <arg>de.kaicraft.adminpanel.util.TypeScriptGenerator</arg>
+                            </compilerArgs>
                         </configuration>
                     </execution>
                     <!-- Second execution: actual compilation -->
