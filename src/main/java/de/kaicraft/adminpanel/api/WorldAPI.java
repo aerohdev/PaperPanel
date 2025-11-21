@@ -270,7 +270,7 @@ public class WorldAPI {
         if (settings.containsKey("keepSpawnInMemory")) {
             boolean keepSpawn = (Boolean) settings.get("keepSpawnInMemory");
             @SuppressWarnings("deprecation")
-            boolean ignored = world.setKeepSpawnInMemory(keepSpawn); // Deprecated but still functional
+            world.setKeepSpawnInMemory(keepSpawn);
             plugin.getLogger().fine("Set keepSpawnInMemory to " + keepSpawn + " in world '" + world.getName() + "'");
         }
         

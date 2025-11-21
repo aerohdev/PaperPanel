@@ -131,6 +131,7 @@ public class UserManagementAPI {
         try {
             String currentUser = (String) ctx.attribute("username");
             String targetUsername = ctx.pathParam("username");
+            @SuppressWarnings("unchecked")
             Map<String, String> data = gson.fromJson(ctx.body(), Map.class);
             
             String newPassword = data.get("password");
