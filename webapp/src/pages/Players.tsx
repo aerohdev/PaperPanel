@@ -25,7 +25,9 @@ export default function Players() {
   const fetchPlayers = async () => {
     try {
       const { data } = await client.get<PlayerInfo[]>('/players');
-      setPlayers(data || []);
+      // Ensure data is an array
+      const playersArray = Array.isArray(data) ? data : [];
+      setPlayers(playersArray);
       setError(null);
     } catch (err: any) {
       setError('Failed to load players');

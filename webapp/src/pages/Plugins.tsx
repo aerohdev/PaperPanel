@@ -17,7 +17,9 @@ export default function Plugins() {
   const fetchPlugins = async () => {
     try {
       const { data } = await client.get<PluginInfo[]>('/plugins');
-      setPlugins(data || []);
+      // Ensure data is an array
+      const pluginsArray = Array.isArray(data) ? data : [];
+      setPlugins(pluginsArray);
       setError(null);
     } catch (err: any) {
       setError('Failed to load plugins');

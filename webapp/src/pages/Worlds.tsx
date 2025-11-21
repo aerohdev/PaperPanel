@@ -15,7 +15,7 @@ export default function Worlds() {
   const fetchWorlds = async () => {
     try {
       const { data } = await client.get<WorldInfo[]>('/worlds');
-      setWorlds(data || []);
+      setWorlds(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err: any) {
       setError('Failed to load worlds');

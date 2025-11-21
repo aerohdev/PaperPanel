@@ -23,9 +23,10 @@ export default function Users() {
     try {
       setLoading(true);
       const response = await client.get<UserInfo[]>('/users');
-      setUsers(response.data);
+      const usersArray = Array.isArray(response.data) ? response.data : [];
+      setUsers(usersArray);
       // Check if current user is default admin
-      const currentUser = response.data.find(u => u.isCurrentUser);
+      const currentUser = usersArray.find(u => u.isCurrentUser);
       setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load users');

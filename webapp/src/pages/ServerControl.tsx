@@ -15,9 +15,10 @@ export default function ServerControl() {
   const fetchWorlds = async () => {
     try {
       const { data } = await client.get<WorldInfo[]>('/worlds');
-      setWorlds(data || []);
-      if (data && data.length > 0) {
-        setSelectedWorld(data[0].name);
+      const worldsArray = Array.isArray(data) ? data : [];
+      setWorlds(worldsArray);
+      if (worldsArray.length > 0) {
+        setSelectedWorld(worldsArray[0].name);
       }
     } catch (err) {
       console.error('Error fetching worlds:', err);
