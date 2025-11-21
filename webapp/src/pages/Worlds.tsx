@@ -7,6 +7,7 @@ export default function Worlds() {
   const [worlds, setWorlds] = useState<WorldInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingWorld, setEditingWorld] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWorlds();
@@ -29,6 +30,17 @@ export default function Worlds() {
     const hours = Math.floor(time / 1000) + 6;
     const displayHours = hours % 24;
     return `${displayHours.toString().padStart(2, '0')}:00`;
+  };
+
+  const handleToggleSetting = async (worldName: string, setting: string, currentValue: boolean) => {
+    try {
+      await client.put(`/worlds/${worldName}/settings`, {
+        [setting]: !currentValue
+      });
+      await fetchWorlds();
+    } catch (err: any) {
+      alert(`Failed to update world setting: ${err.response?.data?.message || err.message}`);
+    }
   };
 
   const getDifficultyColor = (difficulty: string): string => {
@@ -133,18 +145,30 @@ export default function Worlds() {
 
                   {/* World Settings */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    <div className={`px-3 py-2 rounded ${world.pvp ? 'bg-red-900/30 text-red-400' : 'bg-green-900/30 text-green-400'}`}>
+                    <button
+                      onClick={() => handleToggleSetting(world.name, 'pvp', world.pvp)}
+                      className={`px-3 py-2 rounded transition-colors hover:opacity-80 ${world.pvp ? 'bg-red-900/30 text-red-400' : 'bg-green-900/30 text-green-400'}`}
+                    >
                       PVP: {world.pvp ? 'Enabled' : 'Disabled'}
-                    </div>
-                    <div className={`px-3 py-2 rounded ${world.allowAnimals ? 'bg-green-900/30 text-green-400' : 'bg-gray-700 text-gray-400'}`}>
+                    </button>
+                    <button
+                      onClick={() => handleToggleSetting(world.name, 'allowAnimals', world.allowAnimals)}
+                      className={`px-3 py-2 rounded transition-colors hover:opacity-80 ${world.allowAnimals ? 'bg-green-900/30 text-green-400' : 'bg-gray-700 text-gray-400'}`}
+                    >
                       Animals: {world.allowAnimals ? 'Yes' : 'No'}
-                    </div>
-                    <div className={`px-3 py-2 rounded ${world.allowMonsters ? 'bg-green-900/30 text-green-400' : 'bg-gray-700 text-gray-400'}`}>
+                    </button>
+                    <button
+                      onClick={() => handleToggleSetting(world.name, 'allowMonsters', world.allowMonsters)}
+                      className={`px-3 py-2 rounded transition-colors hover:opacity-80 ${world.allowMonsters ? 'bg-green-900/30 text-green-400' : 'bg-gray-700 text-gray-400'}`}
+                    >
                       Monsters: {world.allowMonsters ? 'Yes' : 'No'}
-                    </div>
-                    <div className={`px-3 py-2 rounded ${world.hardcore ? 'bg-red-900/30 text-red-400' : 'bg-gray-700 text-gray-400'}`}>
+                    </button>
+                    <button
+                      onClick={() => handleToggleSetting(world.name, 'hardcore', world.hardcore)}
+                      className={`px-3 py-2 rounded transition-colors hover:opacity-80 ${world.hardcore ? 'bg-red-900/30 text-red-400' : 'bg-gray-700 text-gray-400'}`}
+                    >
                       Hardcore: {world.hardcore ? 'Yes' : 'No'}
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>

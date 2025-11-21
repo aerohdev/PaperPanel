@@ -118,7 +118,7 @@ export default function Plugins() {
       <div className="grid gap-4">
         {filteredPlugins.length === 0 ? (
           <div className="text-center text-gray-400 py-8">
-            No plugins found matching "{searchTerm}"
+            {searchTerm ? `No plugins found matching "${searchTerm}"` : 'No plugins found'}
           </div>
         ) : (
           filteredPlugins.map(plugin => (
