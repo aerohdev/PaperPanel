@@ -105,8 +105,8 @@ A full-stack application that transforms Minecraft server management with a mode
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/aerohdev/Minecraft-Admin-WebApp.git
-cd Minecraft-Admin-WebApp
+git clone https://github.com/aerohdev/PaperPanel.git
+cd PaperPanel
 
 # 2. Build everything (frontend + backend in one command)
 mvn clean package
