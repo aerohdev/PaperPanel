@@ -12,6 +12,7 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [isCurrentUserAdmin, setIsCurrentUserAdmin] = useState(false); // ← NEU
 
   useEffect(() => {
     fetchUsers();
@@ -23,6 +24,9 @@ export default function Users() {
       const response = await client.get('/users');
       if (response.data.success) {
         setUsers(response.data.users);
+        // Check if current user is default admin
+        const currentUser = response.data.users.find(u => u.isCurrentUser);
+        setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load users');
@@ -162,17 +166,30 @@ export default function Users() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedUser(user.username);
-                        setShowPasswordModal(true);
-                      }}
-                      className="flex items-center gap-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors"
-                    >
-                      <Key className="w-4 h-4" />
-                      Change Password
-                    </button>
-                    {!user.isCurrentUser && !user.isDefaultAdmin && (
+                    {/* Show Change Password button based on permissions */}
+                    {(isCurrentUserAdmin || user.isCurrentUser) ? (
+                      <button
+                        onClick={() => {
+                          setSelectedUser(user.username);
+                          setShowPasswordModal(true);
+                        }}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg transition-colors"
+                      >
+                        <Key className="w-4 h-4" />
+                        Change Password
+                      </button>
+                    ) : (
+                      <span 
+                        className="flex items-center gap-2 px-3 py-2 text-gray-500 text-sm"
+                        title="Only admin can change other users' passwords"
+                      >
+                        <Key className="w-4 h-4" />
+                        No Access
+                      </span>
+                    )}
+                    
+                    {/* Delete Button - only admin can delete, but not themselves or default admin */}
+                    {isCurrentUserAdmin && !user.isCurrentUser && !user.isDefaultAdmin && (
                       <button
                         onClick={() => {
                           setSelectedUser(user.username);
@@ -183,11 +200,6 @@ export default function Users() {
                         <Trash2 className="w-4 h-4" />
                         Delete
                       </button>
-                    )}
-                    {user.isDefaultAdmin && !user.isCurrentUser && (
-                      <span className="px-3 py-2 text-gray-500 text-sm italic">
-                        Protected
-                      </span>
                     )}
                   </div>
                 </td>

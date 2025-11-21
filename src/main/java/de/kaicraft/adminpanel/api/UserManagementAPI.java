@@ -143,6 +143,35 @@ public class UserManagementAPI {
                 return;
             }
             
+            // Permission check: Regular users can only change their own password
+            // Default admin can change any password (including their own)
+            boolean isCurrentUserDefaultAdmin = authManager.isDefaultAdmin(currentUser);
+            boolean isSelfPasswordChange = targetUsername.equals(currentUser);
+            boolean isTargetDefaultAdmin = authManager.isDefaultAdmin(targetUsername);
+            
+            if (!isCurrentUserDefaultAdmin) {
+                // Regular user trying to change password
+                if (!isSelfPasswordChange) {
+                    // Trying to change someone else's password
+                    plugin.getLogger().warning("User '" + currentUser + "' attempted to change password for '" + targetUsername + "' (denied - not admin)");
+                    ctx.status(403).json(Map.of(
+                        "success", false,
+                        "message", "You can only change your own password"
+                    ));
+                    return;
+                }
+                
+                if (isTargetDefaultAdmin) {
+                    // This should never happen (same as above), but extra safety
+                    plugin.getLogger().warning("User '" + currentUser + "' attempted to change default admin password (denied)");
+                    ctx.status(403).json(Map.of(
+                        "success", false,
+                        "message", "You cannot change the default admin password"
+                    ));
+                    return;
+                }
+            }
+            
             // Validate password strength
             String passwordError = validatePassword(newPassword);
             if (passwordError != null) {
@@ -155,7 +184,11 @@ public class UserManagementAPI {
             
             // Attempt to change password
             if (authManager.changePassword(targetUsername, newPassword)) {
-                plugin.getLogger().info("User '" + currentUser + "' changed password for user: '" + targetUsername + "'");
+                if (isSelfPasswordChange) {
+                    plugin.getLogger().info("User '" + currentUser + "' changed their own password");
+                } else {
+                    plugin.getLogger().info("Admin '" + currentUser + "' changed password for user: '" + targetUsername + "'");
+                }
                 ctx.json(Map.of(
                     "success", true,
                     "message", "Password changed successfully"

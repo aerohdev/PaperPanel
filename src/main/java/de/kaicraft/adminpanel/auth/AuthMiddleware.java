@@ -36,6 +36,7 @@ public class AuthMiddleware {
                     "error", "Unauthorized",
                     "message", "Missing or invalid Authorization header"
             ));
+            ctx.skipRemainingHandlers(); // ← WICHTIG: Stoppe weitere Handler
             return;
         }
 
@@ -50,12 +51,16 @@ public class AuthMiddleware {
                     "error", "Unauthorized",
                     "message", "Invalid or expired token"
             ));
+            ctx.skipRemainingHandlers(); // ← WICHTIG: Stoppe weitere Handler
             return;
         }
 
         // Store username in context for use in handlers
         ctx.attribute("username", username);
         ctx.attribute("token", token);
+        
+        // Log successful auth (optional, für debugging)
+        plugin.getLogger().fine("Authenticated request from user: " + username);
     }
 
     /**
