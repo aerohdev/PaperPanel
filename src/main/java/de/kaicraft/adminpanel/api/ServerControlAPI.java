@@ -174,54 +174,6 @@ public class ServerControlAPI {
      * POST /api/server/time/{world}/{time}
      * Set time in a world
      */
-    public void setTime(Context ctx) {
-        try {
-            String worldName = ctx.pathParam("world");
-            String timeType = ctx.pathParam("time");
-
-            World world = Bukkit.getWorld(worldName);
-
-            if (world == null) {
-                ctx.status(404).json(Map.of(
-                        "success", false,
-                        "error", "Not Found",
-                        "message", "World not found"
-                ));
-                return;
-            }
-
-            String username = ctx.attribute("username");
-            plugin.getLogger().info("User '" + username + "' set time to " + timeType + " in " + worldName);
-
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                switch (timeType.toLowerCase()) {
-                    case "day":
-                        world.setTime(1000);
-                        break;
-                    case "night":
-                        world.setTime(13000);
-                        break;
-                    case "noon":
-                        world.setTime(6000);
-                        break;
-                    case "midnight":
-                        world.setTime(18000);
-                        break;
-                    default:
-                        // Try to parse as number
-                        try {
-                            long time = Long.parseLong(timeType);
-                            world.setTime(time);
-                        } catch (NumberFormatException ignored) {
-                        }
-                        break;
-                }
-            });
-
-    /**
-     * POST /api/server/time/{world}/{time}
-     * Set time in a world
-     */
     @TypeScriptEndpoint(path = "POST /api/v1/server/time/{world}/{time}", responseType = "{ message: string, world: string, time: string }")
     public void setTime(Context ctx) {
         try {
