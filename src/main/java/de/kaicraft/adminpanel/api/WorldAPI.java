@@ -208,6 +208,7 @@ public class WorldAPI {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void applyWorldSettings(World world, Map<String, Object> settings) {
         // Time
         if (settings.containsKey("time")) {
@@ -269,7 +270,6 @@ public class WorldAPI {
         // Keep Spawn in Memory
         if (settings.containsKey("keepSpawnInMemory")) {
             boolean keepSpawn = (Boolean) settings.get("keepSpawnInMemory");
-            @SuppressWarnings("deprecation")
             world.setKeepSpawnInMemory(keepSpawn);
             plugin.getLogger().fine("Set keepSpawnInMemory to " + keepSpawn + " in world '" + world.getName() + "'");
         }
