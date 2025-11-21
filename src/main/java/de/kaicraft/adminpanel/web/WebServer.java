@@ -121,6 +121,10 @@ public class WebServer {
 
         // Dashboard routes
         app.get("/api/dashboard/stats", dashboardAPI::getStats);
+        app.get("/api/dashboard/update-status", dashboardAPI::getUpdateStatus);
+        app.post("/api/dashboard/check-updates", dashboardAPI::checkForUpdates);
+        app.post("/api/dashboard/download-update", dashboardAPI::downloadUpdate);
+        app.post("/api/dashboard/install-update", dashboardAPI::installUpdate);
 
         // Console routes
         app.get("/api/console/history", consoleAPI::getHistory);

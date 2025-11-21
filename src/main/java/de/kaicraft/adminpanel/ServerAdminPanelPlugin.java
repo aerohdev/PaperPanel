@@ -8,6 +8,7 @@ import de.kaicraft.adminpanel.config.ConfigManager;
 import de.kaicraft.adminpanel.database.DatabaseManager;
 import de.kaicraft.adminpanel.stats.PlayerStatsListener;
 import de.kaicraft.adminpanel.stats.PlayerStatsManager;
+import de.kaicraft.adminpanel.update.PaperVersionChecker;
 import de.kaicraft.adminpanel.web.WebServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LogEvent;
@@ -30,6 +31,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
     private PlayerStatsManager statsManager;
     private WebServer webServer;
     private ConsoleAppender consoleAppender;
+    private PaperVersionChecker versionChecker;
 
     @Override
     public void onEnable() {
@@ -72,6 +74,10 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         } else {
             getLogger().warning("Web server is disabled in configuration");
         }
+
+        // Initialize version checker
+        this.versionChecker = new PaperVersionChecker(this);
+        this.versionChecker.startPeriodicCheck();
 
         getLogger().info("ServerAdminPanel v" + getPluginMeta().getVersion() + " enabled!");
     }
@@ -235,5 +241,9 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
 
     public WebServer getWebServer() {
         return webServer;
+    }
+
+    public PaperVersionChecker getVersionChecker() {
+        return versionChecker;
     }
 }

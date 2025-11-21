@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import client from '../api/client';
-import { Activity, Users, HardDrive, Clock, Server, Boxes } from 'lucide-react';
+import { Activity, Users, HardDrive, Clock, Server, Boxes, RefreshCw } from 'lucide-react';
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -147,6 +147,24 @@ export default function Dashboard() {
           </div>
           <p className="text-center text-gray-400 text-sm">{memoryPercent}% utilized</p>
         </div>
+      </div>
+
+      {/* Check for Updates Button */}
+      <div className="mt-6">
+        <button
+          onClick={async () => {
+            try {
+              await client.post('/dashboard/check-updates');
+              alert('Update check started. Refresh in a few seconds.');
+            } catch (err) {
+              alert('Failed to check updates');
+            }
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Check for Updates
+        </button>
       </div>
     </div>
   );

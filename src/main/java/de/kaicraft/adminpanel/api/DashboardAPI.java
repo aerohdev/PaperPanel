@@ -123,4 +123,151 @@ public class DashboardAPI {
             return String.format("%ds", seconds);
         }
     }
+
+    /**
+     * Get server update status
+     */
+    public void getUpdateStatus(Context ctx) {
+        try {
+            PaperVersionChecker checker = plugin.getVersionChecker();
+            PaperVersionChecker.UpdateStatus status = checker.getStatus();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("updateAvailable", status.updateAvailable);
+            response.put("updateDownloaded", status.updateDownloaded);
+            response.put("currentVersion", status.currentVersion);
+            response.put("latestVersion", status.latestVersion);
+            response.put("latestBuild", status.latestBuild);
+            response.put("downloadUrl", status.downloadUrl);
+            response.put("lastCheck", status.lastCheck);
+            response.put("needsCheck", status.needsCheck);
+            
+            ctx.json(response);
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error getting update status: " + e.getMessage());
+            ctx.status(500).json(Map.of(
+                "success", false,
+                "message", "Failed to get update status"
+            ));
+        }
+    }
+
+    /**
+     * Manually check for updates
+     */
+    public void checkForUpdates(Context ctx) {
+        try {
+            String currentUser = (String) ctx.attribute("username");
+            plugin.getLogger().info("User '" + currentUser + "' initiated manual update check");
+            
+            PaperVersionChecker checker = plugin.getVersionChecker();
+            
+            // Start check asynchronously
+            checker.checkForUpdates().thenAccept(updateAvailable -> {
+                plugin.getLogger().info("Update check complete. Update available: " + updateAvailable);
+            });
+            
+            ctx.json(Map.of(
+                "success", true,
+                "message", "Update check started"
+            ));
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error checking for updates: " + e.getMessage());
+            ctx.status(500).json(Map.of(
+                "success", false,
+                "message", "Failed to check for updates"
+            ));
+        }
+    }
+
+    /**
+     * Download Paper update
+     */
+    public void downloadUpdate(Context ctx) {
+        try {
+            String currentUser = (String) ctx.attribute("username");
+            plugin.getLogger().warning("User '" + currentUser + "' initiated update download");
+            
+            PaperVersionChecker checker = plugin.getVersionChecker();
+            PaperVersionChecker.UpdateStatus status = checker.getStatus();
+            
+            if (!status.updateAvailable) {
+                ctx.status(400).json(Map.of(
+                    "success", false,
+                    "message", "No update available"
+                ));
+                return;
+            }
+            
+            // Start download asynchronously
+            checker.downloadUpdate().thenAccept(result -> {
+                if (result.success) {
+                    plugin.getLogger().info("Update download completed successfully");
+                } else {
+                    plugin.getLogger().severe("Update download failed: " + result.message);
+                }
+            });
+            
+            ctx.json(Map.of(
+                "success", true,
+                "message", "Update download started. Check server logs for progress."
+            ));
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error starting download: " + e.getMessage());
+            ctx.status(500).json(Map.of(
+                "success", false,
+                "message", "Failed to start download"
+            ));
+        }
+    }
+
+    /**
+     * Install Paper update (full workflow)
+     */
+    public void installUpdate(Context ctx) {
+        try {
+            String currentUser = (String) ctx.attribute("username");
+            
+            PaperVersionChecker checker = plugin.getVersionChecker();
+            PaperVersionChecker.UpdateStatus status = checker.getStatus();
+            
+            if (!status.updateDownloaded) {
+                ctx.status(400).json(Map.of(
+                    "success", false,
+                    "message", "Update not downloaded yet"
+                ));
+                return;
+            }
+            
+            plugin.getLogger().warning("========================================");
+            plugin.getLogger().warning("User '" + currentUser + "' initiated update installation");
+            plugin.getLogger().warning("Full installation workflow starting...");
+            plugin.getLogger().warning("========================================");
+            
+            // Start installation
+            checker.installUpdate().thenAccept(result -> {
+                if (result.success) {
+                    plugin.getLogger().info("Update installation workflow initiated");
+                } else {
+                    plugin.getLogger().severe("Update installation failed: " + result.message);
+                }
+            });
+            
+            ctx.json(Map.of(
+                "success", true,
+                "message", "Update installation started. Server will restart in 5 minutes."
+            ));
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Error starting installation: " + e.getMessage());
+            e.printStackTrace();
+            ctx.status(500).json(Map.of(
+                "success", false,
+                "message", "Failed to start installation: " + e.getMessage()
+            ));
+        }
+    }
 }
