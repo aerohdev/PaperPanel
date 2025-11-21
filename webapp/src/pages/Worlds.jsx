@@ -18,7 +18,8 @@ export default function Worlds() {
   const fetchWorlds = async () => {
     try {
       const { data } = await client.get('/worlds');
-      setWorlds(data.worlds || []);
+      // Response is already unwrapped by interceptor
+      setWorlds(data || []);
       setError(null);
     } catch (err) {
       setError('Failed to load worlds');
@@ -35,12 +36,10 @@ export default function Worlds() {
 
   const updateWorldSettings = async (worldName, settings) => {
     try {
-      const response = await client.post(`/worlds/${worldName}/settings`, settings);
-      if (response.data.success) {
-        showToast(response.data.message || 'Settings updated successfully');
-        setTimeout(fetchWorlds, 1000);
-        return true;
-      }
+      await client.post(`/worlds/${worldName}/settings`, settings);
+      showToast('Settings updated successfully');
+      setTimeout(fetchWorlds, 1000);
+      return true;
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to update settings', 'error');
       return false;
@@ -50,11 +49,9 @@ export default function Worlds() {
   const updateAllWorldSettings = async (settings) => {
     try {
       const response = await client.post('/worlds/bulk/settings', settings);
-      if (response.data.success) {
-        showToast(`Updated ${response.data.worldsUpdated} world(s) successfully`);
-        setTimeout(fetchWorlds, 1000);
-        return true;
-      }
+      showToast(`Updated ${response.data.worldsUpdated || 0} world(s) successfully`);
+      setTimeout(fetchWorlds, 1000);
+      return true;
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to update settings', 'error');
       return false;

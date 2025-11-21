@@ -19,10 +19,9 @@ export default function UpdateBanner() {
   const checkUpdateStatus = async () => {
     try {
       const response = await client.get('/dashboard/update-status');
-      if (response.data.success) {
-        setUpdateStatus(response.data);
-        setShowBanner(response.data.updateAvailable);
-      }
+      // Response is already unwrapped by interceptor
+      setUpdateStatus(response.data);
+      setShowBanner(response.data.updateAvailable);
     } catch (err) {
       console.error('Failed to check update status:', err);
     }
@@ -46,22 +45,20 @@ export default function UpdateBanner() {
   const handleDownloadUpdate = async () => {
     setLoading(true);
     try {
-      const response = await client.post('/dashboard/download-update');
-      if (response.data.success) {
-        // Poll for download completion
-        const pollInterval = setInterval(async () => {
-          const status = await client.get('/dashboard/update-status');
-          if (status.data.updateDownloaded) {
-            clearInterval(pollInterval);
-            setUpdateStatus(status.data);
-            setLoading(false);
-            setShowInstallConfirm(true);
-          }
-        }, 5000);
-        
-        // Stop polling after 5 minutes
-        setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
-      }
+      await client.post('/dashboard/download-update');
+      // Poll for download completion
+      const pollInterval = setInterval(async () => {
+        const status = await client.get('/dashboard/update-status');
+        if (status.data.updateDownloaded) {
+          clearInterval(pollInterval);
+          setUpdateStatus(status.data);
+          setLoading(false);
+          setShowInstallConfirm(true);
+        }
+      }, 5000);
+      
+      // Stop polling after 5 minutes
+      setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
     } catch (err) {
       alert('Failed to download update: ' + (err.response?.data?.message || err.message));
       setLoading(false);
@@ -75,12 +72,10 @@ export default function UpdateBanner() {
   const confirmInstall = async () => {
     setLoading(true);
     try {
-      const response = await client.post('/dashboard/install-update');
-      if (response.data.success) {
-        alert('✅ Installation started!\n\nServer will restart in 5 minutes.\nPlease reconnect after restart.');
-        setShowInstallConfirm(false);
-        setShowBanner(false);
-      }
+      await client.post('/dashboard/install-update');
+      alert('✅ Installation started!\n\nServer will restart in 5 minutes.\nPlease reconnect after restart.');
+      setShowInstallConfirm(false);
+      setShowBanner(false);
     } catch (err) {
       alert('Failed to install update: ' + (err.response?.data?.message || err.message));
       setLoading(false);

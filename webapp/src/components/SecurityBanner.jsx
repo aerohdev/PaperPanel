@@ -13,7 +13,8 @@ export default function SecurityBanner() {
   const checkSecurityStatus = async () => {
     try {
       const response = await client.get('/auth/security-status');
-      if (response.data.success && response.data.usingDefaultPassword) {
+      // Response is already unwrapped by interceptor
+      if (response.data.usingDefaultPassword) {
         setShowBanner(true);
       }
     } catch (err) {

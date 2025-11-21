@@ -22,12 +22,11 @@ export default function Users() {
     try {
       setLoading(true);
       const response = await client.get('/users');
-      if (response.data.success) {
-        setUsers(response.data.users);
-        // Check if current user is default admin
-        const currentUser = response.data.users.find(u => u.isCurrentUser);
-        setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
-      }
+      // Response is already unwrapped by interceptor
+      setUsers(response.data || []);
+      // Check if current user is default admin
+      const currentUser = (response.data || []).find(u => u.isCurrentUser);
+      setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load users');
     } finally {
@@ -43,12 +42,10 @@ export default function Users() {
   const handleCreateUser = async (username, password) => {
     try {
       setActionLoading(true);
-      const response = await client.post('/users', { username, password });
-      if (response.data.success) {
-        showSuccess('User created successfully');
-        setShowCreateModal(false);
-        fetchUsers();
-      }
+      await client.post('/users', { username, password });
+      showSuccess('User created successfully');
+      setShowCreateModal(false);
+      fetchUsers();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to create user');
     } finally {
@@ -59,12 +56,10 @@ export default function Users() {
   const handleChangePassword = async (username, password) => {
     try {
       setActionLoading(true);
-      const response = await client.put(`/users/${username}/password`, { password });
-      if (response.data.success) {
-        showSuccess('Password changed successfully');
-        setShowPasswordModal(false);
-        setSelectedUser(null);
-      }
+      await client.put(`/users/${username}/password`, { password });
+      showSuccess('Password changed successfully');
+      setShowPasswordModal(false);
+      setSelectedUser(null);
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to change password');
     } finally {
@@ -75,13 +70,11 @@ export default function Users() {
   const handleDeleteUser = async (username) => {
     try {
       setActionLoading(true);
-      const response = await client.delete(`/users/${username}`);
-      if (response.data.success) {
-        showSuccess('User deleted successfully');
-        setShowDeleteModal(false);
-        setSelectedUser(null);
-        fetchUsers();
-      }
+      await client.delete(`/users/${username}`);
+      showSuccess('User deleted successfully');
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+      fetchUsers();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete user');
     } finally {

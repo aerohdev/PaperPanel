@@ -19,7 +19,8 @@ export default function Players() {
   const fetchPlayers = async () => {
     try {
       const { data } = await client.get('/players');
-      setPlayers(data.players || []);
+      // Response is already unwrapped by interceptor
+      setPlayers(data || []);
       setError(null);
     } catch (err) {
       setError('Failed to load players');
