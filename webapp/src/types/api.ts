@@ -82,6 +82,8 @@ export interface PlayerInfo {
   firstJoin?: number;
   lastSeen?: number;
   totalPlaytime?: number;
+  banned?: boolean;
+  stats?: Record<string, number>;
 }
 
 /**
@@ -131,7 +133,22 @@ export interface WorldInfo {
   spawnLocation: SpawnLocation;
   autoSave?: boolean;
   keepSpawnInMemory?: boolean;
-  gameRules: Record<string, any>;
+  hardcore?: boolean;
+  allowAnimals?: boolean;
+  allowMonsters?: boolean;
+  gameRules?: {
+    doDaylightCycle?: boolean;
+    doWeatherCycle?: boolean;
+    keepInventory?: boolean;
+    mobGriefing?: boolean;
+    doMobSpawning?: boolean;
+    naturalRegeneration?: boolean;
+    showDeathMessages?: boolean;
+    announceAdvancements?: boolean;
+    doFireTick?: boolean;
+    doImmediateRespawn?: boolean;
+    [key: string]: any;
+  };
 }
 
 /**

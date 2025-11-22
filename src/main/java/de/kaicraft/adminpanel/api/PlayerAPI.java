@@ -32,6 +32,14 @@ public class PlayerAPI {
         public String message;
     }
 
+    /**
+     * Request body for ban player endpoint
+     */
+    public static class BanRequest {
+        public String reason;
+        public Long expiresAt; // null for permanent ban
+    }
+
     public PlayerAPI(ServerAdminPanelPlugin plugin, PlayerStatsManager statsManager) {
         this.plugin = plugin;
         this.statsManager = statsManager;
@@ -51,9 +59,15 @@ public class PlayerAPI {
                     .map(p -> p.getUniqueId().toString())
                     .collect(Collectors.toSet());
 
+            // Get ban list
+            org.bukkit.BanList banList = Bukkit.getBanList(org.bukkit.BanList.Type.NAME);
+
             // Enrich with online status
             allPlayers.forEach(player -> {
                 player.put("online", onlineUUIDs.contains(player.get("uuid")));
+                // Check if player is banned
+                String playerName = (String) player.get("name");
+                player.put("banned", banList.isBanned(playerName));
             });
 
             // Add current online players not yet in database
@@ -64,6 +78,7 @@ public class PlayerAPI {
                     playerData.put("uuid", uuid);
                     playerData.put("name", player.getName());
                     playerData.put("online", true);
+                    playerData.put("banned", banList.isBanned(player.getName()));
                     playerData.put("firstJoin", System.currentTimeMillis());
                     playerData.put("lastSeen", System.currentTimeMillis());
                     playerData.put("totalPlaytime", 0L);
@@ -200,6 +215,94 @@ public class PlayerAPI {
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("POST /api/v1/players/{uuid}/message", e.getMessage(), e);
             ctx.status(500).json(ApiResponse.error("Failed to send message"));
+        }
+    }
+
+    /**
+     * POST /api/players/{uuid}/ban
+     * Ban a player from the server
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/players/{uuid}/ban", responseType = "{ message: string, player: string }")
+    public void banPlayer(Context ctx) {
+        try {
+            String uuidStr = ctx.pathParam("uuid");
+            UUID uuid = UUID.fromString(uuidStr);
+
+            Player player = Bukkit.getPlayer(uuid);
+            String playerName = player != null ? player.getName() : Bukkit.getOfflinePlayer(uuid).getName();
+
+            if (playerName == null) {
+                ctx.status(404).json(ApiResponse.error("Player not found"));
+                return;
+            }
+
+            BanRequest body = ctx.bodyAsClass(BanRequest.class);
+            String reason = (body.reason != null && !body.reason.isEmpty())
+                    ? body.reason
+                    : "Banned by administrator";
+
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "ban-player", playerName + " - " + reason);
+
+            // Ban player on main thread
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                org.bukkit.BanList banList = Bukkit.getBanList(org.bukkit.BanList.Type.NAME);
+                java.util.Date expiresDate = body.expiresAt != null ? new java.util.Date(body.expiresAt) : null;
+                banList.addBan(playerName, reason, expiresDate, username);
+
+                // Kick if online
+                if (player != null && player.isOnline()) {
+                    player.kick(net.kyori.adventure.text.Component.text("§cBanned: " + reason));
+                }
+            });
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Player banned successfully");
+            data.put("player", playerName);
+            ctx.status(200).json(ApiResponse.success(data));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).json(ApiResponse.error("Invalid UUID format"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/players/{uuid}/ban", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to ban player"));
+        }
+    }
+
+    /**
+     * DELETE /api/players/{uuid}/ban
+     * Unban a player
+     */
+    @TypeScriptEndpoint(path = "DELETE /api/v1/players/{uuid}/ban", responseType = "{ message: string, player: string }")
+    public void unbanPlayer(Context ctx) {
+        try {
+            String uuidStr = ctx.pathParam("uuid");
+            UUID uuid = UUID.fromString(uuidStr);
+
+            String playerName = Bukkit.getOfflinePlayer(uuid).getName();
+
+            if (playerName == null) {
+                ctx.status(404).json(ApiResponse.error("Player not found"));
+                return;
+            }
+
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "unban-player", playerName);
+
+            // Unban player on main thread
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                org.bukkit.BanList banList = Bukkit.getBanList(org.bukkit.BanList.Type.NAME);
+                banList.pardon(playerName);
+            });
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("message", "Player unbanned successfully");
+            data.put("player", playerName);
+            ctx.status(200).json(ApiResponse.success(data));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400).json(ApiResponse.error("Invalid UUID format"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("DELETE /api/v1/players/{uuid}/ban", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to unban player"));
         }
     }
 }

@@ -98,6 +98,211 @@ public class WorldAPI {
     }
 
     /**
+     * POST /api/worlds/{name}/time/{time}
+     * Set world time (day, night, noon, midnight, or number)
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/worlds/{name}/time/{time}", responseType = "{ message: string }")
+    public void setWorldTime(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        String timeParam = ctx.pathParam("time");
+        
+        try {
+            Boolean success = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) return false;
+                
+                long time;
+                switch (timeParam.toLowerCase()) {
+                    case "day" -> time = 1000;
+                    case "noon" -> time = 6000;
+                    case "night" -> time = 13000;
+                    case "midnight" -> time = 18000;
+                    default -> {
+                        try {
+                            time = Long.parseLong(timeParam);
+                        } catch (NumberFormatException e) {
+                            return false;
+                        }
+                    }
+                }
+                
+                world.setTime(time);
+                return true;
+            }).get();
+            
+            if (!success) {
+                ctx.status(404).json(ApiResponse.error("World not found or invalid time"));
+                return;
+            }
+            
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "set-world-time", worldName + " - " + timeParam);
+            
+            ctx.json(ApiResponse.successMessage("World time updated"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/worlds/{name}/time/{time}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to set world time"));
+        }
+    }
+
+    /**
+     * POST /api/worlds/{name}/weather/{type}
+     * Set world weather (clear, rain, thunder)
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/worlds/{name}/weather/{type}", responseType = "{ message: string }")
+    public void setWorldWeather(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        String weatherType = ctx.pathParam("type");
+        
+        try {
+            Boolean success = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) return false;
+                
+                switch (weatherType.toLowerCase()) {
+                    case "clear" -> {
+                        world.setStorm(false);
+                        world.setThundering(false);
+                    }
+                    case "rain" -> {
+                        world.setStorm(true);
+                        world.setThundering(false);
+                    }
+                    case "thunder" -> {
+                        world.setStorm(true);
+                        world.setThundering(true);
+                    }
+                    default -> {
+                        return false;
+                    }
+                }
+                
+                return true;
+            }).get();
+            
+            if (!success) {
+                ctx.status(404).json(ApiResponse.error("World not found or invalid weather type"));
+                return;
+            }
+            
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "set-world-weather", worldName + " - " + weatherType);
+            
+            ctx.json(ApiResponse.successMessage("World weather updated"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/worlds/{name}/weather/{type}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to set world weather"));
+        }
+    }
+
+    /**
+     * POST /api/worlds/{name}/difficulty/{difficulty}
+     * Set world difficulty (peaceful, easy, normal, hard)
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/worlds/{name}/difficulty/{difficulty}", responseType = "{ message: string }")
+    public void setWorldDifficulty(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        String difficultyParam = ctx.pathParam("difficulty");
+        
+        try {
+            Boolean success = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) return false;
+                
+                try {
+                    org.bukkit.Difficulty difficulty = org.bukkit.Difficulty.valueOf(difficultyParam.toUpperCase());
+                    world.setDifficulty(difficulty);
+                    return true;
+                } catch (IllegalArgumentException e) {
+                    return false;
+                }
+            }).get();
+            
+            if (!success) {
+                ctx.status(404).json(ApiResponse.error("World not found or invalid difficulty"));
+                return;
+            }
+            
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "set-world-difficulty", worldName + " - " + difficultyParam);
+            
+            ctx.json(ApiResponse.successMessage("World difficulty updated"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/worlds/{name}/difficulty/{difficulty}", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to set world difficulty"));
+        }
+    }
+
+    /**
+     * POST /api/worlds/{name}/save
+     * Save world
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/worlds/{name}/save", responseType = "{ message: string }")
+    public void saveWorld(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        
+        try {
+            Boolean success = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) return false;
+                
+                world.save();
+                return true;
+            }).get();
+            
+            if (!success) {
+                ctx.status(404).json(ApiResponse.error("World not found"));
+                return;
+            }
+            
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "save-world", worldName);
+            
+            ctx.json(ApiResponse.successMessage("World saved successfully"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/worlds/{name}/save", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to save world"));
+        }
+    }
+
+    /**
+     * POST /api/worlds/{name}/gamerule
+     * Set a game rule for a world
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/worlds/{name}/gamerule", responseType = "{ message: string }")
+    public void setGameRule(Context ctx) {
+        String worldName = ctx.pathParam("name");
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = ctx.bodyAsClass(Map.class);
+        
+        String ruleName = (String) body.get("rule");
+        Object ruleValue = body.get("value");
+        
+        try {
+            Boolean success = Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+                World world = plugin.getServer().getWorld(worldName);
+                if (world == null) return false;
+                
+                setGameRuleSafely(world, ruleName, ruleValue);
+                return true;
+            }).get();
+            
+            if (!success) {
+                ctx.status(404).json(ApiResponse.error("World not found"));
+                return;
+            }
+            
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logUserAction(username, "set-gamerule", worldName + " - " + ruleName + "=" + ruleValue);
+            
+            ctx.json(ApiResponse.successMessage("Game rule updated"));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/worlds/{name}/gamerule", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to set game rule"));
+        }
+    }
+
+    /**
      * Update settings for all worlds (bulk operation)
      */
     @TypeScriptEndpoint(path = "PUT /api/v1/worlds/bulk/settings", responseType = "{ message: string, worldsUpdated: number }")
@@ -155,6 +360,9 @@ public class WorldAPI {
         @SuppressWarnings("deprecation")
         boolean keepSpawn = world.getKeepSpawnInMemory(); // Deprecated but still functional
         info.put("keepSpawnInMemory", keepSpawn);
+        info.put("hardcore", world.isHardcore());
+        info.put("allowAnimals", world.getAllowAnimals());
+        info.put("allowMonsters", world.getAllowMonsters());
         
         // Add common game rules
         Map<String, Object> gameRules = new HashMap<>();
@@ -229,6 +437,27 @@ public class WorldAPI {
             boolean pvp = (Boolean) settings.get("pvp");
             world.setPVP(pvp);
             plugin.getLogger().fine("Set PVP to " + pvp + " in world '" + world.getName() + "'");
+        }
+        
+        // Allow Animals
+        if (settings.containsKey("allowAnimals")) {
+            boolean allowAnimals = (Boolean) settings.get("allowAnimals");
+            world.setAllowAnimals(allowAnimals);
+            plugin.getLogger().fine("Set allowAnimals to " + allowAnimals + " in world '" + world.getName() + "'");
+        }
+        
+        // Allow Monsters
+        if (settings.containsKey("allowMonsters")) {
+            boolean allowMonsters = (Boolean) settings.get("allowMonsters");
+            world.setAllowMonsters(allowMonsters);
+            plugin.getLogger().fine("Set allowMonsters to " + allowMonsters + " in world '" + world.getName() + "'");
+        }
+        
+        // Hardcore
+        if (settings.containsKey("hardcore")) {
+            boolean hardcore = (Boolean) settings.get("hardcore");
+            world.setHardcore(hardcore);
+            plugin.getLogger().fine("Set hardcore to " + hardcore + " in world '" + world.getName() + "'");
         }
         
         // Spawn Location

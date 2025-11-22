@@ -2,6 +2,8 @@ import { useState, useEffect, ChangeEvent } from 'react';
 import client from '../api/client';
 import { Server, Power, Save, CloudRain, Sun, Moon, Clock } from 'lucide-react';
 import type { WorldInfo } from '../types/api';
+import { PermissionTooltip } from '../components/PermissionTooltip';
+import { Permission } from '../constants/permissions';
 
 export default function ServerControl() {
   const [restartDelay, setRestartDelay] = useState<number>(300);
@@ -89,21 +91,25 @@ export default function ServerControl() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button
-            onClick={handleSaveAll}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Save className="w-5 h-5" />
-            Save All Worlds
-          </button>
+          <PermissionTooltip permission={Permission.SAVE_SERVER}>
+            <button
+              onClick={handleSaveAll}
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Save className="w-5 h-5" />
+              Save All Worlds
+            </button>
+          </PermissionTooltip>
 
-          <button
-            onClick={handleStop}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
-          >
-            <Power className="w-5 h-5" />
-            Stop Server
-          </button>
+          <PermissionTooltip permission={Permission.STOP_SERVER}>
+            <button
+              onClick={handleStop}
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              <Power className="w-5 h-5" />
+              Stop Server
+            </button>
+          </PermissionTooltip>
 
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
@@ -116,13 +122,15 @@ export default function ServerControl() {
               />
               <span className="self-center text-gray-400 text-sm">seconds</span>
             </div>
-            <button
-              onClick={handleRestart}
-              className="flex items-center justify-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <Power className="w-5 h-5" />
-              Schedule Restart
-            </button>
+            <PermissionTooltip permission={Permission.RESTART_SERVER}>
+              <button
+                onClick={handleRestart}
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <Power className="w-5 h-5" />
+                Schedule Restart
+              </button>
+            </PermissionTooltip>
           </div>
         </div>
       </div>
@@ -152,26 +160,32 @@ export default function ServerControl() {
           Weather Control
         </h2>
         <div className="flex gap-2">
-          <button
-            onClick={() => handleWeather('clear')}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Sun className="w-5 h-5" />
-            Clear
-          </button>
-          <button
-            onClick={() => handleWeather('rain')}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <CloudRain className="w-5 h-5" />
-            Rain
-          </button>
-          <button
-            onClick={() => handleWeather('thunder')}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            ⚡ Thunder
-          </button>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleWeather('clear')}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Sun className="w-5 h-5" />
+              Clear
+            </button>
+          </PermissionTooltip>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleWeather('rain')}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <CloudRain className="w-5 h-5" />
+              Rain
+            </button>
+          </PermissionTooltip>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleWeather('thunder')}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              ⚡ Thunder
+            </button>
+          </PermissionTooltip>
         </div>
       </div>
 
@@ -182,34 +196,42 @@ export default function ServerControl() {
           Time Control
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <button
-            onClick={() => handleTime('day')}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Sun className="w-5 h-5" />
-            Day
-          </button>
-          <button
-            onClick={() => handleTime('noon')}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Sun className="w-5 h-5" />
-            Noon
-          </button>
-          <button
-            onClick={() => handleTime('night')}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Moon className="w-5 h-5" />
-            Night
-          </button>
-          <button
-            onClick={() => handleTime('midnight')}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <Moon className="w-5 h-5" />
-            Midnight
-          </button>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleTime('day')}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Sun className="w-5 h-5" />
+              Day
+            </button>
+          </PermissionTooltip>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleTime('noon')}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Sun className="w-5 h-5" />
+              Noon
+            </button>
+          </PermissionTooltip>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleTime('night')}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Moon className="w-5 h-5" />
+              Night
+            </button>
+          </PermissionTooltip>
+          <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
+            <button
+              onClick={() => handleTime('midnight')}
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Moon className="w-5 h-5" />
+              Midnight
+            </button>
+          </PermissionTooltip>
         </div>
       </div>
 

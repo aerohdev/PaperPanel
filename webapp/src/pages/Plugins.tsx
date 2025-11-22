@@ -2,6 +2,8 @@ import { useEffect, useState, ChangeEvent } from 'react';
 import client from '../api/client';
 import { Package, Power, PowerOff, RefreshCw, Search } from 'lucide-react';
 import type { PluginInfo } from '../types/api';
+import { PermissionTooltip } from '../components/PermissionTooltip';
+import { Permission } from '../constants/permissions';
 
 export default function Plugins() {
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
@@ -200,32 +202,38 @@ function PluginCard({ plugin, onEnable, onDisable, onReload, loading }: PluginCa
       <div className="flex gap-2 mt-4 pt-4 border-t border-dark-border">
         {plugin.enabled ? (
           <>
-            <button
-              onClick={() => onDisable(plugin.name)}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <PowerOff className="w-4 h-4" />
-              {loading ? 'Loading...' : 'Disable'}
-            </button>
-            <button
-              onClick={() => onReload(plugin.name)}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RefreshCw className="w-4 h-4" />
-              {loading ? 'Loading...' : 'Reload Config'}
-            </button>
+            <PermissionTooltip permission={Permission.MANAGE_PLUGINS}>
+              <button
+                onClick={() => onDisable(plugin.name)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <PowerOff className="w-4 h-4" />
+                {loading ? 'Loading...' : 'Disable'}
+              </button>
+            </PermissionTooltip>
+            <PermissionTooltip permission={Permission.MANAGE_PLUGINS}>
+              <button
+                onClick={() => onReload(plugin.name)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className="w-4 h-4" />
+                {loading ? 'Loading...' : 'Reload Config'}
+              </button>
+            </PermissionTooltip>
           </>
         ) : (
-          <button
-            onClick={() => onEnable(plugin.name)}
-            disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Power className="w-4 h-4" />
-            {loading ? 'Loading...' : 'Enable'}
-          </button>
+          <PermissionTooltip permission={Permission.MANAGE_PLUGINS}>
+            <button
+              onClick={() => onEnable(plugin.name)}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Power className="w-4 h-4" />
+              {loading ? 'Loading...' : 'Enable'}
+            </button>
+          </PermissionTooltip>
         )}
       </div>
     </div>

@@ -9,11 +9,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * Manages user authentication, password hashing, and session tokens
@@ -22,6 +25,8 @@ public class AuthManager {
     private final ServerAdminPanelPlugin plugin;
     private final ConfigManager config;
     private final Map<String, String> users; // username -> hashed password
+    private final Map<String, Role> userRoles; // username -> role
+    private final Map<String, Set<Permission>> customPermissions; // username -> custom permissions (for CUSTOM role)
     private final Set<String> activeSessions; // active JWT tokens
     private final File usersFile;
 
@@ -29,6 +34,8 @@ public class AuthManager {
         this.plugin = plugin;
         this.config = config;
         this.users = new HashMap<>();
+        this.userRoles = new HashMap<>();
+        this.customPermissions = new HashMap<>();
         this.activeSessions = ConcurrentHashMap.newKeySet();
         this.usersFile = new File(plugin.getDataFolder(), "users.txt");
 
@@ -75,13 +82,38 @@ public class AuthManager {
             }
 
             Files.readAllLines(usersFile.toPath()).forEach(line -> {
-                String[] parts = line.split(":", 2);
-                if (parts.length == 2) {
-                    users.put(parts[0], parts[1]);
+                String[] parts = line.split(":", -1);
+                if (parts.length >= 2) {
+                    String username = parts[0];
+                    String hashedPassword = parts[1];
+                    users.put(username, hashedPassword);
+                    
+                    // Load role (default to ADMIN for backward compatibility)
+                    if (parts.length >= 3 && !parts[2].isEmpty()) {
+                        userRoles.put(username, Role.fromKey(parts[2]));
+                    } else {
+                        userRoles.put(username, Role.ADMIN);
+                    }
+                    
+                    // Load custom permissions for CUSTOM role
+                    if (parts.length >= 4 && !parts[3].isEmpty() && userRoles.get(username) == Role.CUSTOM) {
+                        Set<Permission> perms = new HashSet<>();
+                        for (String permKey : parts[3].split(",")) {
+                            Permission perm = Permission.fromKey(permKey.trim());
+                            if (perm != null) {
+                                perms.add(perm);
+                            }
+                        }
+                        customPermissions.put(username, perms);
+                    }
                 }
             });
 
             plugin.getLogger().info("Loaded " + users.size() + " user(s)");
+            
+            // Perform migration if needed
+            migrateUsersToRoles();
+            
         } catch (IOException e) {
             plugin.getLogger().severe("Failed to load users: " + e.getMessage());
         }
@@ -98,7 +130,22 @@ public class AuthManager {
 
             try (FileWriter writer = new FileWriter(usersFile)) {
                 for (Map.Entry<String, String> entry : users.entrySet()) {
-                    writer.write(entry.getKey() + ":" + entry.getValue() + "\n");
+                    String username = entry.getKey();
+                    String hashedPassword = entry.getValue();
+                    Role role = userRoles.getOrDefault(username, Role.ADMIN);
+                    
+                    StringBuilder line = new StringBuilder();
+                    line.append(username).append(":").append(hashedPassword).append(":").append(role.getKey());
+                    
+                    // Save custom permissions if role is CUSTOM
+                    if (role == Role.CUSTOM && customPermissions.containsKey(username)) {
+                        line.append(":");
+                        Set<Permission> perms = customPermissions.get(username);
+                        line.append(perms.stream().map(Permission::getKey).collect(Collectors.joining(",")));
+                    }
+                    
+                    line.append("\n");
+                    writer.write(line.toString());
                 }
             }
         } catch (IOException e) {
@@ -179,8 +226,9 @@ public class AuthManager {
         }
 
         users.put(username, hashPassword(password));
+        userRoles.put(username, Role.VIEWER); // Default new users to VIEWER role
         saveUsers();
-        plugin.getLogger().info("Added new user: " + username);
+        plugin.getLogger().info("Added new user: " + username + " with VIEWER role");
         return true;
     }
 
@@ -316,5 +364,148 @@ public class AuthManager {
      */
     public String getDefaultAdminUsername() {
         return config.getDefaultUsername();
+    }
+
+    /**
+     * Migrate users from old format to new format with roles
+     */
+    private void migrateUsersToRoles() {
+        File backupFile = new File(plugin.getDataFolder(), "users.txt.backup");
+        
+        try {
+            // Check if migration needed
+            if (users.isEmpty()) {
+                return;
+            }
+            
+            boolean needsMigration = false;
+            for (String username : users.keySet()) {
+                if (!userRoles.containsKey(username)) {
+                    needsMigration = true;
+                    break;
+                }
+            }
+            
+            if (!needsMigration) {
+                return;
+            }
+            
+            // Backup old file
+            if (usersFile.exists() && !backupFile.exists()) {
+                Files.copy(usersFile.toPath(), backupFile.toPath());
+                plugin.getLogger().info("Created backup of users.txt before role migration");
+            }
+            
+            // Migrate all existing users to ADMIN role
+            int migrated = 0;
+            for (String username : users.keySet()) {
+                if (!userRoles.containsKey(username)) {
+                    userRoles.put(username, Role.ADMIN);
+                    migrated++;
+                    plugin.getLogger().info("Migrated user '" + username + "' to ADMIN role");
+                }
+            }
+            
+            if (migrated > 0) {
+                saveUsers();
+                plugin.getLogger().info("Successfully migrated " + migrated + " user(s) to role-based system");
+            }
+            
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to backup users file during migration: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Check if a user exists
+     */
+    public boolean userExists(String username) {
+        return users.containsKey(username);
+    }
+
+    /**
+     * Get user's role
+     */
+    public Role getUserRole(String username) {
+        return userRoles.getOrDefault(username, Role.VIEWER);
+    }
+
+    /**
+     * Set user's role
+     */
+    public boolean setUserRole(String username, Role role) {
+        if (!users.containsKey(username)) {
+            return false;
+        }
+        
+        Role oldRole = userRoles.get(username);
+        userRoles.put(username, role);
+        
+        // Clear custom permissions if changing from CUSTOM role
+        if (oldRole == Role.CUSTOM && role != Role.CUSTOM) {
+            customPermissions.remove(username);
+        }
+        
+        saveUsers();
+        plugin.getLogger().info("Changed role for user '" + username + "' from " + 
+            (oldRole != null ? oldRole.getKey() : "none") + " to " + role.getKey());
+        return true;
+    }
+
+    /**
+     * Get user's permissions (either from role or custom)
+     */
+    public Set<Permission> getUserPermissions(String username) {
+        Role role = getUserRole(username);
+        
+        // ADMIN always has all permissions
+        if (role == Role.ADMIN) {
+            return new HashSet<>(Arrays.asList(Permission.values()));
+        }
+        
+        // CUSTOM role uses custom permissions
+        if (role == Role.CUSTOM) {
+            return new HashSet<>(customPermissions.getOrDefault(username, new HashSet<>()));
+        }
+        
+        // Other roles use default permissions
+        return role.getDefaultPermissions();
+    }
+
+    /**
+     * Set custom permissions for a user (automatically sets role to CUSTOM)
+     */
+    public boolean setUserPermissions(String username, Set<Permission> permissions) {
+        if (!users.containsKey(username)) {
+            return false;
+        }
+        
+        // Remove SUPER_ADMIN from custom permissions (only ADMIN role can have it)
+        permissions.remove(Permission.SUPER_ADMIN);
+        
+        userRoles.put(username, Role.CUSTOM);
+        customPermissions.put(username, new HashSet<>(permissions));
+        saveUsers();
+        
+        plugin.getLogger().info("Set custom permissions for user '" + username + "': " + permissions.size() + " permissions");
+        return true;
+    }
+
+    /**
+     * Check if user has a specific permission
+     */
+    public boolean hasPermission(String username, Permission permission) {
+        if (!users.containsKey(username)) {
+            return false;
+        }
+        
+        // ADMIN role always has SUPER_ADMIN permission
+        Role role = getUserRole(username);
+        if (role == Role.ADMIN) {
+            return true;
+        }
+        
+        Set<Permission> userPerms = getUserPermissions(username);
+        return userPerms.contains(permission);
     }
 }

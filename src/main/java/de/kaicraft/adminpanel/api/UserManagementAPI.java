@@ -3,6 +3,7 @@ package de.kaicraft.adminpanel.api;
 import com.google.gson.Gson;
 import de.kaicraft.adminpanel.ServerAdminPanelPlugin;
 import de.kaicraft.adminpanel.auth.AuthManager;
+import de.kaicraft.adminpanel.auth.Role;
 import de.kaicraft.adminpanel.util.ApiResponse;
 import de.kaicraft.adminpanel.util.TypeScriptEndpoint;
 import io.javalin.http.Context;
@@ -46,6 +47,12 @@ public class UserManagementAPI {
                 user.put("username", username);
                 user.put("isCurrentUser", username.equals(currentUser));
                 user.put("isDefaultAdmin", authManager.isDefaultAdmin(username));
+                
+                // Add role information
+                Role role = authManager.getUserRole(username);
+                user.put("role", role.getKey());
+                user.put("roleDisplayName", role.getDisplayName());
+                
                 users.add(user);
             }
             

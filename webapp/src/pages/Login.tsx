@@ -33,7 +33,7 @@ export default function Login() {
           <Server className="w-12 h-12 text-blue-500 mr-3" />
           <div>
             <h1 className="text-3xl font-bold text-white">PaperPanel</h1>
-            <p className="text-gray-400 text-sm">Server Management v2.0.0</p>
+            <p className="text-gray-400 text-sm">Server Management</p>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export default function Login() {
 
         <div className="mt-6 text-center text-xs text-gray-500">
           <p>Default credentials:</p>
-          <p className="mt-1 font-mono">admin / admin123</p>
+          <p className="mt-1 font-mono">admin / changeme</p>
           <p className="mt-3 text-yellow-500">⚠️ Please change default password after first login</p>
         </div>
       </div>

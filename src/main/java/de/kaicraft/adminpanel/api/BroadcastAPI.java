@@ -79,20 +79,30 @@ public class BroadcastAPI {
                 return;
             }
 
+            int playerCount = Bukkit.getOnlinePlayers().size();
+            
+            if (playerCount == 0) {
+                ctx.json(ApiResponse.successMessage("No players online to send message"));
+                return;
+            }
+
             // Run on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
-                Component component = Component.text(message).color(parseColor(colorHex));
-                Bukkit.getServer().sendMessage(component);
+                Component component = Component.text("[Server] " + message).color(parseColor(colorHex));
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    player.sendMessage(component);
+                }
+                plugin.getLogger().info("Broadcast message sent to " + Bukkit.getOnlinePlayers().size() + " players: " + message);
             });
 
             String username = ctx.attribute("username");
             plugin.getAuditLogger().logUserAction(username, "sent broadcast message", message);
 
-            ctx.json(ApiResponse.successMessage("Broadcast sent to " + Bukkit.getOnlinePlayers().size() + " players"));
+            ctx.json(ApiResponse.successMessage("Message sent to " + playerCount + " player(s)"));
 
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/message", e.getMessage(), e);
-            ctx.status(500).json(ApiResponse.error("Failed to send broadcast"));
+            ctx.status(500).json(ApiResponse.error("Failed to send broadcast: " + e.getMessage()));
         }
     }
 
@@ -115,6 +125,13 @@ public class BroadcastAPI {
                 return;
             }
 
+            int playerCount = Bukkit.getOnlinePlayers().size();
+            
+            if (playerCount == 0) {
+                ctx.json(ApiResponse.successMessage("No players online to send title"));
+                return;
+            }
+
             // Run on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Title titleComponent = Title.title(
@@ -130,16 +147,17 @@ public class BroadcastAPI {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.showTitle(titleComponent);
                 }
+                plugin.getLogger().info("Title sent to " + Bukkit.getOnlinePlayers().size() + " players: " + title);
             });
 
             String username = ctx.attribute("username");
             plugin.getAuditLogger().logUserAction(username, "sent title broadcast", title);
 
-            ctx.json(ApiResponse.successMessage("Title sent to " + Bukkit.getOnlinePlayers().size() + " players"));
+            ctx.json(ApiResponse.successMessage("Title sent to " + playerCount + " player(s)"));
 
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/title", e.getMessage(), e);
-            ctx.status(500).json(ApiResponse.error("Failed to send title"));
+            ctx.status(500).json(ApiResponse.error("Failed to send title: " + e.getMessage()));
         }
     }
 
@@ -158,6 +176,13 @@ public class BroadcastAPI {
                 return;
             }
 
+            int playerCount = Bukkit.getOnlinePlayers().size();
+            
+            if (playerCount == 0) {
+                ctx.json(ApiResponse.successMessage("No players online to send action bar"));
+                return;
+            }
+
             // Run on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 Component component = Component.text(message).color(NamedTextColor.AQUA);
@@ -165,16 +190,17 @@ public class BroadcastAPI {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     player.sendActionBar(component);
                 }
+                plugin.getLogger().info("Action bar sent to " + Bukkit.getOnlinePlayers().size() + " players: " + message);
             });
 
             String username = ctx.attribute("username");
             plugin.getAuditLogger().logUserAction(username, "sent action bar message", message);
 
-            ctx.json(ApiResponse.successMessage("Action bar sent to " + Bukkit.getOnlinePlayers().size() + " players"));
+            ctx.json(ApiResponse.successMessage("Action bar sent to " + playerCount + " player(s)"));
 
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/actionbar", e.getMessage(), e);
-            ctx.status(500).json(ApiResponse.error("Failed to send action bar"));
+            ctx.status(500).json(ApiResponse.error("Failed to send action bar: " + e.getMessage()));
         }
     }
 
@@ -197,27 +223,36 @@ public class BroadcastAPI {
 
             Sound sound;
             try {
-                sound = Sound.valueOf(soundName.toUpperCase());
+                sound = Sound.valueOf(soundName.toUpperCase().replace(".", "_"));
             } catch (IllegalArgumentException e) {
                 ctx.status(400).json(ApiResponse.error("Invalid sound name: " + soundName));
+                return;
+            }
+
+            // Get player count before executing
+            int playerCount = Bukkit.getOnlinePlayers().size();
+            
+            if (playerCount == 0) {
+                ctx.json(ApiResponse.successMessage("No players online to play sound"));
                 return;
             }
 
             // Run on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
                 for (Player player : Bukkit.getOnlinePlayers()) {
-                    player.playSound(player.getLocation(), sound, volume, pitch);
+                    player.playSound(player.getLocation(), sound, org.bukkit.SoundCategory.MASTER, volume, pitch);
+                    plugin.getLogger().info("Playing sound " + soundName + " for player " + player.getName());
                 }
             });
 
             String username = ctx.attribute("username");
-            plugin.getAuditLogger().logUserAction(username, "played sound", soundName);
+            plugin.getAuditLogger().logUserAction(username, "played sound", soundName + " for " + playerCount + " players");
 
-            ctx.json(ApiResponse.successMessage("Sound played for " + Bukkit.getOnlinePlayers().size() + " players"));
+            ctx.json(ApiResponse.successMessage("Sound '" + soundName + "' played for " + playerCount + " player(s)"));
 
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("POST /api/v1/broadcast/sound", e.getMessage(), e);
-            ctx.status(500).json(ApiResponse.error("Failed to play sound"));
+            ctx.status(500).json(ApiResponse.error("Failed to play sound: " + e.getMessage()));
         }
     }
 

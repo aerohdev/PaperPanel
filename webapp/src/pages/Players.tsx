@@ -1,7 +1,10 @@
 import { useEffect, useState, ChangeEvent } from 'react';
 import client from '../api/client';
-import { Users, Trash2, MessageSquare, Search, User as UserIcon } from 'lucide-react';
+import { Users, Trash2, MessageSquare, Search, User as UserIcon, Ban, ShieldOff } from 'lucide-react';
 import type { PlayerInfo } from '../types/api';
+import { ProtectedFeature } from '../components/ProtectedFeature';
+import { PermissionTooltip } from '../components/PermissionTooltip';
+import { Permission } from '../constants/permissions';
 
 interface SelectedPlayer {
   uuid: string;
@@ -38,7 +41,7 @@ export default function Players() {
   };
 
   const handleKick = async (uuid: string, name: string) => {
-    if (!confirm(`Kick ${name}?`)) return;
+    if (!confirm(`Kick ${name} from the server?`)) return;
 
     try {
       await client.post(`/players/${uuid}/kick`, {
@@ -48,6 +51,33 @@ export default function Players() {
       fetchPlayers();
     } catch (err: any) {
       alert(`Failed to kick player: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const handleBan = async (uuid: string, name: string) => {
+    const reason = prompt(`Enter ban reason for ${name}:`, 'Banned by administrator');
+    if (reason === null) return; // User cancelled
+
+    try {
+      await client.post(`/players/${uuid}/ban`, {
+        reason: reason || 'Banned by administrator'
+      });
+      alert(`${name} has been banned`);
+      fetchPlayers();
+    } catch (err: any) {
+      alert(`Failed to ban player: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const handleUnban = async (uuid: string, name: string) => {
+    if (!confirm(`Unban ${name}?`)) return;
+
+    try {
+      await client.delete(`/players/${uuid}/ban`);
+      alert(`${name} has been unbanned`);
+      fetchPlayers();
+    } catch (err: any) {
+      alert(`Failed to unban player: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -141,6 +171,8 @@ export default function Players() {
                 key={player.uuid}
                 player={player}
                 onKick={handleKick}
+                onBan={handleBan}
+                onUnban={handleUnban}
                 onMessage={(uuid: string, name: string) => {
                   setSelectedPlayer({ uuid, name });
                   setMessage('');
@@ -165,6 +197,8 @@ export default function Players() {
               <PlayerCard
                 key={player.uuid}
                 player={player}
+                onBan={handleBan}
+                onUnban={handleUnban}
                 formatPlaytime={formatPlaytime}
                 formatLastSeen={formatLastSeen}
               />
@@ -217,12 +251,14 @@ export default function Players() {
 interface PlayerCardProps {
   player: PlayerInfo;
   onKick?: (uuid: string, name: string) => void;
+  onBan?: (uuid: string, name: string) => void;
+  onUnban?: (uuid: string, name: string) => void;
   onMessage?: (uuid: string, name: string) => void;
   formatPlaytime: (ms: number) => string;
   formatLastSeen: (timestamp: number) => string;
 }
 
-function PlayerCard({ player, onKick, onMessage, formatPlaytime, formatLastSeen }: PlayerCardProps) {
+function PlayerCard({ player, onKick, onBan, onUnban, onMessage, formatPlaytime, formatLastSeen }: PlayerCardProps) {
   return (
     <div className="bg-dark-surface p-6 rounded-lg border border-dark-border hover:border-dark-hover transition-colors">
       <div className="flex items-start justify-between">
@@ -230,35 +266,96 @@ function PlayerCard({ player, onKick, onMessage, formatPlaytime, formatLastSeen 
           <div className="w-16 h-16 bg-dark-bg rounded-lg flex items-center justify-center">
             <UserIcon className="w-8 h-8 text-gray-400" />
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-white">{player.name}</h3>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-xl font-bold text-white">{player.name}</h3>
+              {player.banned && (
+                <span className="px-2 py-1 text-xs font-medium bg-red-900/30 text-red-400 border border-red-500 rounded">
+                  BANNED
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gray-400">
               Playtime: {formatPlaytime(player.totalPlaytime || 0)}
             </p>
             <p className="text-sm text-gray-500">
               {player.online ? 'Online now' : `Last seen: ${formatLastSeen(player.lastSeen || 0)}`}
             </p>
+            {player.stats && Object.keys(player.stats).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                {player.stats.BLOCKS_BROKEN && (
+                  <span className="px-2 py-1 bg-dark-bg text-gray-400 rounded">
+                    ⛏️ {player.stats.BLOCKS_BROKEN.toLocaleString()} blocks broken
+                  </span>
+                )}
+                {player.stats.BLOCKS_PLACED && (
+                  <span className="px-2 py-1 bg-dark-bg text-gray-400 rounded">
+                    🧱 {player.stats.BLOCKS_PLACED.toLocaleString()} blocks placed
+                  </span>
+                )}
+                {player.stats.DEATHS && (
+                  <span className="px-2 py-1 bg-dark-bg text-gray-400 rounded">
+                    💀 {player.stats.DEATHS} deaths
+                  </span>
+                )}
+                {player.stats.JOINS && (
+                  <span className="px-2 py-1 bg-dark-bg text-gray-400 rounded">
+                    🚪 {player.stats.JOINS} joins
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {player.online && onKick && onMessage && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => onMessage(player.uuid, player.name)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Message
-            </button>
-            <button
-              onClick={() => onKick(player.uuid, player.name)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-              Kick
-            </button>
+        {(player.online && onKick && onMessage) || onBan || onUnban ? (
+          <div className="flex gap-2 flex-wrap">
+            {player.online && onMessage && (
+              <PermissionTooltip permission={Permission.MESSAGE_PLAYERS}>
+                <button
+                  onClick={() => onMessage(player.uuid, player.name)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Message
+                </button>
+              </PermissionTooltip>
+            )}
+            {player.online && onKick && (
+              <PermissionTooltip permission={Permission.KICK_PLAYERS}>
+                <button
+                  onClick={() => onKick(player.uuid, player.name)}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Kick
+                </button>
+              </PermissionTooltip>
+            )}
+            {!player.banned && onBan && (
+              <PermissionTooltip permission={Permission.BAN_PLAYERS}>
+                <button
+                  onClick={() => onBan(player.uuid, player.name)}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  <Ban className="w-4 h-4" />
+                  Ban
+                </button>
+              </PermissionTooltip>
+            )}
+            {player.banned && onUnban && (
+              <PermissionTooltip permission={Permission.BAN_PLAYERS}>
+                <button
+                  onClick={() => onUnban(player.uuid, player.name)}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <ShieldOff className="w-4 h-4" />
+                  Unban
+                </button>
+              </PermissionTooltip>
+            )}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

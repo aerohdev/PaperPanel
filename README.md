@@ -2,7 +2,7 @@
 
 A comprehensive web-based administration panel for Minecraft Paper servers featuring real-time monitoring, player management, server control, and an intuitive React + TypeScript interface.
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)
 ![Java](https://img.shields.io/badge/java-21-orange.svg)
 ![Paper](https://img.shields.io/badge/paper-1.21.1-green.svg)
 ![React](https://img.shields.io/badge/react-18.2.0-61dafb.svg)
@@ -312,7 +312,7 @@ The `pom.xml` is configured to automatically build everything:
           <path>
             <groupId>de.kaicraft</groupId>
             <artifactId>adminpanel</artifactId>
-            <version>2.0.0</version>
+            <version>2.5.0</version>
           </path>
         </annotationProcessorPaths>
       </configuration>
@@ -1111,7 +1111,7 @@ Main command for PaperPanel.
 **Example output:**
 ```
 === PaperPanel ===
-Version: 2.0.0
+Version: 2.5.0
 Status: Running
 Port: 8080
 Access: http://localhost:8080

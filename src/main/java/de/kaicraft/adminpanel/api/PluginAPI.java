@@ -59,10 +59,7 @@ public class PluginAPI {
             // Sort by name
             pluginList.sort(Comparator.comparing(p -> (String) p.get("name")));
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("plugins", pluginList);
-            data.put("total", pluginList.size());
-            ctx.status(200).json(ApiResponse.success(data));
+            ctx.status(200).json(ApiResponse.success("plugins", pluginList));
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("GET /api/v1/plugins", e.getMessage(), e);
             ctx.status(500).json(ApiResponse.error("Failed to retrieve plugin list"));

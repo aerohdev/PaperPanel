@@ -12,11 +12,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchStats();
+    
+    // Auto-refresh every 3 seconds
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 3000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
     try {
-      setLoading(true);
+      // Don't show loading spinner on auto-refresh
+      if (!stats) {
+        setLoading(true);
+      }
       const response = await client.get<DashboardStats>('/dashboard/stats');
       setStats(response.data);
       setError(null);
@@ -88,16 +98,26 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400">Server overview and statistics</p>
+          <p className="text-gray-400">Server overview and statistics • Auto-refreshing every 3s</p>
         </div>
-        <button
-          onClick={handleCheckUpdates}
-          disabled={checkingUpdates}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${checkingUpdates ? 'animate-spin' : ''}`} />
-          {checkingUpdates ? 'Checking...' : 'Check for Updates'}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchStats}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            title="Refresh now"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+          <button
+            onClick={handleCheckUpdates}
+            disabled={checkingUpdates}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${checkingUpdates ? 'animate-spin' : ''}`} />
+            {checkingUpdates ? 'Checking...' : 'Check for Updates'}
+          </button>
+        </div>
       </div>
 
       {/* Main Stats Grid */}
