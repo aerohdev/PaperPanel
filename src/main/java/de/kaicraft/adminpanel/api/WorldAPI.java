@@ -439,17 +439,19 @@ public class WorldAPI {
             plugin.getLogger().fine("Set PVP to " + pvp + " in world '" + world.getName() + "'");
         }
         
-        // Allow Animals
+        // Allow Animals (deprecated - use world.setSpawnFlags instead)
         if (settings.containsKey("allowAnimals")) {
             boolean allowAnimals = (Boolean) settings.get("allowAnimals");
-            world.setAllowAnimals(allowAnimals);
+            boolean allowMonsters = settings.containsKey("allowMonsters") ? (Boolean) settings.get("allowMonsters") : world.getAllowMonsters();
+            world.setSpawnFlags(allowMonsters, allowAnimals);
             plugin.getLogger().fine("Set allowAnimals to " + allowAnimals + " in world '" + world.getName() + "'");
         }
         
-        // Allow Monsters
+        // Allow Monsters (deprecated - use world.setSpawnFlags instead)
         if (settings.containsKey("allowMonsters")) {
             boolean allowMonsters = (Boolean) settings.get("allowMonsters");
-            world.setAllowMonsters(allowMonsters);
+            boolean allowAnimals = settings.containsKey("allowAnimals") ? (Boolean) settings.get("allowAnimals") : world.getAllowAnimals();
+            world.setSpawnFlags(allowMonsters, allowAnimals);
             plugin.getLogger().fine("Set allowMonsters to " + allowMonsters + " in world '" + world.getName() + "'");
         }
         

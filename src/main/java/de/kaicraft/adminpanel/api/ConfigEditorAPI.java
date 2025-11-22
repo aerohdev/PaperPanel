@@ -175,7 +175,7 @@ public class ConfigEditorAPI {
             Files.writeString(configFile.toPath(), content, StandardOpenOption.TRUNCATE_EXISTING);
             
             String username = ctx.attribute("username");
-            plugin.getAuditLogger().logSecurityEvent(username, "modified-config", true, path);
+            plugin.getAuditLogger().logSecurityEvent(username, "modified-config: " + path, true);
             plugin.getAuditLogger().logUserAction(username, "write-config", path + " (" + content.length() + " bytes)");
             
             ctx.json(ApiResponse.successMessage("Config file saved successfully"));

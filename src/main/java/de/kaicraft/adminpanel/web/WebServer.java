@@ -134,83 +134,182 @@ public class WebServer {
         app.get("/api/v1/auth/security-status", authAPI::getSecurityStatus);
 
         // Dashboard routes
-        app.get("/api/v1/dashboard/stats", permissionMiddleware.requirePermission(Permission.VIEW_DASHBOARD), dashboardAPI::getStats);
-        app.get("/api/v1/dashboard/update-status", permissionMiddleware.requirePermission(Permission.VIEW_DASHBOARD), dashboardAPI::getUpdateStatus);
-        app.post("/api/v1/dashboard/check-updates", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES), dashboardAPI::checkForUpdates);
-        app.post("/api/v1/dashboard/download-update", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES), dashboardAPI::downloadUpdate);
-        app.post("/api/v1/dashboard/install-update", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES), dashboardAPI::installUpdate);
+        app.before("/api/v1/dashboard/stats", permissionMiddleware.requirePermission(Permission.VIEW_DASHBOARD));
+        app.get("/api/v1/dashboard/stats", dashboardAPI::getStats);
+        
+        app.before("/api/v1/dashboard/update-status", permissionMiddleware.requirePermission(Permission.VIEW_DASHBOARD));
+        app.get("/api/v1/dashboard/update-status", dashboardAPI::getUpdateStatus);
+        
+        app.before("/api/v1/dashboard/check-updates", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/dashboard/check-updates", dashboardAPI::checkForUpdates);
+        
+        app.before("/api/v1/dashboard/download-update", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/dashboard/download-update", dashboardAPI::downloadUpdate);
+        
+        app.before("/api/v1/dashboard/install-update", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/dashboard/install-update", dashboardAPI::installUpdate);
 
         // Console routes
-        app.get("/api/v1/console/history", permissionMiddleware.requirePermission(Permission.VIEW_CONSOLE), consoleAPI::getHistory);
-        app.post("/api/v1/console/command", permissionMiddleware.requirePermission(Permission.EXECUTE_COMMANDS), consoleAPI::executeCommand);
-        app.post("/api/v1/console/clear", permissionMiddleware.requirePermission(Permission.EXECUTE_COMMANDS), consoleAPI::clearHistory);
+        app.before("/api/v1/console/history", permissionMiddleware.requirePermission(Permission.VIEW_CONSOLE));
+        app.get("/api/v1/console/history", consoleAPI::getHistory);
+        
+        app.before("/api/v1/console/command", permissionMiddleware.requirePermission(Permission.EXECUTE_COMMANDS));
+        app.post("/api/v1/console/command", consoleAPI::executeCommand);
+        
+        app.before("/api/v1/console/clear", permissionMiddleware.requirePermission(Permission.EXECUTE_COMMANDS));
+        app.post("/api/v1/console/clear", consoleAPI::clearHistory);
 
         // Plugin routes
-        app.get("/api/v1/plugins", permissionMiddleware.requirePermission(Permission.VIEW_PLUGINS), pluginAPI::getPlugins);
-        app.get("/api/v1/plugins/{name}", permissionMiddleware.requirePermission(Permission.VIEW_PLUGINS), pluginAPI::getPlugin);
-        app.post("/api/v1/plugins/{name}/enable", permissionMiddleware.requirePermission(Permission.MANAGE_PLUGINS), pluginAPI::enablePlugin);
-        app.post("/api/v1/plugins/{name}/disable", permissionMiddleware.requirePermission(Permission.MANAGE_PLUGINS), pluginAPI::disablePlugin);
-        app.post("/api/v1/plugins/{name}/reload", permissionMiddleware.requirePermission(Permission.MANAGE_PLUGINS), pluginAPI::reloadPlugin);
+        app.before("/api/v1/plugins", permissionMiddleware.requirePermission(Permission.VIEW_PLUGINS));
+        app.get("/api/v1/plugins", pluginAPI::getPlugins);
+        
+        app.before("/api/v1/plugins/{name}", permissionMiddleware.requirePermission(Permission.VIEW_PLUGINS));
+        app.get("/api/v1/plugins/{name}", pluginAPI::getPlugin);
+        
+        app.before("/api/v1/plugins/{name}/enable", permissionMiddleware.requirePermission(Permission.MANAGE_PLUGINS));
+        app.post("/api/v1/plugins/{name}/enable", pluginAPI::enablePlugin);
+        
+        app.before("/api/v1/plugins/{name}/disable", permissionMiddleware.requirePermission(Permission.MANAGE_PLUGINS));
+        app.post("/api/v1/plugins/{name}/disable", pluginAPI::disablePlugin);
+        
+        app.before("/api/v1/plugins/{name}/reload", permissionMiddleware.requirePermission(Permission.MANAGE_PLUGINS));
+        app.post("/api/v1/plugins/{name}/reload", pluginAPI::reloadPlugin);
 
         // Player routes
-        app.get("/api/v1/players", permissionMiddleware.requirePermission(Permission.VIEW_PLAYERS), playerAPI::getPlayers);
-        app.get("/api/v1/players/{uuid}", permissionMiddleware.requirePermission(Permission.VIEW_PLAYERS), playerAPI::getPlayer);
-        app.post("/api/v1/players/{uuid}/kick", permissionMiddleware.requirePermission(Permission.KICK_PLAYERS), playerAPI::kickPlayer);
-        app.post("/api/v1/players/{uuid}/message", permissionMiddleware.requirePermission(Permission.MESSAGE_PLAYERS), playerAPI::messagePlayer);
-        app.post("/api/v1/players/{uuid}/ban", permissionMiddleware.requirePermission(Permission.BAN_PLAYERS), playerAPI::banPlayer);
-        app.delete("/api/v1/players/{uuid}/ban", permissionMiddleware.requirePermission(Permission.BAN_PLAYERS), playerAPI::unbanPlayer);
+        app.before("/api/v1/players", permissionMiddleware.requirePermission(Permission.VIEW_PLAYERS));
+        app.get("/api/v1/players", playerAPI::getPlayers);
+        
+        app.before("/api/v1/players/{uuid}", permissionMiddleware.requirePermission(Permission.VIEW_PLAYERS));
+        app.get("/api/v1/players/{uuid}", playerAPI::getPlayer);
+        
+        app.before("/api/v1/players/{uuid}/kick", permissionMiddleware.requirePermission(Permission.KICK_PLAYERS));
+        app.post("/api/v1/players/{uuid}/kick", playerAPI::kickPlayer);
+        
+        app.before("/api/v1/players/{uuid}/message", permissionMiddleware.requirePermission(Permission.MESSAGE_PLAYERS));
+        app.post("/api/v1/players/{uuid}/message", playerAPI::messagePlayer);
+        
+        app.before("/api/v1/players/{uuid}/ban", permissionMiddleware.requirePermission(Permission.BAN_PLAYERS));
+        app.post("/api/v1/players/{uuid}/ban", playerAPI::banPlayer);
+        app.delete("/api/v1/players/{uuid}/ban", playerAPI::unbanPlayer);
 
         // Server control routes
-        app.post("/api/v1/server/restart", permissionMiddleware.requirePermission(Permission.RESTART_SERVER), serverControlAPI::scheduleRestart);
-        app.post("/api/v1/server/stop", permissionMiddleware.requirePermission(Permission.STOP_SERVER), serverControlAPI::stopServer);
-        app.post("/api/v1/server/save-all", permissionMiddleware.requirePermission(Permission.SAVE_SERVER), serverControlAPI::saveAll);
-        app.post("/api/v1/server/weather/{world}/{type}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), serverControlAPI::setWeather);
-        app.post("/api/v1/server/time/{world}/{time}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), serverControlAPI::setTime);
+        app.before("/api/v1/server/restart", permissionMiddleware.requirePermission(Permission.RESTART_SERVER));
+        app.post("/api/v1/server/restart", serverControlAPI::scheduleRestart);
+        
+        app.before("/api/v1/server/stop", permissionMiddleware.requirePermission(Permission.STOP_SERVER));
+        app.post("/api/v1/server/stop", serverControlAPI::stopServer);
+        
+        app.before("/api/v1/server/save-all", permissionMiddleware.requirePermission(Permission.SAVE_SERVER));
+        app.post("/api/v1/server/save-all", serverControlAPI::saveAll);
+        
+        app.before("/api/v1/server/weather/{world}/{type}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/server/weather/{world}/{type}", serverControlAPI::setWeather);
+        
+        app.before("/api/v1/server/time/{world}/{time}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/server/time/{world}/{time}", serverControlAPI::setTime);
 
         // World routes
-        app.get("/api/v1/worlds", permissionMiddleware.requirePermission(Permission.VIEW_WORLDS), worldAPI::getWorlds);
-        app.get("/api/v1/worlds/{name}", permissionMiddleware.requirePermission(Permission.VIEW_WORLDS), worldAPI::getWorld);
-        app.put("/api/v1/worlds/{name}/settings", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::updateWorldSettings);
-        app.post("/api/v1/worlds/{name}/settings", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::updateWorldSettings); // Also support POST
-        app.post("/api/v1/worlds/bulk/settings", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::updateAllWorldSettings);
-        app.post("/api/v1/worlds/{name}/time/{time}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::setWorldTime);
-        app.post("/api/v1/worlds/{name}/weather/{type}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::setWorldWeather);
-        app.post("/api/v1/worlds/{name}/difficulty/{difficulty}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::setWorldDifficulty);
-        app.post("/api/v1/worlds/{name}/save", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::saveWorld);
-        app.post("/api/v1/worlds/{name}/gamerule", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS), worldAPI::setGameRule);
+        app.before("/api/v1/worlds", permissionMiddleware.requirePermission(Permission.VIEW_WORLDS));
+        app.get("/api/v1/worlds", worldAPI::getWorlds);
+        
+        app.before("/api/v1/worlds/{name}", permissionMiddleware.requirePermission(Permission.VIEW_WORLDS));
+        app.get("/api/v1/worlds/{name}", worldAPI::getWorld);
+        
+        app.before("/api/v1/worlds/{name}/settings", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.put("/api/v1/worlds/{name}/settings", worldAPI::updateWorldSettings);
+        app.post("/api/v1/worlds/{name}/settings", worldAPI::updateWorldSettings); // Also support POST
+        
+        app.before("/api/v1/worlds/bulk/settings", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/worlds/bulk/settings", worldAPI::updateAllWorldSettings);
+        
+        app.before("/api/v1/worlds/{name}/time/{time}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/worlds/{name}/time/{time}", worldAPI::setWorldTime);
+        
+        app.before("/api/v1/worlds/{name}/weather/{type}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/worlds/{name}/weather/{type}", worldAPI::setWorldWeather);
+        
+        app.before("/api/v1/worlds/{name}/difficulty/{difficulty}", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/worlds/{name}/difficulty/{difficulty}", worldAPI::setWorldDifficulty);
+        
+        app.before("/api/v1/worlds/{name}/save", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/worlds/{name}/save", worldAPI::saveWorld);
+        
+        app.before("/api/v1/worlds/{name}/gamerule", permissionMiddleware.requirePermission(Permission.MANAGE_WORLDS));
+        app.post("/api/v1/worlds/{name}/gamerule", worldAPI::setGameRule);
 
         // Broadcast routes
-        app.post("/api/v1/broadcast/message", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS), broadcastAPI::sendChatMessage);
-        app.post("/api/v1/broadcast/title", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS), broadcastAPI::sendTitle);
-        app.post("/api/v1/broadcast/actionbar", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS), broadcastAPI::sendActionBar);
-        app.post("/api/v1/broadcast/sound", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS), broadcastAPI::playSound);
+        app.before("/api/v1/broadcast/message", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS));
+        app.post("/api/v1/broadcast/message", broadcastAPI::sendChatMessage);
+        
+        app.before("/api/v1/broadcast/title", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS));
+        app.post("/api/v1/broadcast/title", broadcastAPI::sendTitle);
+        
+        app.before("/api/v1/broadcast/actionbar", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS));
+        app.post("/api/v1/broadcast/actionbar", broadcastAPI::sendActionBar);
+        
+        app.before("/api/v1/broadcast/sound", permissionMiddleware.requirePermission(Permission.SEND_BROADCASTS));
+        app.post("/api/v1/broadcast/sound", broadcastAPI::playSound);
 
         // Log viewer routes
-        app.get("/api/v1/logs/files", permissionMiddleware.requirePermission(Permission.VIEW_LOGS), logViewerAPI::getLogFiles);
-        app.get("/api/v1/logs/read/{filename}", permissionMiddleware.requirePermission(Permission.VIEW_LOGS), logViewerAPI::readLogFile);
-        app.post("/api/v1/logs/search", permissionMiddleware.requirePermission(Permission.VIEW_LOGS), logViewerAPI::searchLogs);
-        app.get("/api/v1/logs/download/{filename}", permissionMiddleware.requirePermission(Permission.VIEW_LOGS), logViewerAPI::downloadLogFile);
+        app.before("/api/v1/logs/files", permissionMiddleware.requirePermission(Permission.VIEW_LOGS));
+        app.get("/api/v1/logs/files", logViewerAPI::getLogFiles);
+        
+        app.before("/api/v1/logs/read/{filename}", permissionMiddleware.requirePermission(Permission.VIEW_LOGS));
+        app.get("/api/v1/logs/read/{filename}", logViewerAPI::readLogFile);
+        
+        app.before("/api/v1/logs/search", permissionMiddleware.requirePermission(Permission.VIEW_LOGS));
+        app.post("/api/v1/logs/search", logViewerAPI::searchLogs);
+        
+        app.before("/api/v1/logs/download/{filename}", permissionMiddleware.requirePermission(Permission.VIEW_LOGS));
+        app.get("/api/v1/logs/download/{filename}", logViewerAPI::downloadLogFile);
 
         // Config editor routes
-        app.get("/api/v1/configs", permissionMiddleware.requirePermission(Permission.VIEW_CONFIGS), configEditorAPI::listConfigs);
-        app.get("/api/v1/configs/read", permissionMiddleware.requirePermission(Permission.VIEW_CONFIGS), configEditorAPI::readConfig);
-        app.post("/api/v1/configs/write", permissionMiddleware.requirePermission(Permission.EDIT_CONFIGS), configEditorAPI::writeConfig);
+        app.before("/api/v1/configs", permissionMiddleware.requirePermission(Permission.VIEW_CONFIGS));
+        app.get("/api/v1/configs", configEditorAPI::listConfigs);
+        
+        app.before("/api/v1/configs/read", permissionMiddleware.requirePermission(Permission.VIEW_CONFIGS));
+        app.get("/api/v1/configs/read", configEditorAPI::readConfig);
+        
+        app.before("/api/v1/configs/write", permissionMiddleware.requirePermission(Permission.EDIT_CONFIGS));
+        app.post("/api/v1/configs/write", configEditorAPI::writeConfig);
 
         // Whitelist routes
-        app.get("/api/v1/whitelist", permissionMiddleware.requirePermission(Permission.VIEW_WHITELIST), whitelistAPI::getWhitelist);
-        app.post("/api/v1/whitelist/enable", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST), whitelistAPI::enableWhitelist);
-        app.post("/api/v1/whitelist/disable", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST), whitelistAPI::disableWhitelist);
-        app.post("/api/v1/whitelist/add", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST), whitelistAPI::addToWhitelist);
-        app.delete("/api/v1/whitelist/remove/{uuid}", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST), whitelistAPI::removeFromWhitelist);
-        app.post("/api/v1/whitelist/import", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST), whitelistAPI::bulkImportWhitelist);
-        app.get("/api/v1/whitelist/export", permissionMiddleware.requirePermission(Permission.VIEW_WHITELIST), whitelistAPI::exportWhitelist);
+        app.before("/api/v1/whitelist", permissionMiddleware.requirePermission(Permission.VIEW_WHITELIST));
+        app.get("/api/v1/whitelist", whitelistAPI::getWhitelist);
+        
+        app.before("/api/v1/whitelist/enable", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.post("/api/v1/whitelist/enable", whitelistAPI::enableWhitelist);
+        
+        app.before("/api/v1/whitelist/disable", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.post("/api/v1/whitelist/disable", whitelistAPI::disableWhitelist);
+        
+        app.before("/api/v1/whitelist/add", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.post("/api/v1/whitelist/add", whitelistAPI::addToWhitelist);
+        
+        app.before("/api/v1/whitelist/remove/{uuid}", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.delete("/api/v1/whitelist/remove/{uuid}", whitelistAPI::removeFromWhitelist);
+        
+        app.before("/api/v1/whitelist/import", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.post("/api/v1/whitelist/import", whitelistAPI::bulkImportWhitelist);
+        
+        app.before("/api/v1/whitelist/export", permissionMiddleware.requirePermission(Permission.VIEW_WHITELIST));
+        app.get("/api/v1/whitelist/export", whitelistAPI::exportWhitelist);
 
         // Ops routes
-        app.get("/api/v1/ops", permissionMiddleware.requirePermission(Permission.VIEW_OPS), whitelistAPI::getOps);
-        app.post("/api/v1/ops/add", permissionMiddleware.requirePermission(Permission.MANAGE_OPS), whitelistAPI::addOp);
-        app.delete("/api/v1/ops/remove/{uuid}", permissionMiddleware.requirePermission(Permission.MANAGE_OPS), whitelistAPI::removeOp);
-        app.post("/api/v1/ops/import", permissionMiddleware.requirePermission(Permission.MANAGE_OPS), whitelistAPI::bulkImportOps);
-        app.get("/api/v1/ops/export", permissionMiddleware.requirePermission(Permission.VIEW_OPS), whitelistAPI::exportOps);
+        app.before("/api/v1/ops", permissionMiddleware.requirePermission(Permission.VIEW_OPS));
+        app.get("/api/v1/ops", whitelistAPI::getOps);
+        
+        app.before("/api/v1/ops/add", permissionMiddleware.requirePermission(Permission.MANAGE_OPS));
+        app.post("/api/v1/ops/add", whitelistAPI::addOp);
+        
+        app.before("/api/v1/ops/remove/{uuid}", permissionMiddleware.requirePermission(Permission.MANAGE_OPS));
+        app.delete("/api/v1/ops/remove/{uuid}", whitelistAPI::removeOp);
+        
+        app.before("/api/v1/ops/import", permissionMiddleware.requirePermission(Permission.MANAGE_OPS));
+        app.post("/api/v1/ops/import", whitelistAPI::bulkImportOps);
+        
+        app.before("/api/v1/ops/export", permissionMiddleware.requirePermission(Permission.VIEW_OPS));
+        app.get("/api/v1/ops/export", whitelistAPI::exportOps);
 
         // WebSocket route for live console
         app.ws("/ws/console", webSocketHandler.configure());
@@ -232,21 +331,39 @@ public class WebServer {
         });
 
         // User management routes
-        app.get("/api/v1/users", permissionMiddleware.requirePermission(Permission.VIEW_USERS), userManagementAPI::getUsers);
-        app.post("/api/v1/users", permissionMiddleware.requirePermission(Permission.MANAGE_USERS), userManagementAPI::createUser);
-        app.put("/api/v1/users/{username}/password", permissionMiddleware.requirePermission(Permission.MANAGE_USERS), userManagementAPI::changePassword);
-        app.delete("/api/v1/users/{username}", permissionMiddleware.requirePermission(Permission.MANAGE_USERS), userManagementAPI::deleteUser);
+        app.before("/api/v1/users", permissionMiddleware.requirePermission(Permission.VIEW_USERS));
+        app.get("/api/v1/users", userManagementAPI::getUsers);
+        app.post("/api/v1/users", ctx -> {
+            permissionMiddleware.requirePermission(Permission.MANAGE_USERS).handle(ctx);
+            if (!ctx.res().isCommitted()) userManagementAPI.createUser(ctx);
+        });
+        
+        app.before("/api/v1/users/{username}/password", permissionMiddleware.requirePermission(Permission.MANAGE_USERS));
+        app.put("/api/v1/users/{username}/password", userManagementAPI::changePassword);
+        
+        app.before("/api/v1/users/{username}", permissionMiddleware.requirePermission(Permission.MANAGE_USERS));
+        app.delete("/api/v1/users/{username}", userManagementAPI::deleteUser);
 
         // Role management routes (require MANAGE_ROLES permission)
-        app.get("/api/v1/roles", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), roleManagementAPI::getRoles);
-        app.get("/api/v1/permissions", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), roleManagementAPI::getPermissions);
-        app.get("/api/v1/users/{username}/permissions", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), roleManagementAPI::getUserPermissions);
-        app.put("/api/v1/users/{username}/role", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), roleManagementAPI::setUserRole);
-        app.put("/api/v1/users/{username}/permissions", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), roleManagementAPI::setUserPermissions);
+        app.before("/api/v1/roles", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
+        app.get("/api/v1/roles", roleManagementAPI::getRoles);
+        
+        app.before("/api/v1/permissions", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
+        app.get("/api/v1/permissions", roleManagementAPI::getPermissions);
+        
+        app.before("/api/v1/users/{username}/permissions", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
+        app.get("/api/v1/users/{username}/permissions", roleManagementAPI::getUserPermissions);
+        app.put("/api/v1/users/{username}/permissions", roleManagementAPI::setUserPermissions);
+        
+        app.before("/api/v1/users/{username}/role", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
+        app.put("/api/v1/users/{username}/role", roleManagementAPI::setUserRole);
 
         // Audit log routes (require MANAGE_ROLES permission to view audit logs)
-        app.get("/api/v1/audit/entries", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), auditLogAPI::getAuditEntries);
-        app.get("/api/v1/audit/stats", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES), auditLogAPI::getAuditStats);
+        app.before("/api/v1/audit/entries", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
+        app.get("/api/v1/audit/entries", auditLogAPI::getAuditEntries);
+        
+        app.before("/api/v1/audit/stats", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
+        app.get("/api/v1/audit/stats", auditLogAPI::getAuditStats);
     }
 
     /**

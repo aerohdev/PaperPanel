@@ -38,9 +38,8 @@ public class PermissionMiddleware {
             if (!authManager.hasPermission(username, permission)) {
                 plugin.getAuditLogger().logSecurityEvent(
                     username, 
-                    "permission-denied", 
-                    false, 
-                    "Attempted to access " + ctx.path() + " without " + permission.getKey() + " permission"
+                    "permission-denied: " + ctx.path() + " (" + permission.getKey() + ")", 
+                    false
                 );
                 
                 ctx.status(403).json(Map.of(

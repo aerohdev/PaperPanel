@@ -26,6 +26,7 @@ public enum Permission {
     // Plugins
     VIEW_PLUGINS("view_plugins", "View Plugins", "plugins"),
     ENABLE_DISABLE_PLUGINS("enable_disable_plugins", "Enable/Disable Plugins", "plugins"),
+    MANAGE_PLUGINS("manage_plugins", "Manage Plugins", "plugins"),
     
     // Worlds
     VIEW_WORLDS("view_worlds", "View Worlds", "worlds"),
@@ -33,11 +34,14 @@ public enum Permission {
     
     // Broadcast
     SEND_BROADCAST("send_broadcast", "Send Broadcasts", "broadcast"),
+    SEND_BROADCASTS("send_broadcasts", "Send Broadcasts", "broadcast"),
     
     // Server Control
     VIEW_SERVER("view_server", "View Server Info", "server"),
     RESTART_SERVER("restart_server", "Restart Server", "server"),
     STOP_SERVER("stop_server", "Stop Server", "server"),
+    SAVE_SERVER("save_server", "Save Server", "server"),
+    MANAGE_UPDATES("manage_updates", "Manage Server Updates", "server"),
     
     // Config Editor
     VIEW_CONFIGS("view_configs", "View Config Files", "configs"),
@@ -49,6 +53,9 @@ public enum Permission {
     // User Management
     VIEW_USERS("view_users", "View Panel Users", "users"),
     MANAGE_USERS("manage_users", "Manage Panel Users", "users"),
+    
+    // Role Management
+    MANAGE_ROLES("manage_roles", "Manage Roles and Permissions", "roles"),
     
     // System Admin (cannot be revoked from ADMIN role)
     SUPER_ADMIN("super_admin", "Super Administrator", "system");

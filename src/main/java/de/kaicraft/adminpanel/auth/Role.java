@@ -58,17 +58,14 @@ public enum Role {
     private final String displayName;
     private final String description;
     private final Set<Permission> defaultPermissions;
+    private final boolean isAdmin;
 
     Role(String key, String displayName, String description, Permission... permissions) {
         this.key = key;
         this.displayName = displayName;
         this.description = description;
+        this.isAdmin = "admin".equals(key);
         this.defaultPermissions = new HashSet<>(Arrays.asList(permissions));
-        
-        // Admin gets all permissions automatically
-        if (this == ADMIN) {
-            this.defaultPermissions.addAll(Arrays.asList(Permission.values()));
-        }
     }
 
     public String getKey() {
@@ -84,6 +81,10 @@ public enum Role {
     }
 
     public Set<Permission> getDefaultPermissions() {
+        // Admin gets all permissions automatically
+        if (isAdmin) {
+            return new HashSet<>(Arrays.asList(Permission.values()));
+        }
         return new HashSet<>(defaultPermissions);
     }
 
