@@ -101,7 +101,7 @@ A full-stack application that transforms Minecraft server management with a mode
 
 ### Installation
 
-**⚠️ IMPORTANT: v2.0.0 uses automated build process - no manual copying required!**
+**⚠️ IMPORTANT: v2.X.X uses automated build process - no manual copying required!**
 
 ```bash
 # 1. Clone repository
@@ -120,7 +120,7 @@ mvn clean package
 # - Creates deployable JAR
 
 # 3. Install to server
-cp target/ServerAdminPanel-2.0.0.jar /path/to/server/plugins/
+cp target/PaperPanel-*.jar /path/to/server/plugins/
 
 # 4. Open firewall (if needed)
 sudo ufw allow 8080/tcp
