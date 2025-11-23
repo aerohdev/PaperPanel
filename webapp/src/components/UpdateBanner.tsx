@@ -19,6 +19,8 @@ export default function UpdateBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [showInstallConfirm, setShowInstallConfirm] = useState(false);
+  const [isInstalling, setIsInstalling] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(300); // 5 minutes in seconds
 
   useEffect(() => {
     checkUpdateStatus();
@@ -26,6 +28,23 @@ export default function UpdateBanner() {
     const interval = setInterval(checkUpdateStatus, 10 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Countdown timer effect
+  useEffect(() => {
+    if (!isInstalling) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isInstalling]);
 
   const checkUpdateStatus = async () => {
     try {
@@ -84,9 +103,10 @@ export default function UpdateBanner() {
     setLoading(true);
     try {
       await client.post('/dashboard/install-update');
-      alert('✅ Installation started!\n\nServer will restart in 5 minutes.\nPlease reconnect after restart.');
       setShowInstallConfirm(false);
-      setShowBanner(false);
+      setIsInstalling(true);
+      setTimeRemaining(300); // Reset to 5 minutes
+      setLoading(false);
     } catch (err) {
       alert('Failed to install update: ' + (err.response?.data?.message || err.message));
       setLoading(false);
@@ -97,9 +117,36 @@ export default function UpdateBanner() {
     return null;
   }
 
+  // Format time remaining as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <>
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 border-b border-blue-700 px-6 py-4">
+      {/* Installation Timer Banner */}
+      {isInstalling && (
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 border-b border-orange-700 px-6 py-4">
+          <div className="flex items-center justify-center max-w-7xl mx-auto gap-4">
+            <AlertTriangle className="w-6 h-6 text-white flex-shrink-0 animate-pulse" />
+            <div className="text-center">
+              <p className="text-white font-bold text-lg">
+                🔄 Server Restart in Progress
+              </p>
+              <p className="text-orange-100 text-sm">
+                Server will restart in <span className="font-mono font-bold text-white text-base">{formatTime(timeRemaining)}</span>
+              </p>
+            </div>
+            <RefreshCw className="w-6 h-6 text-white flex-shrink-0 animate-spin" />
+          </div>
+        </div>
+      )}
+
+      {/* Update Available Banner */}
+      {!isInstalling && (
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 border-b border-blue-700 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-4 flex-1">
             {updateStatus.updateDownloaded ? (
@@ -153,6 +200,7 @@ export default function UpdateBanner() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Install Confirmation Modal */}
       {showInstallConfirm && (
