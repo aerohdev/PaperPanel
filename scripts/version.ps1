@@ -27,9 +27,9 @@ $pom = $pom -replace "(<artifactId>PaperPanel</artifactId>\s*<version>)[\d.]+", 
 Set-Content "pom.xml" $pom -NoNewline
 Write-Host "Updated pom.xml" -ForegroundColor Green
 
-# Update plugin.yml
+# Update plugin.yml (only the plugin version, not api-version)
 $pluginYml = Get-Content "src/main/resources/plugin.yml" -Raw
-$pluginYml = $pluginYml -replace "version: '[\d.]+'", "version: '$new'"
+$pluginYml = $pluginYml -replace "(?m)^version: '[\d.]+'", "version: '$new'"
 Set-Content "src/main/resources/plugin.yml" $pluginYml -NoNewline
 Write-Host "Updated src/main/resources/plugin.yml" -ForegroundColor Green
 
