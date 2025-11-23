@@ -4,111 +4,57 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-function getCurrentVersion() {
-  const pomPath = path.join(__dirname, '..', 'pom.xml');
-  const pom = fs.readFileSync(pomPath, 'utf8');
-  const match = pom.match(/<version>([\d.]+)<\/version>/);
-  if (!match) {
-    throw new Error('Version not found in pom.xml');
-  }
-  return match[1];
-}
-
-function incrementVersion(version) {
-  const parts = version.split('.').map(num => parseInt(num, 10));
-  parts[2]++; // Increment patch version
-  return parts.join('.');
-}
-
-function updateFile(filePath, pattern, replacement) {
-  const fullPath = path.join(__dirname, '..', filePath);
-  if (!fs.existsSync(fullPath)) {
-    console.log(`⚠️  Skipping ${filePath} (not found)`);
-    return false;
-  }
-  
-  const content = fs.readFileSync(fullPath, 'utf8');
-  const newContent = content.replace(pattern, replacement);
-  
-  if (content !== newContent) {
-    fs.writeFileSync(fullPath, newContent, 'utf8');
-    console.log(`✅ ${filePath}`);
-    return true;
-  }
-  return false;
-}
+// Read the commit message from .git/COMMIT_EDITMSG
+const commitMsgPath = path.join(process.cwd(), '.git', 'COMMIT_EDITMSG');
+let commitMsg = '';
 
 try {
-  const current = getCurrentVersion();
-  const newVersion = incrementVersion(current);
-  
-  console.log(`\n📦 Auto-incrementing version: ${current} → ${newVersion}\n`);
-  
-  const files = [
-    {
-      path: 'pom.xml',
-      pattern: /<version>[\d.]+<\/version>/,
-      replace: `<version>${newVersion}</version>`
-    },
-    {
-      path: 'src/main/resources/plugin.yml',
-      pattern: /version: '[\d.]+'/,
-      replace: `version: '${newVersion}'`
-    },
-    {
-      path: 'webapp/package.json',
-      pattern: /"version": "[\d.]+"/,
-      replace: `"version": "${newVersion}"`
-    },
-    {
-      path: 'src/main/resources/config.yml',
-      pattern: /# Version: [\d.]+/,
-      replace: `# Version: ${newVersion}`
-    },
-    {
-      path: 'webapp/index.html',
-      pattern: /<title>PaperPanel v[\d.]+<\/title>/,
-      replace: `<title>PaperPanel v${newVersion}</title>`
-    },
-    {
-      path: 'webapp/src/components/Sidebar.tsx',
-      pattern: /PaperPanel v[\d.]+/,
-      replace: `PaperPanel v${newVersion}`
-    }
+  commitMsg = fs.readFileSync(commitMsgPath, 'utf8').toLowerCase();
+} catch (err) {
+  console.log('⚠️  Could not read commit message, defaulting to patch version');
+}
+
+// Determine version type from commit message
+let versionType = 'patch';
+
+if (commitMsg.startsWith('breaking:') || commitMsg.includes('breaking change')) {
+  versionType = 'major';
+} else if (commitMsg.startsWith('feat:') || commitMsg.startsWith('feature:')) {
+  versionType = 'minor';
+} else if (commitMsg.startsWith('fix:') || commitMsg.startsWith('patch:')) {
+  versionType = 'patch';
+}
+
+console.log(`\n🔍 Detected commit type: ${versionType}\n`);
+
+console.log(`\n🔍 Detected commit type: ${versionType}\n`);
+
+try {
+  // Run the PowerShell versioning script with the detected type
+  const scriptPath = path.join(__dirname, 'version.ps1');
+  execSync(`powershell -ExecutionPolicy Bypass -File "${scriptPath}" -type ${versionType}`, {
+    stdio: 'inherit',
+    cwd: path.join(__dirname, '..')
+  });
+
+  // Stage the version files
+  const filesToStage = [
+    'pom.xml',
+    'src/main/resources/plugin.yml',
+    'webapp/package.json',
+    'webapp/src/components/Sidebar.tsx',
+    'webapp/src/constants/version.ts'
   ];
-  
-  const updated = [];
-  files.forEach(file => {
-    if (updateFile(file.path, file.pattern, file.replace)) {
-      updated.push(file.path);
+
+  filesToStage.forEach(file => {
+    try {
+      execSync(`git add "${file}"`, { stdio: 'pipe', cwd: path.join(__dirname, '..') });
+    } catch (err) {
+      // File might not exist, continue
     }
   });
-  
-  // Create version.ts
-  const versionTsDir = path.join(__dirname, '..', 'webapp', 'src', 'constants');
-  const versionTsPath = path.join(versionTsDir, 'version.ts');
-  
-  if (!fs.existsSync(versionTsDir)) {
-    fs.mkdirSync(versionTsDir, { recursive: true });
-  }
-  
-  const versionTs = `export const VERSION = '${newVersion}';\nexport const APP_NAME = 'PaperPanel';\nexport const FULL_TITLE = \`\${APP_NAME} v\${VERSION}\`;\n`;
-  fs.writeFileSync(versionTsPath, versionTs, 'utf8');
-  console.log('✅ webapp/src/constants/version.ts');
-  updated.push('webapp/src/constants/version.ts');
-  
-  // Stage the updated files
-  if (updated.length > 0) {
-    try {
-      execSync(`git add ${updated.join(' ')}`, { stdio: 'inherit' });
-    } catch (err) {
-      console.error('⚠️  Failed to stage files:', err.message);
-    }
-  }
-  
-  console.log(`\n✨ Version auto-incremented to ${newVersion}\n`);
-  
-} catch (err) {
-  console.error('❌ Auto-versioning failed:', err.message);
+
+} catch (error) {
+  console.error('❌ Error during auto-versioning:', error.message);
   process.exit(1);
 }
