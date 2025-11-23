@@ -45,25 +45,29 @@ export function RoleManagement() {
       setError(null);
 
       const [usersRes, rolesRes, permsRes] = await Promise.all([
-        apiClient.get('/api/v1/users'),
-        apiClient.get('/api/v1/roles'),
-        apiClient.get('/api/v1/permissions'),
+        apiClient.get('/users'),
+        apiClient.get('/roles'),
+        apiClient.get('/permissions'),
       ]);
 
-      if (usersRes.success && usersRes.data) {
+      console.log('Users response:', usersRes.data);
+      console.log('Roles response:', rolesRes.data);
+      console.log('Permissions response:', permsRes.data);
+
+      if (usersRes.data) {
         setUsers(usersRes.data);
       }
 
-      if (rolesRes.success && rolesRes.data) {
+      if (rolesRes.data) {
         setRoles(rolesRes.data);
       }
 
-      if (permsRes.success && permsRes.data) {
+      if (permsRes.data) {
         setPermissions(permsRes.data);
       }
     } catch (err) {
       setError('Failed to load data');
-      console.error(err);
+      console.error('Load data error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -72,15 +76,17 @@ export function RoleManagement() {
   const loadUserPermissions = async (username: string) => {
     try {
       setError(null);
-      const res = await apiClient.get(`/api/v1/users/${username}/permissions`);
+      const res = await apiClient.get(`/users/${username}/permissions`);
       
-      if (res.success && res.data) {
+      console.log('User permissions response:', res.data);
+      
+      if (res.data) {
         setUserPermissions(res.data);
         setCustomPermissions(new Set(res.data.permissions || []));
       }
     } catch (err) {
       setError('Failed to load user permissions');
-      console.error(err);
+      console.error('Load user permissions error:', err);
     }
   };
 
@@ -99,17 +105,13 @@ export function RoleManagement() {
       setError(null);
       setSuccess(null);
 
-      const res = await apiClient.put(`/api/v1/users/${selectedUser}/role`, { role: newRole });
+      await apiClient.put(`/users/${selectedUser}/role`, { role: newRole });
 
-      if (res.success) {
-        setSuccess(`Role updated to ${newRole}`);
-        await loadData();
-        await loadUserPermissions(selectedUser);
-      } else {
-        setError(res.message || 'Failed to update role');
-      }
+      setSuccess(`Role updated to ${newRole}`);
+      await loadData();
+      await loadUserPermissions(selectedUser);
     } catch (err: any) {
-      setError(err.message || 'Failed to update role');
+      setError(err.response?.data?.message || 'Failed to update role');
     } finally {
       setIsSaving(false);
     }
@@ -133,19 +135,15 @@ export function RoleManagement() {
       setError(null);
       setSuccess(null);
 
-      const res = await apiClient.put(`/api/v1/users/${selectedUser}/permissions`, {
+      await apiClient.put(`/users/${selectedUser}/permissions`, {
         permissions: Array.from(customPermissions),
       });
 
-      if (res.success) {
-        setSuccess('Custom permissions saved');
-        await loadData();
-        await loadUserPermissions(selectedUser);
-      } else {
-        setError(res.message || 'Failed to save permissions');
-      }
+      setSuccess('Custom permissions saved');
+      await loadData();
+      await loadUserPermissions(selectedUser);
     } catch (err: any) {
-      setError(err.message || 'Failed to save permissions');
+      setError(err.response?.data?.message || 'Failed to save permissions');
     } finally {
       setIsSaving(false);
     }
@@ -177,7 +175,7 @@ export function RoleManagement() {
       setSuccess(null);
 
       const promises = Array.from(selectedUsers).map(username =>
-        apiClient.put(`/api/v1/users/${username}/role`, { role: bulkRole })
+        apiClient.put(`/users/${username}/role`, { role: bulkRole })
       );
 
       await Promise.all(promises);

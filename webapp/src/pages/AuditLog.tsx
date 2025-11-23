@@ -56,11 +56,14 @@ export function AuditLog() {
       }
 
       const [entriesRes, statsRes] = await Promise.all([
-        apiClient.get(`/api/v1/audit/entries?${params.toString()}`),
-        apiClient.get('/api/v1/audit/stats'),
+        apiClient.get(`/audit/entries?${params.toString()}`),
+        apiClient.get('/audit/stats'),
       ]);
 
-      if (entriesRes.success && entriesRes.data) {
+      console.log('Audit entries response:', entriesRes.data);
+      console.log('Audit stats response:', statsRes.data);
+
+      if (entriesRes.data) {
         let filteredEntries = entriesRes.data.entries || [];
         
         // Apply level filter client-side
@@ -74,11 +77,12 @@ export function AuditLog() {
         setTotal(entriesRes.data.total || 0);
       }
 
-      if (statsRes.success && statsRes.data) {
+      if (statsRes.data) {
         setStats(statsRes.data);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load audit logs');
+      setError(err.response?.data?.message || 'Failed to load audit logs');
+      console.error('Load audit logs error:', err);
     } finally {
       setIsLoading(false);
     }

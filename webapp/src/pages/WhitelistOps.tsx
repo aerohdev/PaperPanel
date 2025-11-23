@@ -37,10 +37,10 @@ export default function WhitelistOps() {
   const loadData = async () => {
     try {
       if (activeTab === 'whitelist') {
-        const response = await axios.get('/api/v1/whitelist');
+        const response = await axios.get('/whitelist');
         setWhitelistData(response.data);
       } else {
-        const response = await axios.get('/api/v1/ops');
+        const response = await axios.get('/ops');
         setOpsData(response.data);
       }
     } catch (error: any) {
@@ -57,7 +57,7 @@ export default function WhitelistOps() {
 
   const toggleWhitelist = async () => {
     try {
-      const endpoint = whitelistData.enabled ? '/api/v1/whitelist/disable' : '/api/v1/whitelist/enable';
+      const endpoint = whitelistData.enabled ? '/whitelist/disable' : '/whitelist/enable';
       await axios.post(endpoint);
       showMessage('success', `Whitelist ${whitelistData.enabled ? 'disabled' : 'enabled'} successfully`);
       await loadData();
@@ -73,7 +73,7 @@ export default function WhitelistOps() {
     }
 
     try {
-      const endpoint = activeTab === 'whitelist' ? '/api/v1/whitelist/add' : '/api/v1/ops/add';
+      const endpoint = activeTab === 'whitelist' ? '/whitelist/add' : '/ops/add';
       const response = await axios.post(endpoint, { identifier: newPlayerIdentifier });
       
       if (response.data.warning) {
@@ -94,8 +94,8 @@ export default function WhitelistOps() {
 
     try {
       const endpoint = activeTab === 'whitelist' 
-        ? `/api/v1/whitelist/remove/${uuid}` 
-        : `/api/v1/ops/remove/${uuid}`;
+        ? `/whitelist/remove/${uuid}` 
+        : `/ops/remove/${uuid}`;
       await axios.delete(endpoint);
       showMessage('success', `${name} removed successfully`);
       await loadData();
@@ -106,7 +106,7 @@ export default function WhitelistOps() {
 
   const handleExport = async () => {
     try {
-      const endpoint = activeTab === 'whitelist' ? '/api/v1/whitelist/export' : '/api/v1/ops/export';
+      const endpoint = activeTab === 'whitelist' ? '/whitelist/export' : '/ops/export';
       const response = await axios.get(endpoint);
       
       const content = response.data.players.join('\n');
@@ -135,7 +135,7 @@ export default function WhitelistOps() {
         .map(line => line.trim())
         .filter(line => line.length > 0);
 
-      const endpoint = activeTab === 'whitelist' ? '/api/v1/whitelist/import' : '/api/v1/ops/import';
+      const endpoint = activeTab === 'whitelist' ? '/whitelist/import' : '/ops/import';
       const response = await axios.post(endpoint, { players });
       
       const { added, failed, warnings } = response.data;
