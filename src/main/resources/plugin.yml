@@ -1,5 +1,5 @@
 name: PaperPanel
-version: '2.6.7'
+version: '2.6.8'
 main: de.kaicraft.adminpanel.ServerAdminPanelPlugin
 api-version: '1.21'
 author: AerohDEV
