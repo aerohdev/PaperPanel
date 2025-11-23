@@ -2,24 +2,27 @@
 
 A comprehensive web-based administration panel for Minecraft Paper servers featuring real-time monitoring, player management, server control, and an intuitive React + TypeScript interface.
 
-![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
 ![Java](https://img.shields.io/badge/java-21-orange.svg)
 ![Paper](https://img.shields.io/badge/paper-1.21.1-green.svg)
 ![React](https://img.shields.io/badge/react-18.2.0-61dafb.svg)
 ![TypeScript](https://img.shields.io/badge/typescript-5.3.3-blue.svg)
+![Javalin](https://img.shields.io/badge/javalin-6.3.0-brightgreen.svg)
 
 ## 🎯 Overview
 
 A full-stack application that transforms Minecraft server management with a modern web interface. Built with Java 21, React 18, and TypeScript 5.3, this panel provides everything you need to manage your Paper server efficiently.
 
-**✨ What's New in v2.0.0:**
-- 🎯 **Full TypeScript Migration** - Complete type safety across the frontend
-- 📋 **Structured Audit Logging** - Daily-rotated logs (audit, security, API) with 7-day retention
-- 🔄 **API Versioning** - All endpoints at `/api/v1/*` with standardized responses
-- 📝 **Log Viewer** - Real-time log viewing with search and download capabilities
-- 🎨 **Skeleton Loading** - Improved UX with animated loading states
-- 🔐 **Enhanced Security** - Comprehensive audit trails and action tracking
-- 📦 **Automated Build** - Single command builds frontend + backend JAR
+**✨ What's New in v3.0.0:**
+- ⚡ **Javalin 6.3.0 Upgrade** - Complete framework modernization with Jetty 11 + Jakarta EE 9
+- 🔧 **Fixed WebSocket Issues** - Resolved ClassNotFoundException for WebSocketServerFactory
+- 🎯 **Enhanced Plugin Compatibility** - Classloader switching for Paper plugin environment
+- 📦 **Dependency Relocation** - Shaded dependencies prevent conflicts with other plugins
+- 🛡️ **Production Ready** - Stable WebSocket connections for real-time console streaming
+
+**Previous releases:**
+- v2.0.0: Full TypeScript migration, structured audit logging, API versioning (v1), log viewer
+- v1.0.0: Initial release with core features
 
 ### ✨ Key Features
 
@@ -35,13 +38,15 @@ A full-stack application that transforms Minecraft server management with a mode
 - SQLite database for persistent player data
 
 **💻 Live Console**
-- Real-time log streaming via WebSocket
+- Real-time log streaming via WebSocket with Javalin 6.x
+- **Stable WebSocket connections** - Fixed ClassNotFoundException issues
 - **Auto-reconnect with exponential backoff**
 - Visual connection status indicators
 - Execute server commands remotely
 - Command history with arrow key navigation
 - Color-coded log levels (INFO, WARN, ERROR)
 - Message queuing during disconnection
+- **Production-ready** WebSocket implementation
 
 **📦 Plugin Management**
 - Enable/disable plugins without restart
@@ -90,6 +95,7 @@ A full-stack application that transforms Minecraft server management with a mode
 - Protected API routes with middleware
 - Auto-generated secure secrets
 - Comprehensive audit logging
+- **Isolated plugin classloading** for Paper compatibility
 
 ## 🚀 Quick Start
 
@@ -101,7 +107,7 @@ A full-stack application that transforms Minecraft server management with a mode
 
 ### Installation
 
-**⚠️ IMPORTANT: v2.X.X uses automated build process - no manual copying required!**
+**⚠️ IMPORTANT: v3.X.X includes major framework upgrade - ensure Java 21+ is installed!**
 
 ```bash
 # 1. Clone repository
@@ -115,9 +121,10 @@ mvn clean package
 # - Installs npm dependencies
 # - Builds React TypeScript frontend
 # - Copies frontend to resources
-# - Compiles Java backend
+# - Compiles Java backend with Javalin 6.3.0
+# - Relocates dependencies (Jetty 11, Jakarta EE 9) to prevent conflicts
 # - Generates annotation-processed types
-# - Creates deployable JAR
+# - Creates deployable JAR (~21 MB with embedded server)
 
 # 3. Install to server
 cp target/PaperPanel-*.jar /path/to/server/plugins/
@@ -144,7 +151,40 @@ sudo ufw allow 8080/tcp
 
 ## 🔄 Updating
 
-**v2.0.0 simplifies updates - single command!**
+**v3.0.0 is a major upgrade with breaking changes:**
+
+### Upgrading from v2.X to v3.0.0
+
+```bash
+# 1. Backup your data (recommended)
+cp /path/to/server/plugins/PaperPanel.jar /path/to/backup/
+cp -r /path/to/server/plugins/PaperPanel/ /path/to/backup/
+
+# 2. Pull latest changes
+git pull
+
+# 3. Build new version
+mvn clean package
+
+# 4. Deploy
+cp target/PaperPanel-3.0.0.jar /path/to/server/plugins/
+
+# 5. Remove old JAR (if different name)
+rm /path/to/server/plugins/PaperPanel-2.*.jar
+
+# 6. Restart server
+```
+
+**What changed in v3.0.0:**
+- ⚡ Javalin framework: 4.6.7 → 6.3.0
+- 🚀 Jetty server: 9.4.x → 11.0.23
+- 📦 Servlet API: javax.servlet → jakarta.servlet (Jakarta EE 9)
+- 🔧 WebSocket implementation: Completely reworked for stability
+- 📦 JAR size increased (~8 MB → ~21 MB) due to embedded Jetty 11
+
+**Configuration:** No config changes required - fully backward compatible with v2.X settings.
+
+### Regular Updates (v3.X patches)
 
 ```bash
 # Pull latest changes
@@ -152,7 +192,7 @@ git pull
 
 # Build and deploy (automated process)
 mvn clean package
-cp target/ServerAdminPanel-2.0.0.jar /path/to/server/plugins/
+cp target/PaperPanel-*.jar /path/to/server/plugins/
 
 # Restart server
 ```
@@ -161,6 +201,7 @@ cp target/ServerAdminPanel-2.0.0.jar /path/to/server/plugins/
 - Updates npm dependencies
 - Rebuilds TypeScript frontend
 - Processes Java annotations
+- Relocates dependencies to prevent conflicts
 - Generates type definitions
 - Creates deployable JAR
 
@@ -168,10 +209,25 @@ cp target/ServerAdminPanel-2.0.0.jar /path/to/server/plugins/
 
 ## 🐛 Troubleshooting
 
+**WebSocket connection issues (FIXED in v3.0.0):**
+```bash
+# If upgrading from v2.X and experiencing WebSocket errors:
+# ClassNotFoundException: org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
+
+# Solution: Upgrade to v3.0.0 which uses Javalin 6.3.0
+mvn clean package
+cp target/PaperPanel-3.0.0.jar /path/to/server/plugins/
+# Restart server
+
+# Verify fix in logs:
+grep "Web server started" logs/latest.log
+# Should see: "Web server started on http://0.0.0.0:8080"
+```
+
 **Panel won't load:**
 ```bash
 # Verify frontend is bundled in JAR
-jar -tf target/ServerAdminPanel-2.0.0.jar | grep webapp/index.html
+jar -tf target/PaperPanel-3.0.0.jar | grep webapp/index.html
 
 # Should show: webapp/index.html and other assets
 
@@ -242,11 +298,21 @@ The frontend automatically uses v1 endpoints. No configuration needed.
 
 ## 🔨 Build Configuration
 
-### Automated Maven Build (v2.0.0)
+### Automated Maven Build (v3.0.0)
 
-The `pom.xml` is configured to automatically build everything:
+The `pom.xml` is configured to automatically build everything with dependency relocation:
 
 ```xml
+<dependencies>
+  <!-- Javalin 6.3.0 with Jetty 11 + Jakarta EE 9 -->
+  <dependency>
+    <groupId>io.javalin</groupId>
+    <artifactId>javalin</artifactId>
+    <version>6.3.0</version>
+  </dependency>
+  <!-- Other dependencies... -->
+</dependencies>
+
 <build>
   <plugins>
     <!-- 1. Frontend build via npm -->
@@ -312,25 +378,48 @@ The `pom.xml` is configured to automatically build everything:
           <path>
             <groupId>de.kaicraft</groupId>
             <artifactId>adminpanel</artifactId>
-            <version>2.5.0</version>
+            <version>3.0.0</version>
           </path>
         </annotationProcessorPaths>
       </configuration>
     </plugin>
 
-    <!-- 4. Package with dependencies -->
+    <!-- 4. Package with dependencies & relocation -->
     <plugin>
       <artifactId>maven-shade-plugin</artifactId>
       <executions>
         <execution>
           <phase>package</phase>
           <goals><goal>shade</goal></goals>
+          <configuration>
+            <relocations>
+              <!-- Relocate to prevent conflicts with other plugins -->
+              <relocation>
+                <pattern>io.javalin</pattern>
+                <shadedPattern>shaded.io.javalin</shadedPattern>
+              </relocation>
+              <relocation>
+                <pattern>org.eclipse.jetty</pattern>
+                <shadedPattern>shaded.org.eclipse.jetty</shadedPattern>
+              </relocation>
+              <relocation>
+                <pattern>jakarta.servlet</pattern>
+                <shadedPattern>shaded.jakarta.servlet</shadedPattern>
+              </relocation>
+            </relocations>
+          </configuration>
         </execution>
       </executions>
     </plugin>
   </plugins>
 </build>
 ```
+
+**Key changes in v3.0.0:**
+- Javalin 6.3.0 now manages all Jetty dependencies internally
+- Removed explicit Jetty version declarations (was causing conflicts)
+- Added Maven Shade relocations to isolate embedded libraries
+- Classloader switching in plugin initialization for Paper compatibility
 
 ### Manual Build (Development)
 
@@ -352,19 +441,19 @@ mvn clean package
 ## 📁 Project Structure
 
 ```
-Minecraft-Admin-WebApp/
+PaperPanel/
 ├── src/main/java/de/kaicraft/adminpanel/
-│   ├── ServerAdminPanelPlugin.java       # Main plugin class (PaperPanel)
+│   ├── ServerAdminPanelPlugin.java       # Main plugin class with classloader switching (v3.0.0)
 │   ├── api/                              # REST API endpoints (v1)
 │   │   ├── AuthAPI.java                  # Authentication (login/logout/verify)
 │   │   ├── BroadcastAPI.java             # Broadcast messages
 │   │   ├── ConsoleAPI.java               # Console operations
 │   │   ├── DashboardAPI.java             # Server statistics
-│   │   ├── LogViewerAPI.java             # Log viewer (NEW v2.0.0)
+│   │   ├── LogViewerAPI.java             # Log viewer (v2.0.0)
 │   │   ├── PlayerAPI.java                # Player management
 │   │   ├── PluginAPI.java                # Plugin management
 │   │   ├── ServerControlAPI.java         # Server control
-│   │   ├── UserManagementAPI.java        # User CRUD (NEW v2.0.0)
+│   │   ├── UserManagementAPI.java        # User CRUD (v2.0.0)
 │   │   └── WorldAPI.java                 # World management
 │   ├── auth/                             # Authentication system
 │   │   ├── AuthManager.java              # User management
@@ -374,7 +463,7 @@ Minecraft-Admin-WebApp/
 │   │   └── ConfigManager.java            # Configuration handling
 │   ├── database/                         # Database layer
 │   │   └── DatabaseManager.java          # SQLite connection management
-│   ├── model/                            # Data models (NEW v2.0.0)
+│   ├── model/                            # Data models (v2.0.0)
 │   │   ├── AuthResponse.java             # @TypeScriptType annotations
 │   │   ├── DashboardStats.java
 │   │   ├── LogFileInfo.java
@@ -388,27 +477,26 @@ Minecraft-Admin-WebApp/
 │   ├── stats/                            # Player statistics
 │   │   ├── PlayerStatsListener.java      # Event tracking
 │   │   └── PlayerStatsManager.java       # Stats management
-│   ├── update/                           # Update system (NEW v2.0.0)
+│   ├── update/                           # Update system (v2.0.0)
 │   │   └── PaperVersionChecker.java      # Paper version checking
-│   ├── util/                             # Utilities (NEW v2.0.0)
+│   ├── util/                             # Utilities (v2.0.0)
 │   │   ├── ApiResponse.java              # Standardized API responses
 │   │   ├── AuditLogger.java              # Structured logging with rotation
 │   │   └── TypeScriptGenerator.java      # Annotation processor
-│   └── web/                              # Web server
-│       ├── WebServer.java                # Javalin setup & routing (v1 paths)
-│       └── WebSocketHandler.java         # WebSocket console
+│   └── web/                              # Web server (Javalin 6.3.0)
+│       ├── WebServer.java                # Javalin 6.x config & routing (v3.0.0)
+│       └── WebSocketHandler.java         # WebSocket console (v3.0.0 API fixes)
 ├── src/main/resources/
-│   ├── plugin.yml                        # Plugin metadata (v2.0.0)
-│   ├── config.yml                        # Configuration (logging section added)
+│   ├── plugin.yml                        # Plugin metadata (v3.0.0)
+│   ├── config.yml                        # Configuration (logging section added v2.0.0)
 │   └── webapp/                           # Built frontend (auto-generated)
 ├── webapp/                               # React + TypeScript Frontend
 │   ├── src/
 │   │   ├── api/
-│   │   │   ├── client.js                 # Axios HTTP client (v1 base URL)
-│   │   │   └── client.ts                 # TypeScript version (NEW v2.0.0)
+│   │   │   └── client.ts                 # Axios HTTP client (TypeScript, v1 base URL)
 │   │   ├── components/
-│   │   │   ├── ConnectionStatus.jsx      # WebSocket status indicator
-│   │   │   ├── Header.jsx
+│   │   │   ├── ConnectionStatus.tsx      # WebSocket status indicator
+│   │   │   ├── Header.tsx
 │   │   │   ├── Layout.tsx                # TypeScript (v2.0.0)
 │   │   │   ├── ProtectedRoute.tsx        # TypeScript (v2.0.0)
 │   │   │   ├── Sidebar.tsx               # TypeScript (v2.0.0)
@@ -1285,7 +1373,7 @@ mvn verify
 
 # Install to local Paper server
 mvn clean package
-cp target/PaperPanel-2.0.0.jar ~/paperserver/plugins/
+cp target/PaperPanel-3.0.0.jar ~/paperserver/plugins/
 ```
 
 ### Frontend Testing
@@ -1302,6 +1390,82 @@ npm run build
 # Preview production build
 npm run preview
 ```
+
+## 🔧 Technical Details (v3.0.0)
+
+### Framework Migration
+
+**Javalin 4.6.7 → 6.3.0:**
+- Configuration API restructured (DSL changes)
+- Static files: `addStaticFiles()` → `staticFiles.add()`
+- CORS: `enableCorsForAllOrigins()` → `bundledPlugins.enableCors()`
+- HTTP config: `maxRequestSize` moved to `http.maxRequestSize`
+- Context API: Field access changed to method calls
+- WebSocket API: `session.close()` → `closeSession()`
+
+**Jetty 9.4.x → 11.0.23:**
+- Servlet API: `javax.servlet.*` → `jakarta.servlet.*`
+- WebSocket: New implementation architecture
+- Thread model improvements
+- Better performance and stability
+
+**Dependency Management:**
+```xml
+<!-- v2.X - Explicit Jetty management (caused conflicts) -->
+<dependency>
+    <groupId>org.eclipse.jetty</groupId>
+    <artifactId>jetty-server</artifactId>
+    <version>9.4.53.v20231009</version>
+</dependency>
+<!-- ...40+ more explicit Jetty deps -->
+
+<!-- v3.0.0 - Let Javalin manage internally -->
+<dependency>
+    <groupId>io.javalin</groupId>
+    <artifactId>javalin</artifactId>
+    <version>6.3.0</version>
+</dependency>
+```
+
+**Classloader Isolation:**
+```java
+// ServerAdminPanelPlugin.java - v3.0.0
+@Override
+public void onEnable() {
+    ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+    try {
+        // Switch to plugin classloader for Javalin initialization
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        webServer = new WebServer(this);
+        webServer.start();
+    } finally {
+        // Restore original classloader
+        Thread.currentThread().setContextClassLoader(originalClassLoader);
+    }
+}
+```
+
+### Maven Shade Relocations
+
+Prevents conflicts with other plugins:
+```xml
+<relocations>
+    <relocation>
+        <pattern>io.javalin</pattern>
+        <shadedPattern>shaded.io.javalin</shadedPattern>
+    </relocation>
+    <relocation>
+        <pattern>org.eclipse.jetty</pattern>
+        <shadedPattern>shaded.org.eclipse.jetty</shadedPattern>
+    </relocation>
+    <relocation>
+        <pattern>jakarta.servlet</pattern>
+        <shadedPattern>shaded.jakarta.servlet</shadedPattern>
+    </relocation>
+</relocations>
+```
+
+---
 
 ### API Testing with cURL
 
@@ -1548,8 +1712,9 @@ Contributions are welcome! Please:
 
 **Built With:**
 - [Paper](https://papermc.io/) - High-performance Minecraft server
-- [Javalin](https://javalin.io/) - Simple web framework for Java
-- [React](https://react.dev/) - UI library
+- [Javalin 6.3.0](https://javalin.io/) - Simple web framework for Java & Kotlin
+- [Jetty 11](https://eclipse.dev/jetty/) - Embedded servlet container
+- [React 18](https://react.dev/) - UI library
 - [Vite](https://vitejs.dev/) - Frontend build tool
 - [TailwindCSS](https://tailwindcss.com/) - Utility-first CSS framework
 - [Auth0 java-jwt](https://github.com/auth0/java-jwt) - JWT implementation
@@ -1576,14 +1741,14 @@ Contributions are welcome! Please:
 
 <div align="center">
 
-**PaperPanel v2.0.0**
+**PaperPanel v3.0.0**
 
 Made with ❤️ for Minecraft Server Administrators
 
-TypeScript • Audit Logging • API Versioning • Log Viewer
+Javalin 6 • Jetty 11 • TypeScript • WebSocket • Audit Logging
 
-[Report Bug](https://github.com/aerohdev/Minecraft-Admin-WebApp/issues) •
-[Request Feature](https://github.com/aerohdev/Minecraft-Admin-WebApp/issues) •
+[Report Bug](https://github.com/aerohdev/PaperPanel/issues) •
+[Request Feature](https://github.com/aerohdev/PaperPanel/issues) •
 [Documentation](#-api-documentation)
 
 </div>
