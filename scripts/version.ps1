@@ -22,8 +22,8 @@ $new = $parts -join "."
 
 Write-Host "`nVersion: $current -> $new ($type)`n" -ForegroundColor Cyan
 
-# Update pom.xml - Only replace the project version
-$pom = $pom -replace "(<artifactId>PaperPanel</artifactId>\s*<version>)[\d.]+", "`$1$new"
+# Update pom.xml - Only replace the project version (between artifactId and packaging)
+$pom = $pom -replace "(<artifactId>PaperPanel</artifactId>\s*<version>)[\d.]+", "`${1}$new"
 Set-Content "pom.xml" $pom -NoNewline
 Write-Host "Updated pom.xml" -ForegroundColor Green
 

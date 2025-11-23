@@ -5,7 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.kaicraft</groupId>
-    $12.6.4</version>
+    <artifactId>PaperPanel</artifactId>
+    <version>2.6.5</version>
     <packaging>jar</packaging>
 
     <name>PaperPanel</name>
