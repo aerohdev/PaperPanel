@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiClient } from '../api/client';
 import { Permission } from '../constants/permissions';
+import { useAuth } from './AuthContext';
 
 interface PermissionContextType {
   permissions: Set<Permission>;
@@ -24,6 +25,7 @@ interface PermissionProviderProps {
  * Provider component that loads and manages user permissions
  */
 export function PermissionProvider({ children }: PermissionProviderProps) {
+  const { user } = useAuth();
   const [permissions, setPermissions] = useState<Set<Permission>>(new Set());
   const [role, setRole] = useState<string | null>(null);
   const [roleDisplayName, setRoleDisplayName] = useState<string | null>(null);
@@ -103,8 +105,9 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
   };
 
   useEffect(() => {
+    // Load permissions whenever user state changes (login/logout)
     loadPermissions();
-  }, []);
+  }, [user]);
 
   const hasPermission = (permission: Permission): boolean => {
     // Admin always has access to everything
