@@ -6,7 +6,7 @@
 
     <groupId>de.kaicraft</groupId>
     <artifactId>PaperPanel</artifactId>
-    <version>2.6.10</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <name>PaperPanel</name>
@@ -42,48 +42,11 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Javalin Web Framework -->
+        <!-- Javalin 6.x Web Framework with Jetty 11 -->
         <dependency>
             <groupId>io.javalin</groupId>
             <artifactId>javalin</artifactId>
-            <version>4.6.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.websocket</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!-- Jetty dependencies - unified version 9.4.53 -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>9.4.53.v20231009</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-webapp</artifactId>
-            <version>9.4.53.v20231009</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-server</artifactId>
-            <version>9.4.53.v20231009</version>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty.websocket</groupId>
-            <artifactId>websocket-servlet</artifactId>
-            <version>9.4.53.v20231009</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <version>6.3.0</version>
         </dependency>
 
         <!-- JWT Authentication -->
@@ -233,6 +196,20 @@
                                     <mainClass>none</mainClass>
                                 </transformer>
                             </transformers>
+                            <relocations>
+                                <relocation>
+                                    <pattern>io.javalin</pattern>
+                                    <shadedPattern>de.kaicraft.adminpanel.shaded.javalin</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.eclipse.jetty</pattern>
+                                    <shadedPattern>de.kaicraft.adminpanel.shaded.jetty</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>jakarta.servlet</pattern>
+                                    <shadedPattern>de.kaicraft.adminpanel.shaded.jakarta.servlet</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>

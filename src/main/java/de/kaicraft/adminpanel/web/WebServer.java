@@ -77,20 +77,28 @@ public class WebServer {
 
             plugin.getLogger().info("Starting web server on " + host + ":" + port);
 
-            app = Javalin.create(javalinConfig -> {
+            app = Javalin.create(config -> {
                 // General configuration
-                javalinConfig.showJavalinBanner = false;
+                config.showJavalinBanner = false;
 
                 // Serve static files from the webapp directory in resources
-                javalinConfig.addStaticFiles("/webapp", io.javalin.http.staticfiles.Location.CLASSPATH);
+                config.staticFiles.add(staticFiles -> {
+                    staticFiles.directory = "/webapp";
+                    staticFiles.location = io.javalin.http.staticfiles.Location.CLASSPATH;
+                    staticFiles.hostedPath = "/";
+                });
 
                 // CORS configuration
-                if (config.isCorsEnabled()) {
-                    javalinConfig.enableCorsForAllOrigins();
+                if (this.config.isCorsEnabled()) {
+                    config.bundledPlugins.enableCors(cors -> {
+                        cors.addRule(it -> {
+                            it.anyHost();
+                        });
+                    });
                 }
 
                 // Request size limit (10MB)
-                javalinConfig.maxRequestSize = 10_485_760L;
+                config.http.maxRequestSize = 10_485_760L;
 
             }).start(host, port);
 
@@ -332,7 +340,7 @@ public class WebServer {
         app.get("/api/v1/users", userManagementAPI::getUsers);
         app.post("/api/v1/users", ctx -> {
             permissionMiddleware.requirePermission(Permission.MANAGE_USERS).handle(ctx);
-            if (!ctx.res.isCommitted()) userManagementAPI.createUser(ctx);
+            if (!ctx.res().isCommitted()) userManagementAPI.createUser(ctx);
         });
         
         app.before("/api/v1/users/{username}/password", permissionMiddleware.requirePermission(Permission.MANAGE_USERS));

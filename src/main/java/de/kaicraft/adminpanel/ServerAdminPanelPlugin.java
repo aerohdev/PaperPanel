@@ -66,17 +66,26 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
 
         // Start web server if enabled
         if (configManager.isWebServerEnabled()) {
-            // Initialize Phase 3 APIs
-            PlayerAPI playerAPI = new PlayerAPI(this, statsManager);
-            ServerControlAPI serverControlAPI = new ServerControlAPI(this);
-            WorldAPI worldAPI = new WorldAPI(this);
+            // CRITICAL: Switch classloader before creating Javalin to prevent Paper plugin conflicts
+            ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+            
+            try {
+                // Initialize Phase 3 APIs
+                PlayerAPI playerAPI = new PlayerAPI(this, statsManager);
+                ServerControlAPI serverControlAPI = new ServerControlAPI(this);
+                WorldAPI worldAPI = new WorldAPI(this);
 
-            webServer = new WebServer(this, configManager, authManager,
-                    playerAPI, serverControlAPI, worldAPI);
-            webServer.start();
+                webServer = new WebServer(this, configManager, authManager,
+                        playerAPI, serverControlAPI, worldAPI);
+                webServer.start();
 
-            // Setup console log interceptor
-            setupConsoleAppender();
+                // Setup console log interceptor
+                setupConsoleAppender();
+            } finally {
+                // Restore original classloader
+                Thread.currentThread().setContextClassLoader(originalClassLoader);
+            }
         } else {
             getLogger().warning("Web server is disabled in configuration");
         }
