@@ -42,8 +42,10 @@ public class AuditLogAPI {
             String category = ctx.queryParam("category"); // audit, security, api
             String username = ctx.queryParam("username");
             String search = ctx.queryParam("search");
-            int limit = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(100);
-            int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
+            String limitStr = ctx.queryParam("limit");
+            String offsetStr = ctx.queryParam("offset");
+            int limit = limitStr != null ? Integer.parseInt(limitStr) : 100;
+            int offset = offsetStr != null ? Integer.parseInt(offsetStr) : 0;
             
             List<AuditLogEntry> entries = new ArrayList<>();
             

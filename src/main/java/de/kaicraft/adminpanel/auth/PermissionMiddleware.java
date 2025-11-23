@@ -31,7 +31,6 @@ public class PermissionMiddleware {
                     "error", "Unauthorized",
                     "message", "Authentication required"
                 ));
-                ctx.skipRemainingHandlers();
                 return;
             }
 
@@ -48,7 +47,6 @@ public class PermissionMiddleware {
                     "message", "You don't have permission to perform this action",
                     "required_permission", permission.getKey()
                 ));
-                ctx.skipRemainingHandlers();
                 return;
             }
         };

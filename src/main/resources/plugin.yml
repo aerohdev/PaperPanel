@@ -1,7 +1,7 @@
 name: PaperPanel
-version: '2.6.5'
+version: '2.6.6'
 main: de.kaicraft.adminpanel.ServerAdminPanelPlugin
-api-version: '2.6.5'
+api-version: '2.6.6'
 author: AerohDEV
 description: Web-based admin panel for Minecraft Paper servers
 website: https://github.com/aerohdev/Minecraft-Admin-WebApp

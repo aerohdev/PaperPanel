@@ -79,26 +79,18 @@ public class WebServer {
 
             app = Javalin.create(javalinConfig -> {
                 // General configuration
-                javalinConfig.http.prefer405over404 = true;
+                javalinConfig.showJavalinBanner = false;
 
                 // Serve static files from the webapp directory in resources
-                javalinConfig.staticFiles.add("/webapp", io.javalin.http.staticfiles.Location.CLASSPATH);
+                javalinConfig.addStaticFiles("/webapp", io.javalin.http.staticfiles.Location.CLASSPATH);
 
                 // CORS configuration
                 if (config.isCorsEnabled()) {
-                    javalinConfig.bundledPlugins.enableCors(cors -> {
-                        cors.addRule(it -> {
-                            it.anyHost();
-                            it.allowCredentials = true;
-                        });
-                    });
+                    javalinConfig.enableCorsForAllOrigins();
                 }
 
-                // Logging - nur Warnings und Errors
-                javalinConfig.bundledPlugins.enableRouteOverview("/api/routes"); // Optional: Route overview
-
                 // Request size limit (10MB)
-                javalinConfig.http.maxRequestSize = 10_485_760L;
+                javalinConfig.maxRequestSize = 10_485_760L;
 
             }).start(host, port);
 
@@ -312,7 +304,12 @@ public class WebServer {
         app.get("/api/v1/ops/export", whitelistAPI::exportOps);
 
         // WebSocket route for live console
-        app.ws("/ws/console", webSocketHandler.configure());
+        app.ws("/ws/console", ws -> {
+            ws.onConnect(webSocketHandler::onConnect);
+            ws.onMessage(webSocketHandler::onMessage);
+            ws.onClose(webSocketHandler::onClose);
+            ws.onError(webSocketHandler::onError);
+        });
 
         // API info endpoint
         app.get("/api/v1/info", ctx -> {
@@ -335,7 +332,7 @@ public class WebServer {
         app.get("/api/v1/users", userManagementAPI::getUsers);
         app.post("/api/v1/users", ctx -> {
             permissionMiddleware.requirePermission(Permission.MANAGE_USERS).handle(ctx);
-            if (!ctx.res().isCommitted()) userManagementAPI.createUser(ctx);
+            if (!ctx.res.isCommitted()) userManagementAPI.createUser(ctx);
         });
         
         app.before("/api/v1/users/{username}/password", permissionMiddleware.requirePermission(Permission.MANAGE_USERS));

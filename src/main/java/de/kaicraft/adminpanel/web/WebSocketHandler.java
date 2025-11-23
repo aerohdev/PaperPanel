@@ -6,7 +6,6 @@ import de.kaicraft.adminpanel.api.ConsoleAPI;
 import de.kaicraft.adminpanel.auth.AuthManager;
 import de.kaicraft.adminpanel.config.ConfigManager;
 import io.javalin.websocket.WsCloseContext;
-import io.javalin.websocket.WsConfig;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
 import org.bukkit.Bukkit;
@@ -14,7 +13,6 @@ import org.bukkit.Bukkit;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 /**
  * WebSocket handler for real-time console streaming
@@ -38,21 +36,9 @@ public class WebSocketHandler {
     }
 
     /**
-     * Configure WebSocket endpoint
-     */
-    public Consumer<WsConfig> configure() {
-        return ws -> {
-            ws.onConnect(this::onConnect);
-            ws.onMessage(this::onMessage);
-            ws.onClose(this::onClose);
-            ws.onError(this::onError);
-        };
-    }
-
-    /**
      * Handle WebSocket connection
      */
-    private void onConnect(WsConnectContext ctx) {
+    public void onConnect(WsConnectContext ctx) {
         try {
             // Get token from query parameter
             String token = ctx.queryParam("token");
@@ -115,7 +101,7 @@ public class WebSocketHandler {
     /**
      * Handle incoming WebSocket messages (commands from client)
      */
-    private void onMessage(WsMessageContext ctx) {
+    public void onMessage(WsMessageContext ctx) {
         try {
             String message = ctx.message();
             @SuppressWarnings("unchecked")
@@ -160,7 +146,7 @@ public class WebSocketHandler {
     /**
      * Handle WebSocket disconnection
      */
-    private void onClose(WsCloseContext ctx) {
+    public void onClose(WsCloseContext ctx) {
         clients.remove(ctx);
         String username = ctx.attribute("username");
         if (username != null) {
@@ -171,7 +157,7 @@ public class WebSocketHandler {
     /**
      * Handle WebSocket errors
      */
-    private void onError(io.javalin.websocket.WsErrorContext ctx) {
+    public void onError(io.javalin.websocket.WsErrorContext ctx) {
         plugin.getLogger().warning("WebSocket error: " + ctx.error().getMessage());
         clients.remove(ctx);
     }

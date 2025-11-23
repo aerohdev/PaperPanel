@@ -36,7 +36,6 @@ public class AuthMiddleware {
                     "error", "Unauthorized",
                     "message", "Missing or invalid Authorization header"
             ));
-            ctx.skipRemainingHandlers();
             return;
         }
 
@@ -51,7 +50,6 @@ public class AuthMiddleware {
                     "error", "Unauthorized",
                     "message", "Invalid or expired token"
             ));
-            ctx.skipRemainingHandlers();
             return;
         }
 
