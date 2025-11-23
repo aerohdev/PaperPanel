@@ -15,17 +15,15 @@ try {
 }
 
 // Determine version type from commit message
-let versionType = 'patch';
+let versionType = 'patch'; // Default to patch
 
 if (commitMsg.startsWith('breaking:') || commitMsg.includes('breaking change')) {
   versionType = 'major';
 } else if (commitMsg.startsWith('feat:') || commitMsg.startsWith('feature:')) {
   versionType = 'minor';
-} else if (commitMsg.startsWith('fix:') || commitMsg.startsWith('patch:')) {
+} else if (commitMsg.startsWith('fix:') || commitMsg.startsWith('patch:') || commitMsg.startsWith('chore:')) {
   versionType = 'patch';
 }
-
-console.log(`\n🔍 Detected commit type: ${versionType}\n`);
 
 console.log(`\n🔍 Detected commit type: ${versionType}\n`);
 
