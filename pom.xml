@@ -6,7 +6,7 @@
 
     <groupId>de.kaicraft</groupId>
     <artifactId>PaperPanel</artifactId>
-    <version>2.6.9</version>
+    <version>2.6.10</version>
     <packaging>jar</packaging>
 
     <name>PaperPanel</name>
@@ -227,6 +227,12 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>none</mainClass>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>

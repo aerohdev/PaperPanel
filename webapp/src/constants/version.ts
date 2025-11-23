@@ -1,3 +1,3 @@
-export const VERSION = '2.6.9';
+export const VERSION = '2.6.10';
 export const APP_NAME = 'PaperPanel';
 export const FULL_TITLE = "${APP_NAME} v${VERSION}";
