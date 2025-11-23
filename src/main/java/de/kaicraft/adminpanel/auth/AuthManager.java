@@ -53,6 +53,7 @@ public class AuthManager {
             String hashedPassword = hashPassword(defaultPassword);
 
             users.put(defaultUsername, hashedPassword);
+            userRoles.put(defaultUsername, Role.ADMIN); // Assign ADMIN role
             saveUsers();
 
             plugin.getLogger().info("Created default admin user: '" + defaultUsername + "' with default password. Please change the password!");
@@ -66,8 +67,16 @@ public class AuthManager {
                 String defaultPassword = config.getDefaultPassword();
                 String hashedPassword = hashPassword(defaultPassword);
                 users.put(defaultUsername, hashedPassword);
+                userRoles.put(defaultUsername, Role.ADMIN); // Assign ADMIN role
                 saveUsers();
                 plugin.getLogger().info("Recreated default admin user with default password");
+            }
+            
+            // Ensure default admin has ADMIN role (migration fix)
+            if (!userRoles.containsKey(defaultUsername) || userRoles.get(defaultUsername) != Role.ADMIN) {
+                plugin.getLogger().info("Fixing default admin role...");
+                userRoles.put(defaultUsername, Role.ADMIN);
+                saveUsers();
             }
         }
     }

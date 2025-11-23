@@ -59,14 +59,30 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
 
       // Get user's permissions
       const permResponse = await apiClient.get(`/users/${username}/permissions`);
+      console.log('Permission response:', permResponse.data);
+      
       if (permResponse.data) {
         const perms = new Set(permResponse.data.permissions || []);
+        console.log('Loaded permissions:', Array.from(perms));
+        console.log('User role:', permResponse.data.role);
+        
         setPermissions(perms);
         setRole(permResponse.data.role);
-        setRoleDisplayName(permResponse.data.roleDisplayName);
+        
+        // Map role key to display name
+        const roleDisplayNames: Record<string, string> = {
+          'admin': 'Administrator',
+          'moderator': 'Moderator',
+          'support': 'Support',
+          'viewer': 'Viewer',
+          'custom': 'Custom'
+        };
+        setRoleDisplayName(roleDisplayNames[permResponse.data.role] || permResponse.data.role);
         
         // Check if user has SUPER_ADMIN permission (indicates ADMIN role)
-        setIsAdmin(perms.has(Permission.SUPER_ADMIN));
+        const isAdminUser = perms.has(Permission.SUPER_ADMIN) || permResponse.data.role === 'admin';
+        setIsAdmin(isAdminUser);
+        console.log('Is admin:', isAdminUser);
       } else {
         // If we can't fetch permissions, assume minimal access
         setPermissions(new Set([Permission.VIEW_DASHBOARD]));
