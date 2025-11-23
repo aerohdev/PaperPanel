@@ -48,7 +48,7 @@ public class WebSocketHandler {
                         "type", "error",
                         "message", "Authentication required"
                 )));
-                ctx.session.close();
+                ctx.closeSession();
                 return;
             }
 
@@ -59,7 +59,7 @@ public class WebSocketHandler {
                         "type", "error",
                         "message", "Invalid or expired token"
                 )));
-                ctx.session.close();
+                ctx.closeSession();
                 return;
             }
 
@@ -92,7 +92,7 @@ public class WebSocketHandler {
         } catch (Exception e) {
             plugin.getLogger().severe("Error in WebSocket connection: " + e.getMessage());
             try {
-                ctx.session.close();
+                ctx.closeSession();
             } catch (Exception ignored) {
             }
         }
