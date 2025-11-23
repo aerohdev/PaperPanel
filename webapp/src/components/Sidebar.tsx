@@ -17,8 +17,7 @@ export default function Sidebar() {
     { to: '/broadcast', icon: Radio, label: 'Broadcast', permission: Permission.SEND_BROADCASTS },
     { to: '/configs', icon: FileCog, label: 'Config Editor', permission: Permission.VIEW_CONFIGS },
     { to: '/server', icon: Settings, label: 'Server Control', anyPermission: [Permission.RESTART_SERVER, Permission.STOP_SERVER, Permission.SAVE_SERVER] },
-    { to: '/users', icon: Shield, label: 'User Management', permission: Permission.VIEW_USERS },
-    { to: '/roles', icon: Key, label: 'Role Management', permission: Permission.MANAGE_ROLES },
+    { to: '/users', icon: Shield, label: 'Users & Roles', anyPermission: [Permission.VIEW_USERS, Permission.MANAGE_ROLES] },
     { to: '/audit', icon: ScrollText, label: 'Audit Log', permission: Permission.MANAGE_ROLES },
   ];
 

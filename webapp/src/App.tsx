@@ -11,11 +11,10 @@ import Players from './pages/Players';
 import ServerControl from './pages/ServerControl';
 import Worlds from './pages/Worlds';
 import Broadcast from './pages/Broadcast';
-import Users from './pages/Users';
 import LogViewer from './pages/LogViewer';
 import ConfigEditor from './pages/ConfigEditor';
 import WhitelistOps from './pages/WhitelistOps';
-import { RoleManagement } from './pages/RoleManagement';
+import UserRoleManagement from './pages/UserRoleManagement';
 import { AuditLog } from './pages/AuditLog';
 
 function App() {
@@ -45,8 +44,7 @@ function App() {
               <Route path="server" element={<ServerControl />} />
               <Route path="worlds" element={<Worlds />} />
               <Route path="broadcast" element={<Broadcast />} />
-              <Route path="users" element={<Users />} />
-              <Route path="roles" element={<RoleManagement />} />
+              <Route path="users" element={<UserRoleManagement />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="logs" element={<LogViewer />} />
               <Route path="configs" element={<ConfigEditor />} />
