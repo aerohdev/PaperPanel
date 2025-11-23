@@ -9,32 +9,31 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   useEffect(() => {
     fetchStats();
     
-    // Auto-refresh every 3 seconds
+    // Auto-refresh every 5 seconds (increased from 3 to reduce flickering)
     const interval = setInterval(() => {
       fetchStats();
-    }, 3000);
+    }, 5000);
     
     return () => clearInterval(interval);
   }, []);
 
   const fetchStats = async () => {
     try {
-      // Don't show loading spinner on auto-refresh
-      if (!stats) {
-        setLoading(true);
-      }
       const response = await client.get<DashboardStats>('/dashboard/stats');
       setStats(response.data);
+      setLastUpdate(new Date());
       setError(null);
+      setLoading(false);
     } catch (err) {
       console.error('Error fetching stats:', err);
-      setError('Failed to load dashboard stats');
-    } finally {
-      setLoading(false);
+      if (loading) {
+        setError('Failed to load dashboard stats');
+      }
     }
   };
 
@@ -98,7 +97,11 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400">Server overview and statistics • Auto-refreshing every 3s</p>
+          <p className="text-gray-400">
+            Server overview and statistics • 
+            <span className="text-green-500">Live</span> • 
+            Last update: {lastUpdate.toLocaleTimeString()}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <button

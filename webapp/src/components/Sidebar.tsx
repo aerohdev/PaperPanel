@@ -4,7 +4,7 @@ import { usePermissions } from '../contexts/PermissionContext';
 import { Permission } from '../constants/permissions';
 
 export default function Sidebar() {
-  const { hasPermission, isAdmin } = usePermissions();
+  const { hasPermission, isAdmin, isLoading } = usePermissions();
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', permission: Permission.VIEW_DASHBOARD },
@@ -21,6 +21,26 @@ export default function Sidebar() {
     { to: '/roles', icon: Key, label: 'Role Management', permission: Permission.MANAGE_ROLES },
     { to: '/audit', icon: ScrollText, label: 'Audit Log', permission: Permission.MANAGE_ROLES },
   ];
+
+  // Show loading state while permissions are being loaded
+  if (isLoading) {
+    return (
+      <aside className="w-64 bg-dark-surface border-r border-dark-border flex flex-col">
+        <div className="p-6 border-b border-dark-border">
+          <div className="flex items-center gap-3">
+            <Server className="w-8 h-8 text-blue-500" />
+            <div>
+              <h1 className="text-xl font-bold text-white">PaperPanel</h1>
+              <p className="text-xs text-gray-400">v2.5.0</p>
+            </div>
+          </div>
+        </div>
+        <nav className="flex-1 p-4">
+          <div className="text-gray-400 text-center py-4">Loading...</div>
+        </nav>
+      </aside>
+    );
+  }
 
   // Filter nav items based on permissions
   const visibleNavItems = navItems.filter((item) => {
