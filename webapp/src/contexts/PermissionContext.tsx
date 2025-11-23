@@ -31,12 +31,23 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadPermissions = async () => {
+    // Don't attempt to load permissions if not logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setPermissions(new Set());
+      setRole(null);
+      setRoleDisplayName(null);
+      setIsAdmin(false);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       
       // Get current user from auth verification
-      const authResponse = await apiClient.get('/api/v1/auth/verify');
-      if (!authResponse.success || !authResponse.data) {
+      const authResponse = await apiClient.get('/auth/verify');
+      if (!authResponse.data || !authResponse.data.username) {
         setPermissions(new Set());
         setRole(null);
         setRoleDisplayName(null);
@@ -47,8 +58,8 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       const username = authResponse.data.username;
 
       // Get user's permissions
-      const permResponse = await apiClient.get(`/api/v1/users/${username}/permissions`);
-      if (permResponse.success && permResponse.data) {
+      const permResponse = await apiClient.get(`/users/${username}/permissions`);
+      if (permResponse.data) {
         const perms = new Set(permResponse.data.permissions || []);
         setPermissions(perms);
         setRole(permResponse.data.role);
@@ -65,6 +76,7 @@ export function PermissionProvider({ children }: PermissionProviderProps) {
       }
     } catch (error) {
       console.error('Failed to load permissions:', error);
+      // On error, clear permissions but don't crash
       setPermissions(new Set());
       setRole(null);
       setRoleDisplayName(null);
