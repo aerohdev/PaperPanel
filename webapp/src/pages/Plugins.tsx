@@ -165,10 +165,10 @@ function PluginCard({ plugin, onEnable, onDisable, onReload, loading }: PluginCa
           <div className="flex items-center gap-3 mb-2">
             <Package className="w-6 h-6 text-blue-500" />
             <h3 className="text-xl font-bold text-light-text-primary dark:text-white">{plugin.name}</h3>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${
               plugin.enabled
-                ? 'bg-green-900/30 text-green-400 border border-green-500'
-                : 'bg-gray-700 text-gray-400 border border-gray-600'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-500'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400 border-gray-400 dark:border-gray-600'
             }`}>
               {plugin.enabled ? 'Enabled' : 'Disabled'}
             </span>

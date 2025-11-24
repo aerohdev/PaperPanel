@@ -249,8 +249,8 @@ export default function ServerControl() {
       </div>
 
       {/* Warning */}
-      <div className="bg-yellow-900/20 border border-yellow-500/50 p-4 rounded-lg">
-        <p className="text-yellow-200 text-sm">
+      <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-500 p-4 rounded-lg">
+        <p className="text-yellow-900 dark:text-yellow-200 text-sm">
           <strong>⚠️ Warning:</strong> Server restart and stop operations will affect all players.
           Make sure to announce these actions beforehand!
         </p>

@@ -432,26 +432,26 @@ function UsersTab({
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-blue-500" />
-                    <span className="text-white font-medium">{user.username}</span>
+                    <span className="text-light-text-primary dark:text-white font-medium">{user.username}</span>
                     {user.isCurrentUser && (
-                      <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs rounded-full border border-blue-500">
                         You
                       </span>
                     )}
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    user.role === 'admin' ? 'bg-yellow-500/20 text-yellow-400' :
-                    user.role === 'moderator' ? 'bg-purple-500/20 text-purple-400' :
-                    user.role === 'support' ? 'bg-green-500/20 text-green-400' :
-                    'bg-gray-500/20 text-gray-400'
+                  <span className={`px-2 py-1 text-xs rounded-full border ${
+                    user.role === 'admin' ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500' :
+                    user.role === 'moderator' ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500' :
+                    user.role === 'support' ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500' :
+                    'bg-gray-200 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500'
                   }`}>
                     {user.roleDisplayName}
                   </span>
                 </td>
                 <td className="px-6 py-4">
-                  <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
+                  <span className="px-2 py-1 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 text-xs rounded-full border border-green-500">
                     Active
                   </span>
                 </td>
@@ -538,7 +538,7 @@ function RolesTab({
                 <select
                   value={bulkRole}
                   onChange={(e) => onBulkRoleChange(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-dark-hover border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {roles.map((role) => (
                     <option key={role.key} value={role.key}>
@@ -598,7 +598,7 @@ function RolesTab({
                   value={userPermissions.role}
                   onChange={(e) => onRoleChange(e.target.value)}
                   disabled={isSaving}
-                  className="flex-1 px-4 py-3 bg-dark-hover border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-3 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   {roles.map((role) => (
                     <option key={role.key} value={role.key}>
@@ -650,7 +650,7 @@ function RolesTab({
                                 className="mt-1"
                               />
                               <div className="flex-1">
-                                <div className="text-white font-medium text-sm">{info.name}</div>
+                                <div className="text-light-text-primary dark:text-white font-medium text-sm">{info.name}</div>
                                 <div className="text-light-text-muted dark:text-gray-400 text-xs">{info.description}</div>
                               </div>
                             </label>
