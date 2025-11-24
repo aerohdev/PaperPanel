@@ -29,7 +29,7 @@ export default function Layout() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.5</p>
+              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.6</p>
             </div>
           </div>
 

@@ -69,7 +69,7 @@ export default function UserRoleManagement() {
       ]);
 
       if (usersRes.data) {
-        const usersArray = Array.isArray(usersRes.data.users) ? usersRes.data.users : [];
+        const usersArray = Array.isArray(usersRes.data) ? usersRes.data : [];
         setUsers(usersArray);
         const currentUser = usersArray.find((u: User) => u.isCurrentUser);
         setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
