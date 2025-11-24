@@ -273,7 +273,7 @@ public class PaperVersionChecker {
             plugin.getLogger().info("========================================");
             
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                // Use spigot restart command for proper restart
+                // Use restart command which uses spigot.yml's restart-script setting
                 plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "restart");
             }, 40L); // 2 seconds delay
             
@@ -547,23 +547,16 @@ public class PaperVersionChecker {
                     String newContent = content;
                     boolean modified = false;
                     
-                    // Try exact JAR name replacement
-                    if (content.contains(oldJarName)) {
-                        newContent = content.replace(oldJarName, newJarName);
+                    // Replace any *.jar reference with the new JAR name
+                    // This handles paper.jar, server.jar, paper-1.21.1-115.jar, etc.
+                    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("([^\\s/\\\\]+\\.jar)");
+                    java.util.regex.Matcher matcher = pattern.matcher(content);
+                    
+                    if (matcher.find()) {
+                        String oldJarInScript = matcher.group(1);
+                        newContent = content.replaceAll("\\b" + java.util.regex.Pattern.quote(oldJarInScript) + "\\b", newJarName);
                         modified = true;
-                        plugin.getLogger().info("    ✓ Exact match replaced: " + oldJarName + " -> " + newJarName);
-                    }
-                    // Try pattern matching for paper-*.jar
-                    else if (content.matches(".*paper-[^\\s]+\\.jar.*")) {
-                        newContent = content.replaceAll("paper-[^\\s]+\\.jar", newJarName);
-                        modified = true;
-                        plugin.getLogger().info("    ✓ Pattern match replaced: paper-*.jar -> " + newJarName);
-                    }
-                    // Try generic *.jar replacement if only one jar is referenced
-                    else if (content.matches(".*\\.jar.*") && content.split("\\.jar").length == 2) {
-                        newContent = content.replaceAll("[^\\s]+\\.jar", newJarName);
-                        modified = true;
-                        plugin.getLogger().info("    ✓ Generic jar replaced: *.jar -> " + newJarName);
+                        plugin.getLogger().info("    ✓ Replaced: " + oldJarInScript + " -> " + newJarName);
                     }
                     
                     if (modified) {
