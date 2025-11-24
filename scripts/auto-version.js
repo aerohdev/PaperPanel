@@ -17,19 +17,15 @@ try {
 // Determine version type from commit message
 let versionType = 'patch'; // Default to patch
 
-console.log(`📝 Commit message: "${commitMsg.substring(0, 100)}..."`);
-
 // Check for breaking changes (highest priority)
 if (commitMsg.startsWith('feat!:') || 
     commitMsg.startsWith('fix!:') || 
     commitMsg.includes('breaking change:')) {
   versionType = 'major';
-  console.log(`  → Matched: breaking change pattern`);
 } 
 // Check for features (minor version bump)
 else if (commitMsg.startsWith('feat:') || commitMsg.startsWith('feature:')) {
   versionType = 'minor';
-  console.log(`  → Matched: feature pattern`);
 } 
 // Check for fixes and other non-breaking changes (patch version bump)
 else if (commitMsg.startsWith('fix:') || 
@@ -41,7 +37,6 @@ else if (commitMsg.startsWith('fix:') ||
          commitMsg.startsWith('perf:') ||
          commitMsg.startsWith('test:')) {
   versionType = 'patch';
-  console.log(`  → Matched: patch pattern`);
 }
 
 console.log(`\n🔍 Detected commit type: ${versionType}\n`);
