@@ -69,7 +69,7 @@ export default function UserRoleManagement() {
       ]);
 
       if (usersRes.data) {
-        const usersArray = Array.isArray(usersRes.data) ? usersRes.data : [];
+        const usersArray = Array.isArray(usersRes.data.users) ? usersRes.data.users : [];
         setUsers(usersArray);
         const currentUser = usersArray.find((u: User) => u.isCurrentUser);
         setIsCurrentUserAdmin(currentUser?.isDefaultAdmin || false);
@@ -263,7 +263,7 @@ export default function UserRoleManagement() {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">User & Role Management</h1>
+        <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">User & Role Management</h1>
         <p className="text-light-text-muted dark:text-dark-text-muted">Manage users, roles, and permissions</p>
       </div>
 
@@ -625,7 +625,8 @@ function RolesTab({
 
               <div className="space-y-6">
                 {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => {
-                  const categoryPerms = getPermissionsByCategory(category);
+                  const allGrouped = getPermissionsByCategory();
+                  const categoryPerms = allGrouped[category] || [];
                   const availablePerms = categoryPerms.filter(p => permissions.includes(p));
                   
                   if (availablePerms.length === 0) return null;
