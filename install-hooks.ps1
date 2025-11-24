@@ -3,7 +3,7 @@ Write-Host "Installing Git hooks for auto-versioning..." -ForegroundColor Cyan
 Write-Host ""
 
 $hooksDir = ".git/hooks"
-$preCommitPath = Join-Path $hooksDir "pre-commit"
+$commitMsgPath = Join-Path $hooksDir "commit-msg"
 
 if (-not (Test-Path $hooksDir)) {
     Write-Error "Git hooks directory not found. Are you in a git repository?"
@@ -23,13 +23,14 @@ if ! command -v node &> /dev/null; then
     exit 0
 fi
 
-node scripts/auto-version.js
+node scripts/auto-version.js "$1"
+git add pom.xml src/main/resources/plugin.yml webapp/package.json webapp/src/components/Sidebar.tsx webapp/src/constants/version.ts 2>/dev/null || true
 '@
 
-Set-Content -Path $preCommitPath -Value $hookContent
+Set-Content -Path $commitMsgPath -Value $hookContent
 
 Write-Host ""
-Write-Host "Pre-commit hook installed successfully!" -ForegroundColor Green
+Write-Host "Commit-msg hook installed successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Usage:" -ForegroundColor Yellow
 Write-Host "  Patch (x.y.Z)  - fix:, docs:, chore:, style:, refactor:" -ForegroundColor Cyan

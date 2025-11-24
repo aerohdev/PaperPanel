@@ -4,12 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Read the commit message from .git/COMMIT_EDITMSG
-const commitMsgPath = path.join(process.cwd(), '.git', 'COMMIT_EDITMSG');
+// Read the commit message file path (passed as first argument in commit-msg hook)
+const commitMsgFile = process.argv[2] || path.join(process.cwd(), '.git', 'COMMIT_EDITMSG');
 let commitMsg = '';
 
 try {
-  commitMsg = fs.readFileSync(commitMsgPath, 'utf8').toLowerCase();
+  commitMsg = fs.readFileSync(commitMsgFile, 'utf8').trim().toLowerCase();
 } catch (err) {
   console.log('⚠️  Could not read commit message, defaulting to patch version');
 }
@@ -17,15 +17,19 @@ try {
 // Determine version type from commit message
 let versionType = 'patch'; // Default to patch
 
+console.log(`📝 Commit message: "${commitMsg.substring(0, 100)}..."`);
+
 // Check for breaking changes (highest priority)
 if (commitMsg.startsWith('feat!:') || 
     commitMsg.startsWith('fix!:') || 
     commitMsg.includes('breaking change:')) {
   versionType = 'major';
+  console.log(`  → Matched: breaking change pattern`);
 } 
 // Check for features (minor version bump)
 else if (commitMsg.startsWith('feat:') || commitMsg.startsWith('feature:')) {
   versionType = 'minor';
+  console.log(`  → Matched: feature pattern`);
 } 
 // Check for fixes and other non-breaking changes (patch version bump)
 else if (commitMsg.startsWith('fix:') || 
@@ -37,6 +41,7 @@ else if (commitMsg.startsWith('fix:') ||
          commitMsg.startsWith('perf:') ||
          commitMsg.startsWith('test:')) {
   versionType = 'patch';
+  console.log(`  → Matched: patch pattern`);
 }
 
 console.log(`\n🔍 Detected commit type: ${versionType}\n`);
