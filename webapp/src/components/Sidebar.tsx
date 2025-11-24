@@ -26,14 +26,14 @@ export default function Sidebar() {
   if (isLoading) {
     return (
       <aside className="w-64 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col shadow-medium dark:shadow-dark-medium">
-        <div className="p-6 border-b border-light-border dark:border-dark-border">
+        <div className="px-6 py-4 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
               <Server className="w-8 h-8 text-primary-500" />
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.1.3</p>
+              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.0</p>
             </div>
           </div>
         </div>
@@ -106,8 +106,8 @@ export default function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-dark-border">
-        <div className="text-xs text-gray-500 text-center">
+      <div className="p-4 border-t border-light-border dark:border-dark-border">
+        <div className="text-xs text-light-text-muted dark:text-dark-text-muted text-center">
           <p>PaperPanel v3.2.0</p>
           <p className="mt-1">Powered by Paper</p>
         </div>

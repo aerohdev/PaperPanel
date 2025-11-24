@@ -159,7 +159,7 @@ export default function Broadcast() {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Radio className="w-8 h-8 text-blue-500" />
-        <h1 className="text-3xl font-bold text-white">Broadcast Messages</h1>
+        <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Broadcast Messages</h1>
       </div>
 
       <p className="text-gray-400">
@@ -167,12 +167,12 @@ export default function Broadcast() {
       </p>
 
       {/* Chat Message */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare className="w-5 h-5 text-blue-400" />
-          <h3 className="text-xl font-bold text-white">Chat Message</h3>
+          <h3 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">Chat Message</h3>
         </div>
-        <p className="text-gray-400 text-sm mb-4">
+        <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
           Send a message in chat to all online players
         </p>
 
@@ -182,7 +182,7 @@ export default function Broadcast() {
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
             placeholder="Enter your message..."
             rows={3}
-            className="w-full px-4 py-2 bg-dark-bg text-white rounded border border-dark-border focus:border-blue-500 focus:outline-none resize-none"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary rounded border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none resize-none"
           />
 
           <button
@@ -196,12 +196,12 @@ export default function Broadcast() {
       </div>
 
       {/* Title Message */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
         <div className="flex items-center gap-2 mb-4">
           <Type className="w-5 h-5 text-purple-400" />
-          <h3 className="text-xl font-bold text-white">Title Message</h3>
+          <h3 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">Title Message</h3>
         </div>
-        <p className="text-gray-400 text-sm mb-4">
+        <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
           Display a large title in the center of all players' screens
         </p>
 
@@ -211,7 +211,7 @@ export default function Broadcast() {
             value={title}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
             placeholder="Main title (large text)"
-            className="w-full px-4 py-2 bg-dark-bg text-white rounded border border-dark-border focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary rounded border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none"
           />
 
           <input
@@ -219,7 +219,7 @@ export default function Broadcast() {
             value={subtitle}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSubtitle(e.target.value)}
             placeholder="Subtitle (smaller text below)"
-            className="w-full px-4 py-2 bg-dark-bg text-white rounded border border-dark-border focus:border-purple-500 focus:outline-none"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary rounded border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none"
           />
 
           <button
@@ -233,12 +233,12 @@ export default function Broadcast() {
       </div>
 
       {/* Action Bar */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare className="w-5 h-5 text-green-400" />
-          <h3 className="text-xl font-bold text-white">Action Bar</h3>
+          <h3 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">Action Bar</h3>
         </div>
-        <p className="text-gray-400 text-sm mb-4">
+        <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
           Display a message above the hotbar for all players
         </p>
 
@@ -248,7 +248,7 @@ export default function Broadcast() {
             value={actionBarText}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setActionBarText(e.target.value)}
             placeholder="Action bar message"
-            className="w-full px-4 py-2 bg-dark-bg text-white rounded border border-dark-border focus:border-green-500 focus:outline-none"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary rounded border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none"
           />
 
           <button
@@ -262,12 +262,12 @@ export default function Broadcast() {
       </div>
 
       {/* Sound */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
         <div className="flex items-center gap-2 mb-4">
           <Volume2 className="w-5 h-5 text-yellow-400" />
-          <h3 className="text-xl font-bold text-white">Play Sound</h3>
+          <h3 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">Play Sound</h3>
         </div>
-        <p className="text-gray-400 text-sm mb-4">
+        <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
           Play a sound effect for all online players
         </p>
 
@@ -275,7 +275,7 @@ export default function Broadcast() {
           <select
             value={selectedSound}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedSound(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-bg text-white rounded border border-dark-border focus:border-yellow-500 focus:outline-none"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-dark-text-primary rounded border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none"
           >
             <option value="ENTITY_PLAYER_LEVELUP">Level Up</option>
             <option value="ENTITY_EXPERIENCE_ORB_PICKUP">XP Pickup</option>
@@ -298,9 +298,9 @@ export default function Broadcast() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
-        <h3 className="text-xl font-bold mb-4 text-white">Quick Actions</h3>
-        <p className="text-gray-400 text-sm mb-4">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
+        <h3 className="text-xl font-bold mb-4 text-light-text-primary dark:text-dark-text-primary">Quick Actions</h3>
+        <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
           Pre-configured announcements for common scenarios
         </p>
 

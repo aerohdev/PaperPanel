@@ -147,7 +147,7 @@ export function AuditLog() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Audit Logs</h1>
+          <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Audit Logs</h1>
           <p className="text-gray-400">View system activity and security events</p>
         </div>
         <button
@@ -172,7 +172,7 @@ export function AuditLog() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
             <div className="text-gray-400 text-sm mb-1">Total Entries</div>
-            <div className="text-2xl font-bold text-white">{stats.totalEntries.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{stats.totalEntries.toLocaleString()}</div>
           </div>
           <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
             <div className="text-gray-400 text-sm mb-1">Audit Events</div>
@@ -193,7 +193,7 @@ export function AuditLog() {
       <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="w-5 h-5 text-gray-400" />
-          <h2 className="text-lg font-semibold text-white">Filters</h2>
+          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Filters</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
