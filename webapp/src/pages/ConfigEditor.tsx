@@ -138,7 +138,7 @@ export default function ConfigEditor() {
                     <FileText className="w-4 h-4" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{cfg.name}</div>
-                      <div className="text-xs opacity-70">{(cfg.size / 1024).toFixed(1)} KB</div>
+                      <div className="text-xs text-light-text-muted dark:text-dark-text-muted">{(cfg.size / 1024).toFixed(1)} KB</div>
                     </div>
                   </div>
                 </button>

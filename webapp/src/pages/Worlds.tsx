@@ -148,7 +148,7 @@ export default function Worlds() {
       {/* World Cards */}
       <div className="grid gap-4">
         {worlds.map(world => (
-          <div key={world.name} className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border hover:border-light-border dark:hover:border-dark-hover transition-colors">
+          <div key={world.name} className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border transition-colors">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4 flex-1">
                 <div className="text-4xl">{getEnvironmentIcon(world.environment)}</div>

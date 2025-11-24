@@ -264,7 +264,7 @@ export default function UserRoleManagement() {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-white mb-2">User & Role Management</h1>
-        <p className="text-gray-400">Manage users, roles, and permissions</p>
+        <p className="text-light-text-muted dark:text-dark-text-muted">Manage users, roles, and permissions</p>
       </div>
 
       {/* Messages */}
@@ -428,7 +428,7 @@ function UsersTab({
           </thead>
           <tbody className="divide-y divide-light-border dark:divide-dark-border">
             {users.map((user) => (
-              <tr key={user.username} className="hover:bg-dark-hover transition-colors">
+              <tr key={user.username} className="hover:bg-light-surface dark:hover:bg-dark-hover transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-blue-500" />
@@ -571,14 +571,14 @@ function RolesTab({
                 />
                 <button
                   onClick={() => onUserSelect(user.username)}
-                  className={`flex-1 text-left px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex-1 text-left px-3 py-2 rounded-lg transition-colors border ${
                     selectedUser === user.username
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-dark-hover text-gray-300 hover:bg-dark-border'
+                      ? 'bg-primary-500/20 text-primary-500 border-primary-500'
+                      : 'bg-light-card dark:bg-dark-hover text-light-text-primary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-border border-light-border dark:border-dark-border'
                   }`}
                 >
                   <div className="font-medium">{user.username}</div>
-                  <div className="text-xs opacity-70">{user.roleDisplayName}</div>
+                  <div className="text-xs text-light-text-muted dark:text-dark-text-muted">{user.roleDisplayName}</div>
                 </button>
               </div>
             ))}
@@ -632,7 +632,7 @@ function RolesTab({
 
                   return (
                     <div key={category}>
-                      <h4 className="text-sm font-semibold text-gray-300 mb-3">{label}</h4>
+                      <h4 className="text-sm font-semibold text-light-text-secondary dark:text-gray-300 mb-3">{label}</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {availablePerms.map((permission) => {
                           const info = PERMISSION_INFO[permission];
@@ -641,7 +641,7 @@ function RolesTab({
                           return (
                             <label
                               key={permission}
-                              className="flex items-start gap-3 p-3 bg-dark-hover rounded-lg cursor-pointer hover:bg-dark-border transition-colors"
+                              className="flex items-start gap-3 p-3 bg-light-card dark:bg-dark-hover rounded-lg cursor-pointer hover:bg-light-surface dark:hover:bg-dark-border transition-colors"
                             >
                               <input
                                 type="checkbox"
@@ -651,7 +651,7 @@ function RolesTab({
                               />
                               <div className="flex-1">
                                 <div className="text-white font-medium text-sm">{info.name}</div>
-                                <div className="text-gray-400 text-xs">{info.description}</div>
+                                <div className="text-light-text-muted dark:text-gray-400 text-xs">{info.description}</div>
                               </div>
                             </label>
                           );
@@ -711,7 +711,7 @@ function CreateUserModal({
               />
             </div>
             <div>
-              <label className="block text-gray-300 mb-2">Password</label>
+              <label className="block text-light-text-secondary dark:text-gray-300 mb-2">Password</label>
               <input
                 type="password"
                 value={password}

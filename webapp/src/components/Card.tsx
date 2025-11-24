@@ -5,17 +5,15 @@ interface CardProps {
   children: ReactNode;
   className?: string;
   gradient?: boolean;
-  hover?: boolean;
   glow?: boolean;
 }
 
-export function Card({ children, className = '', gradient = false, hover = true, glow = false }: CardProps) {
+export function Card({ children, className = '', gradient = false, glow = false }: CardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      whileHover={hover ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
       className={`
         rounded-2xl p-6 
         ${gradient 
@@ -53,7 +51,7 @@ export function StatCard({ title, value, change, changeType, icon, gradient = 'b
   };
 
   return (
-    <Card gradient hover glow>
+    <Card gradient glow>
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">
