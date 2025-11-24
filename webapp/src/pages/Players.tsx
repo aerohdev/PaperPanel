@@ -5,6 +5,8 @@ import type { PlayerInfo } from '../types/api';
 import { ProtectedFeature } from '../components/ProtectedFeature';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
+import { Card } from '../components/Card';
+import { motion } from 'framer-motion';
 
 interface SelectedPlayer {
   uuid: string;
@@ -122,41 +124,49 @@ export default function Players() {
   const offlinePlayers = filteredPlayers.filter(p => !p.online);
 
   if (loading) {
-    return <div className="text-white">Loading players...</div>;
+    return <Card className="text-light-text-primary dark:text-dark-text-primary">Loading players...</Card>;
   }
 
   if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <Card className="text-red-500">{error}</Card>;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Player Management</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Player Management</h1>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">
             {onlinePlayers.length} online • {offlinePlayers.length} offline
           </p>
         </div>
-        <button
+        <motion.button
           onClick={fetchPlayers}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-purple text-white rounded-xl hover:from-primary-600 hover:to-accent-purple/90 transition-all shadow-medium"
         >
           Refresh
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search players..."
-          value={searchTerm}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 bg-dark-surface text-white rounded-lg border border-dark-border focus:border-blue-500 focus:outline-none"
-        />
-      </div>
+      <Card>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-light-text-muted dark:text-dark-text-muted" />
+          <input
+            type="text"
+            placeholder="Search players..."
+            value={searchTerm}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none transition-colors"
+          />
+        </div>
+      </Card>
 
       {/* Online Players */}
       {onlinePlayers.length > 0 && (

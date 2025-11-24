@@ -1,6 +1,8 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import client from '../api/client';
 import { Radio, Type, MessageSquare, Volume2 } from 'lucide-react';
+import { Card } from '../components/Card';
+import { motion } from 'framer-motion';
 
 interface BroadcastMessageRequest {
   message: string;

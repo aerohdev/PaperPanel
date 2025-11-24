@@ -4,6 +4,8 @@ import { Server, Power, Save, CloudRain, Sun, Moon, Clock } from 'lucide-react';
 import type { WorldInfo } from '../types/api';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
+import { Card } from '../components/Card';
+import { motion } from 'framer-motion';
 
 export default function ServerControl() {
   const [restartDelay, setRestartDelay] = useState<number>(300);
@@ -78,37 +80,46 @@ export default function ServerControl() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Server Control</h1>
-        <p className="text-gray-400">Manage server operations and world settings</p>
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Server Control</h1>
+        <p className="text-light-text-secondary dark:text-dark-text-secondary">Manage server operations and world settings</p>
+      </motion.div>
 
       {/* Server Operations */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-          <Server className="w-6 h-6" />
+      <Card gradient>
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+            <Server className="w-6 h-6 text-blue-500" />
+          </div>
           Server Operations
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <PermissionTooltip permission={Permission.SAVE_SERVER}>
-            <button
+            <motion.button
               onClick={handleSaveAll}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-medium"
             >
               <Save className="w-5 h-5" />
               Save All Worlds
-            </button>
+            </motion.button>
           </PermissionTooltip>
 
           <PermissionTooltip permission={Permission.STOP_SERVER}>
-            <button
+            <motion.button
               onClick={handleStop}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 transition-all shadow-medium"
             >
               <Power className="w-5 h-5" />
               Stop Server
-            </button>
+            </motion.button>
           </PermissionTooltip>
 
           <div className="flex flex-col gap-2">
@@ -118,31 +129,33 @@ export default function ServerControl() {
                 value={restartDelay}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setRestartDelay(parseInt(e.target.value))}
                 min={10}
-                className="w-24 px-3 py-2 bg-dark-bg text-white rounded-lg border border-dark-border"
+                className="w-24 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none transition-colors"
               />
-              <span className="self-center text-gray-400 text-sm">seconds</span>
+              <span className="self-center text-light-text-secondary dark:text-dark-text-secondary text-sm">seconds</span>
             </div>
             <PermissionTooltip permission={Permission.RESTART_SERVER}>
-              <button
+              <motion.button
                 onClick={handleRestart}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all shadow-medium"
               >
                 <Power className="w-5 h-5" />
                 Schedule Restart
-              </button>
+              </motion.button>
             </PermissionTooltip>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* World Selection */}
       {worlds.length > 0 && (
-        <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
-          <h2 className="text-xl font-bold text-white mb-4">Select World</h2>
+        <Card>
+          <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">Select World</h2>
           <select
             value={selectedWorld}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedWorld(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-bg text-white rounded-lg border border-dark-border focus:border-blue-500 focus:outline-none"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none transition-colors"
           >
             {worlds.map(world => (
               <option key={world.name} value={world.name}>
@@ -150,7 +163,7 @@ export default function ServerControl() {
               </option>
             ))}
           </select>
-        </div>
+        </Card>
       )}
 
       {/* Weather Control */}

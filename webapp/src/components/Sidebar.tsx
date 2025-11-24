@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe, Radio, Shield, FileText, FileCog, UserCheck, Key, ScrollText } from 'lucide-react';
 import { usePermissions } from '../contexts/PermissionContext';
 import { Permission } from '../constants/permissions';
+import { motion } from 'framer-motion';
 
 export default function Sidebar() {
   const { hasPermission, isAdmin, isLoading } = usePermissions();
@@ -24,18 +25,20 @@ export default function Sidebar() {
   // Show loading state while permissions are being loaded
   if (isLoading) {
     return (
-      <aside className="w-64 bg-dark-surface border-r border-dark-border flex flex-col">
-        <div className="p-6 border-b border-dark-border">
+      <aside className="w-64 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col shadow-medium dark:shadow-dark-medium">
+        <div className="p-6 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center gap-3">
-            <Server className="w-8 h-8 text-blue-500" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
+              <Server className="w-8 h-8 text-primary-500" />
+            </div>
             <div>
-              <h1 className="text-xl font-bold text-white">PaperPanel</h1>
-              <p className="text-xs text-gray-400">v2.5.0</p>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
+              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.1.3</p>
             </div>
           </div>
         </div>
         <nav className="flex-1 p-4">
-          <div className="text-gray-400 text-center py-4">Loading...</div>
+          <div className="text-light-text-muted dark:text-dark-text-muted text-center py-4">Loading...</div>
         </nav>
       </aside>
     );
@@ -61,30 +64,36 @@ export default function Sidebar() {
   });
 
   return (
-    <aside className="w-64 bg-dark-surface border-r border-dark-border flex flex-col">
+    <aside className="w-64 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col shadow-medium dark:shadow-dark-medium">
       {/* Logo */}
-      <div className="p-6 border-b border-dark-border">
-        <div className="flex items-center gap-3">
-          <Server className="w-8 h-8 text-blue-500" />
-          <div>
-            <h1 className="text-xl font-bold text-white">PaperPanel</h1>
-            <p className="text-xs text-gray-400">v2.5.0</p>
+      <div className="p-6 border-b border-light-border dark:border-dark-border">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex items-center gap-3"
+        >
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-purple/20 shadow-glow">
+            <Server className="w-8 h-8 text-primary-500" />
           </div>
-        </div>
+          <div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
+            <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.1.3</p>
+          </div>
+        </motion.div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
           {visibleNavItems.map((item) => (
             <li key={item.to}>
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-400 hover:bg-dark-hover hover:text-white'
+                      ? 'bg-gradient-to-r from-primary-500/20 to-accent-purple/20 text-primary-500 shadow-soft dark:shadow-dark-soft border border-primary-500/30'
+                      : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-card dark:hover:bg-dark-card hover:text-primary-500 border border-transparent'
                   }`
                 }
               >
@@ -99,7 +108,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-dark-border">
         <div className="text-xs text-gray-500 text-center">
-          <p>PaperPanel v3.1.3</p>
+          <p>PaperPanel v3.2.0</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

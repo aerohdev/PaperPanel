@@ -3,6 +3,8 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import ConnectionStatus from '../components/ConnectionStatus';
 import { Terminal, Send, Trash2 } from 'lucide-react';
 import type { WebSocketMessage } from '../hooks/useWebSocket';
+import { Card } from '../components/Card';
+import { motion } from 'framer-motion';
 
 export default function Console() {
   const {
@@ -80,19 +82,27 @@ export default function Console() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between mb-4">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between mb-4"
+      >
         <div className="flex items-center">
-          <Terminal className="w-6 h-6 text-white mr-2" />
-          <h1 className="text-2xl font-bold text-white">Live Console</h1>
+          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mr-3">
+            <Terminal className="w-6 h-6 text-blue-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Live Console</h1>
         </div>
         <div className="flex items-center gap-4">
-          <button
+          <motion.button
             onClick={handleClear}
-            className="flex items-center gap-2 px-4 py-2 bg-dark-surface text-white rounded-lg hover:bg-dark-hover transition-colors border border-dark-border"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 bg-light-card dark:bg-dark-card text-light-text-primary dark:text-dark-text-primary rounded-xl hover:bg-gradient-to-br hover:from-red-500/20 hover:to-pink-500/20 transition-all border border-light-border dark:border-dark-border shadow-soft dark:shadow-dark-soft"
           >
             <Trash2 className="w-4 h-4" />
             Clear
-          </button>
+          </motion.button>
 
           <ConnectionStatus
             connected={connected}
@@ -101,7 +111,7 @@ export default function Console() {
             onReconnect={reconnect}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Console Output */}
       <div

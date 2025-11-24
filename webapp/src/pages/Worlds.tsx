@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import client from '../api/client';
 import { Globe, Users, Boxes, Skull, RefreshCw, Settings, Sun, Moon, Cloud, CloudRain, Zap, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import type { WorldInfo } from '../types/api';
+import { Card } from '../components/Card';
+import { motion } from 'framer-motion';
 
 export default function Worlds() {
   const [worlds, setWorlds] = useState<WorldInfo[]>([]);

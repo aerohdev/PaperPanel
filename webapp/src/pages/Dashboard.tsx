@@ -3,6 +3,8 @@ import client from '../api/client';
 import { Activity, Users, HardDrive, Clock, Server, Boxes, RefreshCw } from 'lucide-react';
 import type { DashboardStats } from '../types/api';
 import { SkeletonGrid, SkeletonInfoCard } from '../components/Skeleton';
+import { StatCard, Card } from '../components/Card';
+import { motion } from 'framer-motion';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -54,12 +56,16 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="mb-6 flex items-center justify-between">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 flex items-center justify-between"
+        >
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-            <p className="text-gray-400">Server overview and statistics</p>
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Dashboard</h1>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary">Server overview and statistics</p>
           </div>
-        </div>
+        </motion.div>
         <SkeletonGrid columns={4} rows={1} />
         <div className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -75,10 +81,10 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="text-red-500 text-center">
+        <Card className="text-red-500 text-center max-w-md">
           <p className="text-xl font-bold mb-2">Error</p>
           <p>{error}</p>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -94,164 +100,156 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       {/* Header with Check Updates Button */}
-      <div className="flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Dashboard</h1>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">
             Server overview and statistics • 
-            <span className="text-green-500">Live</span> • 
+            <span className="text-green-500 ml-1">Live</span> • 
             Last update: {lastUpdate.toLocaleTimeString()}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
+          <motion.button
             onClick={fetchStats}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 bg-light-card dark:bg-dark-card hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-dark-text-primary rounded-xl transition-colors shadow-soft dark:shadow-dark-soft border border-light-border dark:border-dark-border"
             title="Refresh now"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={handleCheckUpdates}
             disabled={checkingUpdates}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            whileHover={{ scale: checkingUpdates ? 1 : 1.05 }}
+            whileTap={{ scale: checkingUpdates ? 1 : 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-purple hover:from-primary-600 hover:to-accent-purple/90 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-medium dark:shadow-dark-medium"
           >
             <RefreshCw className={`w-4 h-4 ${checkingUpdates ? 'animate-spin' : ''}`} />
             {checkingUpdates ? 'Checking...' : 'Check for Updates'}
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="TPS"
           value={stats.tps.toFixed(1)}
+          change={stats.tps >= 19 ? "Excellent" : stats.tps >= 15 ? "Good" : "Poor"}
+          changeType={stats.tps >= 15 ? "up" : "down"}
           icon={<Activity className="w-6 h-6" />}
-          color={tpsColor}
-          subtitle="Ticks per second"
+          gradient="blue"
         />
 
         <StatCard
           title="Players"
           value={`${stats.onlinePlayers}/${stats.maxPlayers}`}
+          change={`${Math.round((stats.onlinePlayers / stats.maxPlayers) * 100)}% capacity`}
           icon={<Users className="w-6 h-6" />}
-          color="text-blue-500"
-          subtitle="Online players"
+          gradient="purple"
         />
 
         <StatCard
           title="Memory"
-          value={`${stats.memory.usedMB}MB / ${stats.memory.maxMB}MB`}
+          value={`${stats.memory.usedMB}MB`}
+          change={`${memoryPercent}% used`}
+          changeType={memoryPercent < 85 ? "up" : "down"}
           icon={<HardDrive className="w-6 h-6" />}
-          color={memoryColor}
-          subtitle={`${memoryPercent}% used`}
+          gradient="pink"
         />
 
         <StatCard
           title="Uptime"
           value={stats.uptimeFormatted}
+          change="Running smoothly"
+          changeType="up"
           icon={<Clock className="w-6 h-6" />}
-          color="text-purple-500"
-          subtitle="Server uptime"
+          gradient="green"
         />
       </div>
 
       {/* Additional Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <InfoCard
-          title="Server Version"
-          value={stats.bukkitVersion}
-          icon={<Server className="w-5 h-5" />}
-        />
+        <Card>
+          <div className="flex items-center mb-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 mr-3">
+              <Server className="w-5 h-5 text-blue-500" />
+            </div>
+            <h3 className="text-light-text-secondary dark:text-dark-text-secondary text-sm">Server Version</h3>
+          </div>
+          <p className="text-light-text-primary dark:text-dark-text-primary text-xl font-bold">{stats.bukkitVersion}</p>
+        </Card>
 
-        <InfoCard
-          title="Loaded Chunks"
-          value={stats.loadedChunks.toLocaleString()}
-          icon={<Boxes className="w-5 h-5" />}
-        />
+        <Card>
+          <div className="flex items-center mb-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 mr-3">
+              <Boxes className="w-5 h-5 text-purple-500" />
+            </div>
+            <h3 className="text-light-text-secondary dark:text-dark-text-secondary text-sm">Loaded Chunks</h3>
+          </div>
+          <p className="text-light-text-primary dark:text-dark-text-primary text-xl font-bold">{stats.loadedChunks.toLocaleString()}</p>
+        </Card>
 
-        <InfoCard
-          title="Plugins"
-          value={stats.plugins.toString()}
-          icon={<Boxes className="w-5 h-5" />}
-        />
+        <Card>
+          <div className="flex items-center mb-3">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-yellow-500/20 mr-3">
+              <Boxes className="w-5 h-5 text-orange-500" />
+            </div>
+            <h3 className="text-light-text-secondary dark:text-dark-text-secondary text-sm">Plugins</h3>
+          </div>
+          <p className="text-light-text-primary dark:text-dark-text-primary text-xl font-bold">{stats.plugins.toString()}</p>
+        </Card>
       </div>
 
       {/* World Information */}
-      <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-        <h2 className="text-xl font-bold text-white mb-4">World Information</h2>
+      <Card gradient>
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">World Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-gray-400 text-sm">Total Worlds</p>
-            <p className="text-white text-2xl font-bold">{stats.worlds}</p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-1">Total Worlds</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary text-2xl font-bold">{stats.worlds}</p>
           </div>
           <div>
-            <p className="text-gray-400 text-sm">Loaded Chunks</p>
-            <p className="text-white text-2xl font-bold">{stats.loadedChunks.toLocaleString()}</p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-1">Loaded Chunks</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary text-2xl font-bold">{stats.loadedChunks.toLocaleString()}</p>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Memory Bar */}
-      <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-        <h2 className="text-xl font-bold text-white mb-4">Memory Usage</h2>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-400">
+      <Card gradient glow>
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">Memory Usage</h2>
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
             <span>Used: {stats.memory.usedMB}MB</span>
             <span>Available: {stats.memory.maxMB}MB</span>
           </div>
-          <div className="w-full bg-dark-bg rounded-full h-4 overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                memoryPercent < 70 ? 'bg-green-500' : memoryPercent < 85 ? 'bg-yellow-500' : 'bg-red-500'
+          <div className="w-full bg-light-border/30 dark:bg-dark-border/30 rounded-full h-4 overflow-hidden shadow-inner">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${memoryPercent}%` }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className={`h-full transition-all duration-500 rounded-full ${
+                memoryPercent < 70 
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-glow' 
+                  : memoryPercent < 85 
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                  : 'bg-gradient-to-r from-red-500 to-pink-500'
               }`}
-              style={{ width: `${memoryPercent}%` }}
-            ></div>
+            ></motion.div>
           </div>
-          <p className="text-center text-gray-400 text-sm">{memoryPercent}% utilized</p>
+          <p className="text-center text-light-text-secondary dark:text-dark-text-secondary text-sm font-medium">
+            {memoryPercent}% utilized
+          </p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-interface StatCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  color: string;
-  subtitle?: string;
-}
-
-function StatCard({ title, value, icon, color, subtitle }: StatCardProps) {
-  return (
-    <div className="bg-dark-surface p-6 rounded-lg border border-dark-border hover:border-dark-hover transition-colors">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
-        <div className={color}>{icon}</div>
-      </div>
-      <p className={`text-3xl font-bold ${color} mb-1`}>{value}</p>
-      {subtitle && <p className="text-gray-500 text-xs">{subtitle}</p>}
-    </div>
-  );
-}
-
-interface InfoCardProps {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-}
-
-function InfoCard({ title, value, icon }: InfoCardProps) {
-  return (
-    <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
-      <div className="flex items-center mb-2">
-        <div className="text-gray-400 mr-2">{icon}</div>
-        <h3 className="text-gray-400 text-sm">{title}</h3>
-      </div>
-      <p className="text-white text-xl font-bold">{value}</p>
+      </Card>
     </div>
   );
 }

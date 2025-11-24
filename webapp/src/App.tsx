@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { PermissionProvider } from './contexts/PermissionContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -19,12 +20,13 @@ import { AuditLog } from './pages/AuditLog';
 
 function App() {
   return (
-    <AuthProvider>
-      <PermissionProvider>
-        <Router>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<Login />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <PermissionProvider>
+          <Router>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
 
             {/* Protected routes */}
             <Route
@@ -56,6 +58,7 @@ function App() {
         </Router>
       </PermissionProvider>
     </AuthProvider>
+    </ThemeProvider>
   );
 }
 
