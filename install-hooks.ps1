@@ -32,11 +32,19 @@ Write-Host ""
 Write-Host "Pre-commit hook installed successfully!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Usage:" -ForegroundColor Yellow
-Write-Host '  git commit -m "fix: bug fix"  (patch: 2.5.0 -> 2.5.1)' -ForegroundColor Gray
-Write-Host '  $env:VERSION_TYPE="minor"; git commit -m "feat: new feature"  (2.5.0 -> 2.6.0)' -ForegroundColor Gray
-Write-Host '  git commit --no-verify -m "docs: update"  (skip versioning)' -ForegroundColor Gray
+Write-Host "  Patch (x.y.Z)  - fix:, docs:, chore:, style:, refactor:" -ForegroundColor Cyan
+Write-Host '    git commit -m "fix: bug fix"  (3.0.0 -> 3.0.1)' -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Minor (x.Y.0)  - feat:, feature:" -ForegroundColor Cyan
+Write-Host '    git commit -m "feat: new feature"  (3.0.0 -> 3.1.0)' -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Major (X.0.0)  - feat!:, fix!:, BREAKING CHANGE:" -ForegroundColor Cyan
+Write-Host '    git commit -m "feat!: breaking change"  (3.0.0 -> 4.0.0)' -ForegroundColor Gray
+Write-Host ""
+Write-Host "  Skip auto-version:" -ForegroundColor Cyan
+Write-Host '    git commit --no-verify -m "docs: update"' -ForegroundColor Gray
 Write-Host ""
 Write-Host "Or use manual script:" -ForegroundColor Yellow
-Write-Host "  .\scripts\version.ps1 -Type patch|minor|major [-AutoCommit]" -ForegroundColor White
+Write-Host "  .\scripts\version.ps1 -Type patch|minor|major" -ForegroundColor White
 Write-Host ""
 Write-Host "Setup complete!" -ForegroundColor Green

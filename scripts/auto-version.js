@@ -17,11 +17,25 @@ try {
 // Determine version type from commit message
 let versionType = 'patch'; // Default to patch
 
-if (commitMsg.startsWith('breaking:') || commitMsg.includes('breaking change')) {
+// Check for breaking changes (highest priority)
+if (commitMsg.startsWith('feat!:') || 
+    commitMsg.startsWith('fix!:') || 
+    commitMsg.includes('breaking change:')) {
   versionType = 'major';
-} else if (commitMsg.startsWith('feat:') || commitMsg.startsWith('feature:')) {
+} 
+// Check for features (minor version bump)
+else if (commitMsg.startsWith('feat:') || commitMsg.startsWith('feature:')) {
   versionType = 'minor';
-} else if (commitMsg.startsWith('fix:') || commitMsg.startsWith('patch:') || commitMsg.startsWith('chore:')) {
+} 
+// Check for fixes and other non-breaking changes (patch version bump)
+else if (commitMsg.startsWith('fix:') || 
+         commitMsg.startsWith('patch:') || 
+         commitMsg.startsWith('chore:') ||
+         commitMsg.startsWith('docs:') ||
+         commitMsg.startsWith('style:') ||
+         commitMsg.startsWith('refactor:') ||
+         commitMsg.startsWith('perf:') ||
+         commitMsg.startsWith('test:')) {
   versionType = 'patch';
 }
 
