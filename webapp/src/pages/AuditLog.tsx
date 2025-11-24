@@ -170,41 +170,41 @@ export function AuditLog() {
       {/* Statistics */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
-            <div className="text-gray-400 text-sm mb-1">Total Entries</div>
+          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
+            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">Total Entries</div>
             <div className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{stats.totalEntries.toLocaleString()}</div>
           </div>
-          <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
-            <div className="text-gray-400 text-sm mb-1">Audit Events</div>
-            <div className="text-2xl font-bold text-green-400">{stats.categoryCounts.audit.toLocaleString()}</div>
+          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
+            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">Audit Events</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.categoryCounts.audit.toLocaleString()}</div>
           </div>
-          <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
-            <div className="text-gray-400 text-sm mb-1">Security Events</div>
-            <div className="text-2xl font-bold text-red-400">{stats.categoryCounts.security.toLocaleString()}</div>
+          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
+            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">Security Events</div>
+            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.categoryCounts.security.toLocaleString()}</div>
           </div>
-          <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
-            <div className="text-gray-400 text-sm mb-1">API Events</div>
-            <div className="text-2xl font-bold text-purple-400">{stats.categoryCounts.api.toLocaleString()}</div>
+          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
+            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">API Events</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.categoryCounts.api.toLocaleString()}</div>
           </div>
         </div>
       )}
 
       {/* Filters */}
-      <div className="bg-dark-surface p-4 rounded-lg border border-dark-border">
+      <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-5 h-5 text-gray-400" />
+          <Filter className="w-5 h-5 text-light-text-muted dark:text-gray-400" />
           <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Filters</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Category</label>
+            <label className="block text-sm font-medium text-light-text-muted dark:text-gray-400 mb-2">Category</label>
             <select
               value={category}
               onChange={(e) => {
                 setCategory(e.target.value);
                 setOffset(0);
               }}
-              className="w-full px-3 py-2 bg-dark-bg text-white rounded-lg border border-dark-border focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded-lg border border-light-border dark:border-dark-border focus:border-blue-500 focus:outline-none"
             >
               <option value="all">All Categories</option>
               <option value="audit">Audit</option>
@@ -213,14 +213,14 @@ export function AuditLog() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Level</label>
+            <label className="block text-sm font-medium text-light-text-muted dark:text-gray-400 mb-2">Level</label>
             <select
               value={levelFilter}
               onChange={(e) => {
                 setLevelFilter(e.target.value);
                 setOffset(0);
               }}
-              className="w-full px-3 py-2 bg-dark-bg text-white rounded-lg border border-dark-border focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded-lg border border-light-border dark:border-dark-border focus:border-blue-500 focus:outline-none"
             >
               <option value="all">All Levels</option>
               <option value="info">Info</option>
@@ -229,7 +229,7 @@ export function AuditLog() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Search</label>
+            <label className="block text-sm font-medium text-light-text-muted dark:text-gray-400 mb-2">Search</label>
             <input
               type="text"
               value={searchTerm}
@@ -238,17 +238,17 @@ export function AuditLog() {
                 setOffset(0);
               }}
               placeholder="Search messages..."
-              className="w-full px-3 py-2 bg-dark-bg text-white rounded-lg border border-dark-border focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded-lg border border-light-border dark:border-dark-border focus:border-blue-500 focus:outline-none"
             />
           </div>
         </div>
       </div>
 
       {/* Log Entries */}
-      <div className="bg-dark-surface rounded-lg border border-dark-border overflow-hidden">
+      <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-dark-bg border-b border-dark-border">
+            <thead className="bg-light-surface dark:bg-dark-bg border-b border-light-border dark:border-dark-border">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Timestamp
@@ -267,17 +267,17 @@ export function AuditLog() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-dark-border">
+            <tbody className="divide-y divide-light-border dark:divide-dark-border">
               {entries.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                  <td colSpan={5} className="px-4 py-8 text-center text-light-text-muted dark:text-gray-400">
                     No audit log entries found
                   </td>
                 </tr>
               ) : (
                 entries.map((entry, index) => (
-                  <tr key={index} className="hover:bg-dark-hover transition-colors">
-                    <td className="px-4 py-3 text-sm text-gray-300 whitespace-nowrap">
+                  <tr key={index} className="hover:bg-light-surface dark:hover:bg-dark-hover transition-colors">
+                    <td className="px-4 py-3 text-sm text-light-text-secondary dark:text-gray-300 whitespace-nowrap">
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td className="px-4 py-3 text-sm">
@@ -291,10 +291,10 @@ export function AuditLog() {
                         {entry.level}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-300">
-                      {entry.username || <span className="text-gray-500">—</span>}
+                    <td className="px-4 py-3 text-sm text-light-text-secondary dark:text-gray-300">
+                      {entry.username || <span className="text-light-text-muted dark:text-gray-500">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-300">
+                    <td className="px-4 py-3 text-sm text-light-text-secondary dark:text-gray-300">
                       {entry.message}
                     </td>
                   </tr>
@@ -306,22 +306,22 @@ export function AuditLog() {
 
         {/* Pagination */}
         {total > limit && (
-          <div className="px-4 py-3 border-t border-dark-border flex items-center justify-between">
-            <div className="text-sm text-gray-400">
-              Showing {offset + 1} to {Math.min(offset + limit, total)} of {total} entries
+          <div className="px-4 py-3 border-t border-light-border dark:border-dark-border flex items-center justify-between">
+            <div className="text-sm text-light-text-muted dark:text-gray-400">
+              Showing {offset + 1} to {Math.min(offset + limit, total || entries.length)} of {total || entries.length} entries
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={offset === 0}
-                className="px-3 py-1 bg-dark-bg text-white rounded hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded hover:bg-light-border dark:hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={offset + limit >= total}
-                className="px-3 py-1 bg-dark-bg text-white rounded hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded hover:bg-light-border dark:hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>

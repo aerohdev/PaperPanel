@@ -159,12 +159,12 @@ interface PluginCardProps {
 
 function PluginCard({ plugin, onEnable, onDisable, onReload, loading }: PluginCardProps) {
   return (
-    <div className="bg-dark-surface p-6 rounded-lg border border-dark-border hover:border-dark-hover transition-colors">
+    <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border hover:border-light-border dark:hover:border-dark-hover transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <Package className="w-6 h-6 text-blue-500" />
-            <h3 className="text-xl font-bold text-white">{plugin.name}</h3>
+            <h3 className="text-xl font-bold text-light-text-primary dark:text-white">{plugin.name}</h3>
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               plugin.enabled
                 ? 'bg-green-900/30 text-green-400 border border-green-500'
@@ -175,11 +175,11 @@ function PluginCard({ plugin, onEnable, onDisable, onReload, loading }: PluginCa
           </div>
 
           <div className="space-y-1 mb-4">
-            <p className="text-gray-400 text-sm">
+            <p className="text-light-text-muted dark:text-gray-400 text-sm">
               <span className="font-medium">Version:</span> {plugin.version}
             </p>
             {plugin.authors && plugin.authors.length > 0 && (
-              <p className="text-gray-400 text-sm">
+              <p className="text-light-text-muted dark:text-gray-400 text-sm">
                 <span className="font-medium">Author:</span> {plugin.authors.join(', ')}
               </p>
             )}
@@ -209,7 +209,7 @@ function PluginCard({ plugin, onEnable, onDisable, onReload, loading }: PluginCa
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 mt-4 pt-4 border-t border-dark-border">
+      <div className="flex gap-2 mt-4 pt-4 border-t border-light-border dark:border-dark-border">
         {plugin.enabled ? (
           <>
             <PermissionTooltip permission={Permission.MANAGE_PLUGINS}>

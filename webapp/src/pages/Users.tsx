@@ -104,8 +104,8 @@ export default function Users() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">User Management</h1>
-          <p className="text-gray-400">Manage PaperPanel users and permissions</p>
+          <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">User Management</h1>
+          <p className="text-light-text-muted dark:text-gray-400">Manage PaperPanel users and permissions</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
@@ -125,22 +125,22 @@ export default function Users() {
       )}
 
       {/* Users Table */}
-      <div className="bg-dark-surface rounded-lg border border-dark-border overflow-hidden">
+      <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-dark-hover border-b border-dark-border">
+          <thead className="bg-light-surface dark:bg-dark-hover border-b border-light-border dark:border-dark-border">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Username</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Username</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Status</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-light-text-secondary dark:text-gray-300">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-dark-border">
+          <tbody className="divide-y divide-light-border dark:divide-dark-border">
             {users.map((user) => (
-              <tr key={user.username} className="hover:bg-dark-hover transition-colors">
+              <tr key={user.username} className="hover:bg-light-surface dark:hover:bg-dark-hover transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-blue-500" />
-                    <span className="text-white font-medium">{user.username}</span>
+                    <span className="text-light-text-primary dark:text-white font-medium">{user.username}</span>
                     {user.isCurrentUser && (
                       <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">
                         You
@@ -295,12 +295,12 @@ function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Username</label>
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-gray-300 mb-2">Username</label>
           <input
             type="text"
             value={username}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter username"
             disabled={loading}
             autoFocus
@@ -308,12 +308,12 @@ function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-gray-300 mb-2">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter password"
             disabled={loading}
           />
@@ -323,12 +323,12 @@ function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-gray-300 mb-2">Confirm Password</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Confirm password"
             disabled={loading}
           />
@@ -346,7 +346,7 @@ function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-dark-hover hover:bg-dark-border text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
           >
             Cancel
           </button>
@@ -407,12 +407,12 @@ function PasswordModal({ username, onClose, onSubmit, loading }: PasswordModalPr
         )}
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-gray-300 mb-2">New Password</label>
           <input
             type="password"
             value={password}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter new password"
             disabled={loading}
             autoFocus
@@ -423,12 +423,12 @@ function PasswordModal({ username, onClose, onSubmit, loading }: PasswordModalPr
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-gray-300 mb-2">Confirm Password</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-2 bg-dark-hover border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Confirm new password"
             disabled={loading}
           />
@@ -446,7 +446,7 @@ function PasswordModal({ username, onClose, onSubmit, loading }: PasswordModalPr
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-dark-hover hover:bg-dark-border text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
           >
             Cancel
           </button>
@@ -473,8 +473,8 @@ function DeleteModal({ username, onClose, onConfirm, loading }: DeleteModalProps
             <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-red-500 font-medium mb-2">Are you sure?</p>
-              <p className="text-gray-400 text-sm">
-                You are about to delete user <strong className="text-white">{username}</strong>. 
+              <p className="text-light-text-muted dark:text-gray-400 text-sm">
+                You are about to delete user <strong className="text-light-text-primary dark:text-white">{username}</strong>. 
                 This action cannot be undone and the user will immediately lose access to PaperPanel.
               </p>
             </div>
@@ -492,7 +492,7 @@ function DeleteModal({ username, onClose, onConfirm, loading }: DeleteModalProps
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-dark-hover hover:bg-dark-border text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
           >
             Cancel
           </button>
@@ -512,12 +512,12 @@ interface ModalProps {
 function Modal({ title, children, onClose }: ModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-dark-surface border border-dark-border rounded-lg max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-dark-border">
-          <h2 className="text-xl font-bold text-white">{title}</h2>
+      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg max-w-md w-full mx-4">
+        <div className="flex items-center justify-between p-6 border-b border-light-border dark:border-dark-border">
+          <h2 className="text-xl font-bold text-light-text-primary dark:text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-light-text-muted dark:text-gray-400 hover:text-light-text-primary dark:hover:text-white transition-colors"
           >
             <X className="w-6 h-6" />
           </button>

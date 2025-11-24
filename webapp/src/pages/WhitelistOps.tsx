@@ -181,8 +181,8 @@ export default function WhitelistOps() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Whitelist & Operators</h1>
-        <p className="text-gray-400">Manage player whitelist and server operators</p>
+        <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">Whitelist & Operators</h1>
+        <p className="text-light-text-muted dark:text-gray-400">Manage player whitelist and server operators</p>
       </div>
 
       {/* Message Banner */}
@@ -203,13 +203,13 @@ export default function WhitelistOps() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 bg-dark-surface rounded-lg p-1">
+      <div className="flex gap-2 bg-light-card dark:bg-dark-surface rounded-lg p-1">
         <button
           onClick={() => setActiveTab('whitelist')}
           className={`flex-1 px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2 ${
             activeTab === 'whitelist'
               ? 'bg-blue-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-dark-hover'
+              : 'text-light-text-muted dark:text-gray-400 hover:text-light-text-primary dark:hover:text-white hover:bg-light-surface dark:hover:bg-dark-hover'
           }`}
         >
           <Shield className="w-5 h-5" />
@@ -223,7 +223,7 @@ export default function WhitelistOps() {
           className={`flex-1 px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2 ${
             activeTab === 'ops'
               ? 'bg-yellow-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-dark-hover'
+              : 'text-light-text-muted dark:text-gray-400 hover:text-light-text-primary dark:hover:text-white hover:bg-light-surface dark:hover:bg-dark-hover'
           }`}
         >
           <Crown className="w-5 h-5" />
@@ -236,11 +236,11 @@ export default function WhitelistOps() {
 
       {/* Whitelist Toggle (only for whitelist tab) */}
       {activeTab === 'whitelist' && (
-        <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
+        <div className="bg-light-card dark:bg-dark-surface rounded-lg p-6 border border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-white mb-1">Whitelist Status</h3>
-              <p className="text-sm text-gray-400">
+              <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-1">Whitelist Status</h3>
+              <p className="text-sm text-light-text-muted dark:text-gray-400">
                 {whitelistData.enabled 
                   ? 'Only whitelisted players can join the server' 
                   : 'All players can join the server'}
@@ -261,8 +261,8 @@ export default function WhitelistOps() {
       )}
 
       {/* Add Player Section */}
-      <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-        <h3 className="text-lg font-semibold text-white mb-4">
+      <div className="bg-light-card dark:bg-dark-surface rounded-lg p-6 border border-light-border dark:border-dark-border">
+        <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">
           Add {activeTab === 'whitelist' ? 'Whitelisted' : 'Operator'} Player
         </h3>
         <div className="flex gap-3">
@@ -272,7 +272,7 @@ export default function WhitelistOps() {
             onChange={(e) => setNewPlayerIdentifier(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addPlayer()}
             placeholder="Enter player name or UUID..."
-            className="flex-1 bg-dark-hover border border-dark-border rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
             onClick={addPlayer}
@@ -291,14 +291,14 @@ export default function WhitelistOps() {
       <div className="flex gap-3">
         <button
           onClick={() => setShowImport(!showImport)}
-          className="flex items-center gap-2 px-4 py-2 bg-dark-surface hover:bg-dark-hover border border-dark-border text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-light-card dark:bg-dark-surface hover:bg-light-surface dark:hover:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
         >
           <Upload className="w-5 h-5" />
           Bulk Import
         </button>
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2 bg-dark-surface hover:bg-dark-hover border border-dark-border text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-light-card dark:bg-dark-surface hover:bg-light-surface dark:hover:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
         >
           <Download className="w-5 h-5" />
           Export List
@@ -307,14 +307,14 @@ export default function WhitelistOps() {
 
       {/* Import Modal */}
       {showImport && (
-        <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-          <h3 className="text-lg font-semibold text-white mb-4">Bulk Import Players</h3>
+        <div className="bg-light-card dark:bg-dark-surface rounded-lg p-6 border border-light-border dark:border-dark-border">
+          <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">Bulk Import Players</h3>
           <textarea
             value={importText}
             onChange={(e) => setImportText(e.target.value)}
             placeholder="Enter player names or UUIDs, one per line..."
             rows={8}
-            className="w-full bg-dark-hover border border-dark-border rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            className="w-full bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
           />
           <div className="flex gap-3 mt-4">
             <button
@@ -337,8 +337,8 @@ export default function WhitelistOps() {
       )}
 
       {/* Players List */}
-      <div className="bg-dark-surface rounded-lg p-6 border border-dark-border">
-        <h3 className="text-lg font-semibold text-white mb-4">
+      <div className="bg-light-card dark:bg-dark-surface rounded-lg p-6 border border-light-border dark:border-dark-border">
+        <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">
           {activeTab === 'whitelist' ? 'Whitelisted' : 'Operator'} Players ({currentPlayers.length})
         </h3>
         
@@ -351,7 +351,7 @@ export default function WhitelistOps() {
                 <Crown className="w-8 h-8 text-yellow-400" />
               )}
             </div>
-            <p className="text-gray-400">No {activeTab === 'whitelist' ? 'whitelisted' : 'operator'} players yet</p>
+            <p className="text-light-text-muted dark:text-gray-400">No {activeTab === 'whitelist' ? 'whitelisted' : 'operator'} players yet</p>
             <p className="text-sm text-gray-500 mt-1">Add players using the form above</p>
           </div>
         ) : (
@@ -359,7 +359,7 @@ export default function WhitelistOps() {
             {currentPlayers.map((player) => (
               <div
                 key={player.uuid}
-                className="bg-dark-hover rounded-lg p-4 border border-dark-border hover:border-blue-500/50 transition-colors"
+                className="bg-light-surface dark:bg-dark-hover rounded-lg p-4 border border-light-border dark:border-dark-border hover:border-blue-500/50 transition-colors"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -369,7 +369,7 @@ export default function WhitelistOps() {
                       className="w-10 h-10 rounded"
                     />
                     <div>
-                      <h4 className="text-white font-medium">{player.name}</h4>
+                      <h4 className="text-light-text-primary dark:text-white font-medium">{player.name}</h4>
                       <div className="flex gap-2 mt-1">
                         {player.online && (
                           <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">

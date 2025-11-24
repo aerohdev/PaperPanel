@@ -167,8 +167,8 @@ export default function ServerControl() {
       )}
 
       {/* Weather Control */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4 flex items-center gap-2">
           <CloudRain className="w-6 h-6" />
           Weather Control
         </h2>
@@ -203,8 +203,8 @@ export default function ServerControl() {
       </div>
 
       {/* Time Control */}
-      <div className="bg-dark-surface p-6 rounded-lg border border-dark-border">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4 flex items-center gap-2">
           <Clock className="w-6 h-6" />
           Time Control
         </h2>

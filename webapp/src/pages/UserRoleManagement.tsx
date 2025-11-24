@@ -416,17 +416,17 @@ function UsersTab({
         </button>
       </div>
 
-      <div className="bg-dark-surface rounded-lg border border-dark-border overflow-hidden">
+      <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-dark-hover border-b border-dark-border">
+          <thead className="bg-light-surface dark:bg-dark-hover border-b border-light-border dark:border-dark-border">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Username</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Role</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Username</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Role</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Status</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-light-text-secondary dark:text-gray-300">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-dark-border">
+          <tbody className="divide-y divide-light-border dark:divide-dark-border">
             {users.map((user) => (
               <tr key={user.username} className="hover:bg-dark-hover transition-colors">
                 <td className="px-6 py-4">
@@ -527,8 +527,8 @@ function RolesTab({
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* User List */}
       <div className="lg:col-span-1">
-        <div className="bg-dark-surface rounded-lg border border-dark-border p-4">
-          <h3 className="text-lg font-semibold text-white mb-4">Select User</h3>
+        <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-4">
+          <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">Select User</h3>
           
           {/* Bulk Actions */}
           {selectedUsers.size > 0 && (
@@ -591,8 +591,8 @@ function RolesTab({
         {selectedUser && userPermissions ? (
           <div className="space-y-6">
             {/* Role Selection */}
-            <div className="bg-dark-surface rounded-lg border border-dark-border p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">User Role</h3>
+            <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-6">
+              <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">User Role</h3>
               <div className="flex items-center gap-4">
                 <select
                   value={userPermissions.role}
@@ -610,9 +610,9 @@ function RolesTab({
             </div>
 
             {/* Custom Permissions */}
-            <div className="bg-dark-surface rounded-lg border border-dark-border p-6">
+            <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Custom Permissions</h3>
+                <h3 className="text-lg font-semibold text-light-text-primary dark:text-white">Custom Permissions</h3>
                 <button
                   onClick={onSavePermissions}
                   disabled={isSaving}
@@ -664,9 +664,9 @@ function RolesTab({
             </div>
           </div>
         ) : (
-          <div className="bg-dark-surface rounded-lg border border-dark-border p-12 text-center">
-            <UserCog className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400">Select a user to manage their role and permissions</p>
+          <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-12 text-center">
+            <UserCog className="w-16 h-16 text-light-text-muted dark:text-gray-600 mx-auto mb-4" />
+            <p className="text-light-text-muted dark:text-gray-400">Select a user to manage their role and permissions</p>
           </div>
         )}
       </div>
@@ -696,17 +696,17 @@ function CreateUserModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-dark-surface border border-dark-border rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-white mb-4">Create New User</h2>
+      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Create New User</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-gray-300 mb-2">Username</label>
+              <label className="block text-light-text-secondary dark:text-gray-300 mb-2">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 bg-dark-hover border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
@@ -766,17 +766,17 @@ function PasswordModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-dark-surface border border-dark-border rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-white mb-4">Change Password</h2>
-        <p className="text-gray-400 mb-4">Changing password for: <span className="text-white font-medium">{username}</span></p>
+      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Change Password</h2>
+        <p className="text-light-text-muted dark:text-gray-400 mb-4">Changing password for: <span className="text-light-text-primary dark:text-white font-medium">{username}</span></p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-2">New Password</label>
+            <label className="block text-light-text-secondary dark:text-gray-300 mb-2">New Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-dark-hover border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -816,15 +816,15 @@ function DeleteUserModal({
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-dark-surface border border-dark-border rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-white mb-4">Delete User</h2>
-        <p className="text-gray-400 mb-4">
-          Are you sure you want to delete <span className="text-white font-medium">{username}</span>? This action cannot be undone.
+      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Delete User</h2>
+        <p className="text-light-text-muted dark:text-gray-400 mb-4">
+          Are you sure you want to delete <span className="text-light-text-primary dark:text-white font-medium">{username}</span>? This action cannot be undone.
         </p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 bg-dark-hover hover:bg-dark-border text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
           >
             Cancel
           </button>

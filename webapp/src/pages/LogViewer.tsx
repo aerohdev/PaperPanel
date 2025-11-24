@@ -199,8 +199,8 @@ export default function LogViewer() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2">Log Viewer</h1>
-          <p className="text-gray-400">View and search server logs with real-time streaming</p>
+          <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">Log Viewer</h1>
+          <p className="text-light-text-muted dark:text-gray-400">View and search server logs with real-time streaming</p>
         </div>
         <button
           onClick={fetchLogFiles}
@@ -226,8 +226,8 @@ export default function LogViewer() {
         {/* Sidebar - Log Files List */}
         <div className="lg:col-span-1 space-y-4">
           {/* Real-time Streaming Controls */}
-          <div className="bg-dark-surface rounded-lg p-4 border border-dark-border">
-            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+          <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
+            <h3 className="text-light-text-primary dark:text-white font-semibold mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4" />
               Live Stream
             </h3>
@@ -235,7 +235,7 @@ export default function LogViewer() {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value as LogType)}
-                className="w-full bg-dark-bg border border-dark-border text-white px-3 py-2 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full bg-light-surface dark:bg-dark-bg border border-light-border dark:border-dark-border text-light-text-primary dark:text-white px-3 py-2 rounded-lg focus:outline-none focus:border-blue-500"
                 disabled={streaming}
               >
                 <option value="audit">Audit Logs</option>
@@ -278,8 +278,8 @@ export default function LogViewer() {
           </div>
 
           {/* Log Files */}
-          <div className="bg-dark-surface rounded-lg p-4 border border-dark-border">
-            <h3 className="text-white font-semibold mb-3">Log Files</h3>
+          <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
+            <h3 className="text-light-text-primary dark:text-white font-semibold mb-3">Log Files</h3>
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {logFiles.map((file) => (
                 <div
@@ -287,7 +287,7 @@ export default function LogViewer() {
                   className={`p-3 rounded-lg cursor-pointer transition-colors border ${
                     selectedFile === file.name
                       ? 'bg-blue-600/20 border-blue-500'
-                      : 'bg-dark-bg border-dark-border hover:border-dark-hover'
+                      : 'bg-light-surface dark:bg-dark-bg border-light-border dark:border-dark-border hover:border-light-border dark:hover:border-dark-hover'
                   }`}
                   onClick={() => loadLogFile(file.name)}
                 >
@@ -334,7 +334,7 @@ export default function LogViewer() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchLogs()}
                 placeholder="Search logs (max 200 results)..."
-                className="w-full bg-dark-surface border border-dark-border text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border text-light-text-primary dark:text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-blue-500"
               />
             </div>
             <button
@@ -358,9 +358,9 @@ export default function LogViewer() {
 
           {/* Search Results */}
           {searchResults.length > 0 && (
-            <div className="bg-dark-surface rounded-lg p-4 border border-dark-border">
+            <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-white font-semibold">
+                <h3 className="text-light-text-primary dark:text-white font-semibold">
                   Search Results ({searchResults.length})
                 </h3>
                 <button
@@ -374,10 +374,10 @@ export default function LogViewer() {
                 {searchResults.map((match, index) => (
                   <div
                     key={index}
-                    className="font-mono text-xs p-2 bg-dark-bg rounded hover:bg-dark-hover cursor-pointer"
+                    className="font-mono text-xs p-2 bg-light-surface dark:bg-dark-bg rounded hover:bg-light-surface dark:hover:bg-dark-hover cursor-pointer"
                   >
                     <span className="text-gray-500 mr-2">{match.lineNumber}:</span>
-                    <span className="text-gray-300">{match.line}</span>
+                    <span className="text-light-text-secondary dark:text-gray-300">{match.line}</span>
                     {match.file && (
                       <span className="text-gray-600 ml-2">({match.file})</span>
                     )}
@@ -388,9 +388,9 @@ export default function LogViewer() {
           )}
 
           {/* Log Content */}
-          <div className="bg-dark-surface rounded-lg border border-dark-border overflow-hidden">
-            <div className="bg-dark-bg px-4 py-3 border-b border-dark-border flex items-center justify-between">
-              <h3 className="text-white font-semibold">
+          <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
+            <div className="bg-light-surface dark:bg-dark-bg px-4 py-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
+              <h3 className="text-light-text-primary dark:text-white font-semibold">
                 {streaming ? `Live: ${selectedType} logs` : selectedFile || 'No file selected'}
               </h3>
               <span className="text-gray-400 text-sm">
@@ -405,7 +405,7 @@ export default function LogViewer() {
                 logContent.map((line, index) => (
                   <div
                     key={index}
-                    className="text-gray-300 hover:bg-gray-800/50 px-2 py-0.5 whitespace-pre-wrap break-all"
+                    className="text-light-text-secondary dark:text-gray-300 hover:bg-gray-800/50 px-2 py-0.5 whitespace-pre-wrap break-all"
                   >
                     <span className="text-gray-600 select-none mr-2">
                       {(index + 1).toString().padStart(4, '0')}

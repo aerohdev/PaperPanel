@@ -82,13 +82,13 @@ export default function ConfigEditor() {
   return (
     <div className="flex h-[calc(100vh-4rem)] gap-4 p-4">
       {/* Sidebar */}
-      <div className="w-80 bg-dark-surface rounded-lg border border-dark-border overflow-y-auto flex-shrink-0">
-        <div className="p-4 border-b border-dark-border">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+      <div className="w-80 bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-y-auto flex-shrink-0">
+        <div className="p-4 border-b border-light-border dark:border-dark-border">
+          <h2 className="text-xl font-bold text-light-text-primary dark:text-white flex items-center gap-2">
             <FolderOpen className="w-5 h-5" />
             Config Files
           </h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-sm text-light-text-muted dark:text-gray-400 mt-1">
             {configs.length} file(s) available
           </p>
         </div>
@@ -96,7 +96,7 @@ export default function ConfigEditor() {
         {/* Server Configs */}
         {serverConfigs.length > 0 && (
           <div className="p-3">
-            <h3 className="text-sm font-semibold text-gray-400 mb-2">SERVER</h3>
+            <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 mb-2">SERVER</h3>
             {serverConfigs.map(cfg => (
               <button
                 key={cfg.path}
@@ -104,7 +104,7 @@ export default function ConfigEditor() {
                 className={`w-full text-left px-3 py-2 rounded mb-1 transition-colors ${
                   selectedFile === cfg.path
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-dark-hover'
+                    : 'text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -121,8 +121,8 @@ export default function ConfigEditor() {
 
         {/* Plugin Configs */}
         {pluginConfigs.length > 0 && (
-          <div className="p-3 border-t border-dark-border">
-            <h3 className="text-sm font-semibold text-gray-400 mb-2">PLUGINS</h3>
+          <div className="p-3 border-t border-light-border dark:border-dark-border">
+            <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 mb-2">PLUGINS</h3>
             <div className="space-y-1">
               {pluginConfigs.map(cfg => (
                 <button
@@ -131,7 +131,7 @@ export default function ConfigEditor() {
                   className={`w-full text-left px-3 py-2 rounded transition-colors ${
                     selectedFile === cfg.path
                       ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-dark-hover'
+                      : 'text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -149,13 +149,13 @@ export default function ConfigEditor() {
       </div>
 
       {/* Editor */}
-      <div className="flex-1 bg-dark-surface rounded-lg border border-dark-border flex flex-col overflow-hidden">
+      <div className="flex-1 bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border flex flex-col overflow-hidden">
         {selectedFile ? (
           <>
             {/* Editor Header */}
-            <div className="p-4 border-b border-dark-border flex items-center justify-between flex-shrink-0">
+            <div className="p-4 border-b border-light-border dark:border-dark-border flex items-center justify-between flex-shrink-0">
               <div>
-                <h3 className="text-lg font-bold text-white">{selectedFile}</h3>
+                <h3 className="text-lg font-bold text-light-text-primary dark:text-white">{selectedFile}</h3>
                 <div className="flex items-center gap-2 mt-1">
                   {hasChanges && (
                     <span className="text-sm text-yellow-400 flex items-center gap-1">
@@ -203,14 +203,14 @@ export default function ConfigEditor() {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="absolute inset-0 w-full h-full p-4 bg-dark-bg text-white font-mono text-sm resize-none focus:outline-none"
+                className="absolute inset-0 w-full h-full p-4 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white font-mono text-sm resize-none focus:outline-none"
                 spellCheck={false}
                 placeholder="Loading..."
               />
             </div>
 
             {/* Footer */}
-            <div className="p-2 border-t border-dark-border flex items-center justify-between text-xs text-gray-400 flex-shrink-0">
+            <div className="p-2 border-t border-light-border dark:border-dark-border flex items-center justify-between text-xs text-light-text-muted dark:text-gray-400 flex-shrink-0">
               <div>
                 Lines: {content.split('\n').length} • Characters: {content.length}
               </div>
