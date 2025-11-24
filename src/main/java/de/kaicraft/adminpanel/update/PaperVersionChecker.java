@@ -273,7 +273,8 @@ public class PaperVersionChecker {
             plugin.getLogger().info("========================================");
             
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                plugin.getServer().shutdown();
+                // Use spigot restart command for proper restart
+                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "restart");
             }, 40L); // 2 seconds delay
             
         } catch (Exception e) {
@@ -297,15 +298,41 @@ public class PaperVersionChecker {
             
             plugin.getLogger().info("  Creating backup: " + backupFile.getName());
             
-            // Backup critical directories
-            String[] dirsToBackup = {"world", "world_nether", "world_the_end", "plugins", "config"};
-            
             try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(backupFile))) {
+                // Backup critical directories
+                String[] dirsToBackup = {"world", "world_nether", "world_the_end", "plugins", "config"};
+                
                 for (String dirName : dirsToBackup) {
                     File dir = new File(dirName);
                     if (dir.exists()) {
                         zipDirectory(dir, dir.getName(), zos);
                         plugin.getLogger().info("    + " + dirName);
+                    }
+                }
+                
+                // Backup critical root files
+                String[] filesToBackup = {
+                    "server.properties", "bukkit.yml", "spigot.yml", "paper.yml", 
+                    "start.sh", "run.sh", "start.bat", "run.bat",
+                    "eula.txt", "ops.json", "whitelist.json", "banned-players.json"
+                };
+                
+                for (String fileName : filesToBackup) {
+                    File file = new File(fileName);
+                    if (file.exists() && file.isFile()) {
+                        try (FileInputStream fis = new FileInputStream(file)) {
+                            ZipEntry zipEntry = new ZipEntry(fileName);
+                            zos.putNextEntry(zipEntry);
+                            
+                            byte[] buffer = new byte[8192];
+                            int length;
+                            while ((length = fis.read(buffer)) > 0) {
+                                zos.write(buffer, 0, length);
+                            }
+                            
+                            zos.closeEntry();
+                            plugin.getLogger().info("    + " + fileName);
+                        }
                     }
                 }
             }
@@ -517,21 +544,50 @@ public class PaperVersionChecker {
             if (script.exists()) {
                 try {
                     String content = new String(Files.readAllBytes(script.toPath()));
+                    String newContent = content;
+                    boolean modified = false;
                     
+                    // Try exact JAR name replacement
                     if (content.contains(oldJarName)) {
+                        newContent = content.replace(oldJarName, newJarName);
+                        modified = true;
+                        plugin.getLogger().info("    ✓ Exact match replaced: " + oldJarName + " -> " + newJarName);
+                    }
+                    // Try pattern matching for paper-*.jar
+                    else if (content.matches(".*paper-[^\\s]+\\.jar.*")) {
+                        newContent = content.replaceAll("paper-[^\\s]+\\.jar", newJarName);
+                        modified = true;
+                        plugin.getLogger().info("    ✓ Pattern match replaced: paper-*.jar -> " + newJarName);
+                    }
+                    // Try generic *.jar replacement if only one jar is referenced
+                    else if (content.matches(".*\\.jar.*") && content.split("\\.jar").length == 2) {
+                        newContent = content.replaceAll("[^\\s]+\\.jar", newJarName);
+                        modified = true;
+                        plugin.getLogger().info("    ✓ Generic jar replaced: *.jar -> " + newJarName);
+                    }
+                    
+                    if (modified) {
+                        // Create backup before modifying
                         File backup = new File(scriptName + ".backup");
                         Files.copy(script.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
                         
-                        String newContent = content.replace(oldJarName, newJarName);
+                        // Write new content
                         Files.write(script.toPath(), newContent.getBytes());
                         
-                        plugin.getLogger().info("    ✓ Updated: " + scriptName);
+                        plugin.getLogger().info("    ✓ Updated: " + scriptName + " (backup created)");
                         anyUpdated = true;
+                    } else {
+                        plugin.getLogger().info("    - No JAR reference found in " + scriptName);
                     }
                 } catch (Exception e) {
-                    plugin.getLogger().warning("    ! Failed to update " + scriptName);
+                    plugin.getLogger().warning("    ! Failed to update " + scriptName + ": " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
+        }
+        
+        if (!anyUpdated) {
+            plugin.getLogger().warning("  ! No start scripts were updated - manual JAR name change may be needed");
         }
         
         return anyUpdated;
