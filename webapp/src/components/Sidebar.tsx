@@ -33,7 +33,7 @@ export default function Sidebar() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.0</p>
+              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.1</p>
             </div>
           </div>
         </div>
@@ -77,7 +77,7 @@ export default function Sidebar() {
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
-            <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.1.3</p>
+            <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.1</p>
           </div>
         </motion.div>
       </div>
@@ -108,7 +108,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-light-border dark:border-dark-border">
         <div className="text-xs text-light-text-muted dark:text-dark-text-muted text-center">
-          <p>PaperPanel v3.2.0</p>
+          <p>PaperPanel v3.2.1</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

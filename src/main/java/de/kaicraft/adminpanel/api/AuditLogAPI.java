@@ -21,9 +21,10 @@ public class AuditLogAPI {
     private final ServerAdminPanelPlugin plugin;
     private final File logsDir;
     
-    // Pattern to parse log entries: timestamp level [category] message
+    // Pattern to parse log entries: timestamp level message
+    // Java SimpleFormatter format: "Nov 24, 2024 12:30:45 PM LEVEL message"
     private static final Pattern LOG_PATTERN = Pattern.compile(
-        "^(\\w{3} \\d{1,2}, \\d{4} \\d{1,2}:\\d{2}:\\d{2} [AP]M) (.+?) \\[([A-Z]+)\\] (.+)$"
+        "^(\\w{3} \\d{1,2}, \\d{4} \\d{1,2}:\\d{2}:\\d{2} [AP]M) (\\S+) (.+)$"
     );
     
     private static final SimpleDateFormat LOG_DATE_FORMAT = new SimpleDateFormat("MMM d, yyyy h:mm:ss a", Locale.ENGLISH);
@@ -194,8 +195,7 @@ public class AuditLogAPI {
             if (matcher.matches()) {
                 String timestampStr = matcher.group(1);
                 String level = matcher.group(2);
-                String logCategory = matcher.group(3);
-                String message = matcher.group(4);
+                String message = matcher.group(3);
                 
                 Date date = LOG_DATE_FORMAT.parse(timestampStr);
                 long timestamp = date.getTime();
@@ -207,6 +207,7 @@ public class AuditLogAPI {
             }
         } catch (ParseException e) {
             // Skip malformed lines
+            plugin.getLogger().fine("Failed to parse log line: " + line + " - " + e.getMessage());
         }
         
         return null;
