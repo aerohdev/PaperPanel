@@ -31,8 +31,24 @@ export default function WhitelistOps() {
   const [importText, setImportText] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, [activeTab]);
+    loadAllData();
+  }, []);
+
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      const [whitelistResponse, opsResponse] = await Promise.all([
+        axios.get('/whitelist'),
+        axios.get('/ops')
+      ]);
+      setWhitelistData(whitelistResponse.data);
+      setOpsData(opsResponse.data);
+    } catch (error: any) {
+      showMessage('error', error.response?.data?.error || 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -45,8 +61,6 @@ export default function WhitelistOps() {
       }
     } catch (error: any) {
       showMessage('error', error.response?.data?.error || 'Failed to load data');
-    } finally {
-      setLoading(false);
     }
   };
 
