@@ -8,30 +8,30 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Modern Dark Theme Colors
+        // Modern Dark Theme Colors - True Black/Grey (No blueish tint)
         dark: {
-          bg: '#0f0f1e',
-          surface: '#1a1b2e',
-          card: '#252738',
-          border: '#2d2f45',
-          hover: '#2f3147',
+          bg: '#0a0a0a',
+          surface: '#121212',
+          card: '#1a1a1a',
+          border: '#2a2a2a',
+          hover: '#222222',
           text: {
-            primary: '#e8eaf0',
-            secondary: '#a0a3bd',
-            muted: '#6b6d80',
+            primary: '#ffffff',
+            secondary: '#b0b0b0',
+            muted: '#707070',
           }
         },
-        // Light Theme Colors
+        // Light Theme Colors - Modern Cool Grey
         light: {
-          bg: '#f8f9fc',
+          bg: '#f5f5f7',
           surface: '#ffffff',
           card: '#ffffff',
-          border: '#e4e7ed',
-          hover: '#f1f3f8',
+          border: '#d1d1d6',
+          hover: '#e8e8ed',
           text: {
-            primary: '#1a1b2e',
-            secondary: '#4a5568',
-            muted: '#718096',
+            primary: '#1d1d1f',
+            secondary: '#424245',
+            muted: '#86868b',
           }
         },
         // Modern Accent Colors with Gradients
@@ -79,13 +79,20 @@ export default {
         'gradient-pink': 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
         'gradient-orange': 'linear-gradient(135deg, #fb923c 0%, #fbbf24 100%)',
         'gradient-green': 'linear-gradient(135deg, #10b981 0%, #34d399 100%)',
-        'gradient-dark': 'linear-gradient(135deg, #1a1b2e 0%, #252738 100%)',
-        'gradient-light': 'linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%)',
+        'gradient-dark': 'linear-gradient(135deg, #0a0a0a 0%, #121212 100%)',
+        'gradient-dark-elevated': 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
+        'gradient-card': 'linear-gradient(145deg, #1a1a1a 0%, #252525 100%)',
+        'gradient-sidebar': 'linear-gradient(180deg, #0a0a0a 0%, #121212 100%)',
+        'gradient-light': 'linear-gradient(135deg, #f5f5f7 0%, #ffffff 100%)',
       },
       boxShadow: {
         'soft': '0 2px 8px rgba(0, 0, 0, 0.05)',
         'medium': '0 4px 16px rgba(0, 0, 0, 0.1)',
         'strong': '0 8px 24px rgba(0, 0, 0, 0.15)',
+        'elevated': '0 4px 20px rgba(0, 0, 0, 0.5)',
+        'elevated-lg': '0 8px 32px rgba(0, 0, 0, 0.6)',
+        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.4)',
+        'inner-glow': 'inset 0 1px 2px rgba(255, 255, 255, 0.05)',
         'glow': '0 0 20px rgba(59, 130, 246, 0.3)',
         'glow-purple': '0 0 20px rgba(168, 85, 247, 0.3)',
         'glow-pink': '0 0 20px rgba(236, 72, 153, 0.3)',
@@ -95,15 +102,24 @@ export default {
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
+        'fade-in-up': 'fadeInUp 0.5s ease-out',
         'slide-in': 'slideIn 0.3s ease-out',
         'slide-up': 'slideUp 0.3s ease-out',
+        'slide-down': 'slideDown 0.3s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
+        'scale-in-center': 'scaleInCenter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
         'glow-pulse': 'glowPulse 2s ease-in-out infinite',
+        'shimmer': 'shimmer 2s linear infinite',
+        'float': 'float 3s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        fadeInUp: {
+          '0%': { opacity: '0', transform: 'translateY(30px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         slideIn: {
           '0%': { transform: 'translateX(-100%)' },
@@ -113,13 +129,29 @@ export default {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
+        slideDown: {
+          '0%': { opacity: '0', transform: 'translateY(-10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         scaleIn: {
           '0%': { transform: 'scale(0.9)', opacity: '0' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
+        scaleInCenter: {
+          '0%': { opacity: '0', transform: 'scale(0.9)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
         glowPulse: {
           '0%, 100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)' },
           '50%': { boxShadow: '0 0 30px rgba(59, 130, 246, 0.5)' },
+        },
+        shimmer: {
+          '0%': { backgroundPosition: '-1000px 0' },
+          '100%': { backgroundPosition: '1000px 0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
       },
       borderRadius: {

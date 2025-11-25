@@ -209,7 +209,7 @@ export default function Dashboard() {
       </div>
 
       {/* World Information */}
-      <Card gradient>
+      <Card>
         <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">World Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -224,7 +224,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Memory Bar */}
-      <Card gradient glow>
+      <Card>
         <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">Memory Usage</h2>
         <div className="space-y-3">
           <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
@@ -237,10 +237,10 @@ export default function Dashboard() {
               animate={{ width: `${memoryPercent}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
               className={`h-full transition-all duration-500 rounded-full ${
-                memoryPercent < 70 
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 shadow-glow' 
-                  : memoryPercent < 85 
-                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                memoryPercent < 70
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                  : memoryPercent < 85
+                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
                   : 'bg-gradient-to-r from-red-500 to-pink-500'
               }`}
             ></motion.div>

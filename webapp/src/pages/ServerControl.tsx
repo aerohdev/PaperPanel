@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import client from '../api/client';
-import { Server, Power, Save, CloudRain, Sun, Moon, Clock } from 'lucide-react';
+import { Server, Power, Save, CloudRain, Sun, Moon, Clock, PowerOff } from 'lucide-react';
 import type { WorldInfo } from '../types/api';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
@@ -41,13 +41,24 @@ export default function ServerControl() {
   };
 
   const handleStop = async () => {
-    if (!confirm('Stop the server immediately? This will disconnect all players!')) return;
+    if (!confirm('Stop the server immediately? This will disconnect all players and the server will restart!')) return;
 
     try {
       await client.post('/server/stop');
       alert('Server is stopping...');
     } catch (err: any) {
       alert(`Failed to stop server: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const handleGracefulStop = async () => {
+    if (!confirm('Stop the server without restarting? This will disconnect all players and shut down the server permanently until manually restarted!')) return;
+
+    try {
+      await client.post('/server/graceful-stop');
+      alert('Server is stopping gracefully (will not restart)...');
+    } catch (err: any) {
+      alert(`Failed to stop server gracefully: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -97,7 +108,7 @@ export default function ServerControl() {
           Server Operations
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <PermissionTooltip permission={Permission.SAVE_SERVER}>
             <motion.button
               onClick={handleSaveAll}
@@ -118,7 +129,19 @@ export default function ServerControl() {
               className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 transition-all shadow-medium"
             >
               <Power className="w-5 h-5" />
-              Stop Server
+              Stop & Restart
+            </motion.button>
+          </PermissionTooltip>
+
+          <PermissionTooltip permission={Permission.STOP_SERVER}>
+            <motion.button
+              onClick={handleGracefulStop}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all shadow-medium"
+            >
+              <PowerOff className="w-5 h-5" />
+              Graceful Stop
             </motion.button>
           </PermissionTooltip>
 
@@ -138,7 +161,7 @@ export default function ServerControl() {
                 onClick={handleRestart}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all shadow-medium"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all shadow-medium"
               >
                 <Power className="w-5 h-5" />
                 Schedule Restart
@@ -250,9 +273,12 @@ export default function ServerControl() {
 
       {/* Warning */}
       <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-500 p-4 rounded-lg">
-        <p className="text-yellow-900 dark:text-yellow-200 text-sm">
+        <p className="text-yellow-900 dark:text-yellow-200 text-sm mb-2">
           <strong>⚠️ Warning:</strong> Server restart and stop operations will affect all players.
           Make sure to announce these actions beforehand!
+        </p>
+        <p className="text-yellow-900 dark:text-yellow-200 text-xs">
+          <strong>Note:</strong> "Stop & Restart" will restart automatically. "Graceful Stop" shuts down without restarting.
         </p>
       </div>
     </div>

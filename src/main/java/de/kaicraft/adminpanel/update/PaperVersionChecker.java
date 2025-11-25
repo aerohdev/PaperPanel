@@ -29,9 +29,11 @@ public class PaperVersionChecker {
     private long lastCheck;
     private String downloadUrl;
     private File downloadedJar;
-    
+    private int installedBuildNumber; // Persisted build number after update
+
     private static final String PAPER_API_BASE = "https://api.papermc.io/v2/projects/paper";
     private static final long CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
+    private static final File BUILD_INFO_FILE = new File("plugins/PaperPanel/build-info.txt");
 
     public PaperVersionChecker(ServerAdminPanelPlugin plugin) {
         this.plugin = plugin;
@@ -39,7 +41,9 @@ public class PaperVersionChecker {
         this.updateAvailable = false;
         this.updateDownloaded = false;
         this.lastCheck = 0;
-        
+        this.installedBuildNumber = -1;
+
+        loadInstalledBuildNumber();
         extractVersionNumber();
     }
 
@@ -86,9 +90,15 @@ public class PaperVersionChecker {
                 int latestBuildNum = builds.get(builds.size() - 1).getAsInt();
                 this.latestBuild = String.valueOf(latestBuildNum);
                 this.latestVersion = mcVersion;
-                
+
                 int currentBuildNum = extractBuildNumber();
-                
+
+                // Use persisted build number if extraction fails
+                if (currentBuildNum == 0 && installedBuildNumber > 0) {
+                    currentBuildNum = installedBuildNumber;
+                    plugin.getLogger().info("Using persisted build number: " + installedBuildNumber);
+                }
+
                 if (latestBuildNum > currentBuildNum) {
                     this.updateAvailable = true;
                     this.downloadUrl = String.format(
@@ -271,10 +281,26 @@ public class PaperVersionChecker {
             plugin.getLogger().info("UPDATE COMPLETE!");
             plugin.getLogger().info("Server will now restart with new version");
             plugin.getLogger().info("========================================");
-            
+
+            // Save the installed build number before restart
+            try {
+                int newBuildNum = Integer.parseInt(latestBuild);
+                saveInstalledBuildNumber(newBuildNum);
+                plugin.getLogger().info("  ✓ Saved build number: " + newBuildNum);
+            } catch (Exception e) {
+                plugin.getLogger().warning("  ! Could not save build number: " + e.getMessage());
+            }
+
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                // Use restart command which uses spigot.yml's restart-script setting
-                plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "restart");
+                try {
+                    // First try Paper's restart command (uses spigot.yml restart-script)
+                    plugin.getLogger().info("Attempting restart using Paper restart command...");
+                    plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "restart");
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Restart command failed: " + e.getMessage());
+                    plugin.getLogger().warning("Please manually restart the server to complete the update.");
+                    plugin.getLogger().warning("Make sure spigot.yml has 'restart-script' configured.");
+                }
             }, 40L); // 2 seconds delay
             
         } catch (Exception e) {
@@ -417,13 +443,57 @@ public class PaperVersionChecker {
     private int extractBuildNumber() {
         try {
             String version = plugin.getServer().getVersion();
-            int start = version.indexOf("Paper-") + 6;
-            int end = version.indexOf(" ", start);
-            if (start > 5 && end > start) {
-                return Integer.parseInt(version.substring(start, end));
+            plugin.getLogger().info("Debug: Full version string: " + version);
+
+            // Try multiple patterns to extract build number
+            // Pattern 1: "Paper-123 " (old format)
+            int paperIndex = version.indexOf("Paper-");
+            if (paperIndex >= 0) {
+                int start = paperIndex + 6;
+                int end = version.indexOf(" ", start);
+                if (end == -1) end = version.indexOf(")", start);
+                if (end == -1) end = version.length();
+                if (start < end) {
+                    String buildStr = version.substring(start, end).trim();
+                    plugin.getLogger().info("Debug: Extracted build string (Pattern 1): " + buildStr);
+                    return Integer.parseInt(buildStr);
+                }
             }
+
+            // Pattern 2: "git-Paper-123)" or "(git-Paper-123)"
+            int gitPaperIndex = version.indexOf("git-Paper-");
+            if (gitPaperIndex >= 0) {
+                int start = gitPaperIndex + 10;
+                int end = version.indexOf(")", start);
+                if (end == -1) end = version.indexOf(" ", start);
+                if (end == -1) end = version.length();
+                if (start < end) {
+                    String buildStr = version.substring(start, end).trim();
+                    plugin.getLogger().info("Debug: Extracted build string (Pattern 2): " + buildStr);
+                    return Integer.parseInt(buildStr);
+                }
+            }
+
+            // Pattern 3: Look for "(MC: X.X.X)" and extract number before it
+            int mcIndex = version.indexOf("(MC:");
+            if (mcIndex > 0) {
+                String beforeMC = version.substring(0, mcIndex).trim();
+                String[] parts = beforeMC.split("[-\\s]+");
+                for (int i = parts.length - 1; i >= 0; i--) {
+                    try {
+                        int buildNum = Integer.parseInt(parts[i]);
+                        if (buildNum > 0) {
+                            plugin.getLogger().info("Debug: Extracted build number (Pattern 3): " + buildNum);
+                            return buildNum;
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+
+            plugin.getLogger().warning("Could not extract build number from version string: " + version);
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to extract build number: " + e.getMessage());
+            e.printStackTrace();
         }
         return 0;
     }
@@ -431,8 +501,43 @@ public class PaperVersionChecker {
     private void extractVersionNumber() {
         String mcVersion = extractMinecraftVersion();
         int buildNum = extractBuildNumber();
+
+        // Use persisted build number if extraction fails
+        if (buildNum == 0 && installedBuildNumber > 0) {
+            buildNum = installedBuildNumber;
+            plugin.getLogger().info("Using persisted build number for display: " + installedBuildNumber);
+        }
+
         if (mcVersion != null) {
             this.currentVersion = mcVersion + " (Build #" + buildNum + ")";
+        }
+    }
+
+    /**
+     * Load installed build number from persistent storage
+     */
+    private void loadInstalledBuildNumber() {
+        try {
+            if (BUILD_INFO_FILE.exists()) {
+                String content = new String(Files.readAllBytes(BUILD_INFO_FILE.toPath())).trim();
+                installedBuildNumber = Integer.parseInt(content);
+                plugin.getLogger().info("Loaded persisted build number: " + installedBuildNumber);
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not load build info: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Save installed build number to persistent storage
+     */
+    private void saveInstalledBuildNumber(int buildNumber) {
+        try {
+            BUILD_INFO_FILE.getParentFile().mkdirs();
+            Files.write(BUILD_INFO_FILE.toPath(), String.valueOf(buildNumber).getBytes());
+            this.installedBuildNumber = buildNumber;
+        } catch (Exception e) {
+            plugin.getLogger().warning("Could not save build info: " + e.getMessage());
         }
     }
 

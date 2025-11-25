@@ -198,7 +198,10 @@ public class WebServer {
         
         app.before("/api/v1/server/stop", permissionMiddleware.requirePermission(Permission.STOP_SERVER));
         app.post("/api/v1/server/stop", serverControlAPI::stopServer);
-        
+
+        app.before("/api/v1/server/graceful-stop", permissionMiddleware.requirePermission(Permission.STOP_SERVER));
+        app.post("/api/v1/server/graceful-stop", serverControlAPI::gracefulStop);
+
         app.before("/api/v1/server/save-all", permissionMiddleware.requirePermission(Permission.SAVE_SERVER));
         app.post("/api/v1/server/save-all", serverControlAPI::saveAll);
         

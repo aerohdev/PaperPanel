@@ -67,3 +67,8 @@ users.txt
 node_modules/
 package-lock.json
 webapp/dist/
+
+# Custom
+.claude/
+version.ps1
+

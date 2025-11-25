@@ -25,7 +25,7 @@ export default function Sidebar() {
   // Show loading state while permissions are being loaded
   if (isLoading) {
     return (
-      <aside className="w-64 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col shadow-medium dark:shadow-dark-medium">
+      <aside className="w-64 bg-white dark:bg-gradient-to-b dark:from-[#0a0a0a] dark:to-[#121212] border-r border-light-border dark:border-[#2a2a2a] flex flex-col shadow-medium dark:shadow-dark-medium">
         <nav className="flex-1 p-4">
           <div className="text-light-text-muted dark:text-dark-text-muted text-center py-4">Loading...</div>
         </nav>
@@ -53,34 +53,44 @@ export default function Sidebar() {
   });
 
   return (
-    <aside className="w-64 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col shadow-medium dark:shadow-dark-medium">
+    <aside className="w-64 bg-white dark:bg-gradient-to-b dark:from-[#0a0a0a] dark:to-[#121212] border-r border-light-border dark:border-[#2a2a2a] flex flex-col shadow-medium dark:shadow-dark-medium">
       {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-light-border dark:scrollbar-thumb-dark-border scrollbar-track-transparent hover:scrollbar-thumb-light-text-muted dark:hover:scrollbar-thumb-dark-text-muted">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
-          {visibleNavItems.map((item) => (
-            <li key={item.to}>
+          {visibleNavItems.map((item, index) => (
+            <motion.li
+              key={item.to}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  `group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? 'bg-gradient-to-r from-primary-500/20 to-accent-purple/20 text-primary-500 shadow-soft dark:shadow-dark-soft border border-primary-500/30'
-                      : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-card dark:hover:bg-dark-card hover:text-primary-500 border border-transparent'
+                      ? 'bg-gradient-to-r from-primary-500/20 to-accent-purple/20 text-primary-500 shadow-elevated border border-primary-500/30'
+                      : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-hover dark:hover:bg-[#1a1a1a] hover:text-primary-500 hover:shadow-card-hover border border-transparent hover:border-primary-500/20'
                   }`
                 }
               >
-                <item.icon className="w-5 h-5" />
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <item.icon className="w-5 h-5" />
+                </motion.div>
                 <span className="font-medium">{item.label}</span>
               </NavLink>
-            </li>
+            </motion.li>
           ))}
         </ul>
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-light-border dark:border-dark-border">
+      <div className="p-4 border-t border-light-border dark:border-[#2a2a2a]">
         <div className="text-xs text-light-text-muted dark:text-dark-text-muted text-center">
-          <p>PaperPanel v3.2.6</p>
+          <p>PaperPanel v3.4.0</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

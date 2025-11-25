@@ -7,6 +7,8 @@ import io.javalin.http.Context;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -77,7 +79,7 @@ public class ServerControlAPI {
 
     /**
      * POST /api/server/stop
-     * Stop the server immediately
+     * Stop the server immediately (will restart if using auto-restart script)
      */
     @TypeScriptEndpoint(path = "POST /api/v1/server/stop", responseType = "{ message: string }")
     public void stopServer(Context ctx) {
@@ -96,6 +98,44 @@ public class ServerControlAPI {
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("POST /api/v1/server/stop", e.getMessage(), e);
             ctx.status(500).json(ApiResponse.error("Failed to stop server"));
+        }
+    }
+
+    /**
+     * POST /api/server/graceful-stop
+     * Stop the server without automatic restart (creates .stop file)
+     */
+    @TypeScriptEndpoint(path = "POST /api/v1/server/graceful-stop", responseType = "{ message: string }")
+    public void gracefulStop(Context ctx) {
+        try {
+            String username = ctx.attribute("username");
+            plugin.getAuditLogger().logSecurityEvent(username, "graceful-stop-server", true);
+
+            // Create .stop file to prevent restart
+            File stopFile = new File(".stop");
+            try {
+                if (stopFile.createNewFile()) {
+                    plugin.getLogger().info("Created .stop file - server will not restart after shutdown");
+                } else {
+                    plugin.getLogger().warning(".stop file already exists");
+                }
+            } catch (IOException e) {
+                plugin.getLogger().warning("Failed to create .stop file: " + e.getMessage());
+                ctx.status(500).json(ApiResponse.error("Failed to create stop file"));
+                return;
+            }
+
+            ctx.status(200).json(ApiResponse.successMessage("Server stopping gracefully (will not restart)..."));
+
+            // Stop server after a short delay to allow response
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                Bukkit.savePlayers();
+                Bukkit.getWorlds().forEach(World::save);
+                Bukkit.shutdown();
+            }, 20L);
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("POST /api/v1/server/graceful-stop", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to stop server gracefully"));
         }
     }
 
