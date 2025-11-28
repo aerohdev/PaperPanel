@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import client from '../api/client';
 import { FileText, Save, RefreshCw, FolderOpen, AlertCircle } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
 
 interface ConfigFile {
   path: string;
@@ -12,6 +13,7 @@ interface ConfigFile {
 }
 
 export default function ConfigEditor() {
+  const { toast } = useToast();
   const [configs, setConfigs] = useState<ConfigFile[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [content, setContent] = useState('');
@@ -62,14 +64,14 @@ export default function ConfigEditor() {
     setSaving(true);
     setError(null);
     try {
-      await client.post('/configs/write', { 
-        path: selectedFile, 
-        content 
+      await client.post('/configs/write', {
+        path: selectedFile,
+        content
       });
       setOriginalContent(content);
-      alert('File saved successfully! A backup was created in config-backups/');
+      toast.success('File saved successfully! A backup was created.');
     } catch (err: any) {
-      setError('Failed to save: ' + (err.response?.data?.message || err.message));
+      toast.error('Failed to save: ' + (err.response?.data?.message || err.message));
     } finally {
       setSaving(false);
     }

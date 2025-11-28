@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { Shield, Plus, Trash2, Key, AlertCircle, CheckCircle, X, Users as UsersIcon, UserCog, Save } from 'lucide-react';
 import { Permission, PERMISSION_INFO, PERMISSION_CATEGORIES, getPermissionsByCategory } from '../constants/permissions';
+import { TabNavigation, Tab } from '../components/TabNavigation';
 
 interface User {
   username: string;
@@ -25,6 +26,11 @@ interface UserPermissionsData {
 }
 
 type TabType = 'users' | 'roles';
+
+const TABS: Tab[] = [
+  { id: 'users', label: 'Users', icon: <UsersIcon className="w-4 h-4" /> },
+  { id: 'roles', label: 'Roles & Permissions', icon: <UserCog className="w-4 h-4" /> },
+];
 
 export default function UserRoleManagement() {
   const [activeTab, setActiveTab] = useState<TabType>('users');
@@ -292,31 +298,7 @@ export default function UserRoleManagement() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-dark-border">
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${
-            activeTab === 'users'
-              ? 'text-blue-500 border-b-2 border-blue-500'
-              : 'text-gray-400 hover:text-gray-300'
-          }`}
-        >
-          <UsersIcon className="w-5 h-5" />
-          Users
-        </button>
-        <button
-          onClick={() => setActiveTab('roles')}
-          className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${
-            activeTab === 'roles'
-              ? 'text-blue-500 border-b-2 border-blue-500'
-              : 'text-gray-400 hover:text-gray-300'
-          }`}
-        >
-          <UserCog className="w-5 h-5" />
-          Roles & Permissions
-        </button>
-      </div>
+      <TabNavigation tabs={TABS} activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as TabType)} />
 
       {/* Tab Content */}
       {activeTab === 'users' ? (

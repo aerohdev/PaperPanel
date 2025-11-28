@@ -1,12 +1,11 @@
 import { useEffect, useState, ChangeEvent } from 'react';
 import client from '../api/client';
-import { Users, Trash2, MessageSquare, Search, User as UserIcon, Ban, ShieldOff } from 'lucide-react';
+import { Trash2, MessageSquare, Search, User as UserIcon, Ban, ShieldOff } from 'lucide-react';
 import type { PlayerInfo } from '../types/api';
-import { ProtectedFeature } from '../components/ProtectedFeature';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
 import { Card } from '../components/Card';
-import { motion } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
 
 interface SelectedPlayer {
   uuid: string;
@@ -14,6 +13,7 @@ interface SelectedPlayer {
 }
 
 export default function Players() {
+  const { toast } = useToast();
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,10 +49,10 @@ export default function Players() {
       await client.post(`/players/${uuid}/kick`, {
         reason: 'Kicked by administrator'
       });
-      alert(`${name} has been kicked`);
+      toast.success(`${name} has been kicked`);
       fetchPlayers();
     } catch (err: any) {
-      alert(`Failed to kick player: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to kick player: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -64,10 +64,10 @@ export default function Players() {
       await client.post(`/players/${uuid}/ban`, {
         reason: reason || 'Banned by administrator'
       });
-      alert(`${name} has been banned`);
+      toast.success(`${name} has been banned`);
       fetchPlayers();
     } catch (err: any) {
-      alert(`Failed to ban player: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to ban player: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -76,26 +76,26 @@ export default function Players() {
 
     try {
       await client.delete(`/players/${uuid}/ban`);
-      alert(`${name} has been unbanned`);
+      toast.success(`${name} has been unbanned`);
       fetchPlayers();
     } catch (err: any) {
-      alert(`Failed to unban player: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to unban player: ${err.response?.data?.message || err.message}`);
     }
   };
 
   const handleSendMessage = async (uuid: string, name: string) => {
     if (!message.trim()) {
-      alert('Please enter a message');
+      toast.warning('Please enter a message');
       return;
     }
 
     try {
       await client.post(`/players/${uuid}/message`, { message });
-      alert(`Message sent to ${name}`);
+      toast.success(`Message sent to ${name}`);
       setMessage('');
       setSelectedPlayer(null);
     } catch (err: any) {
-      alert(`Failed to send message: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to send message: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -133,26 +133,20 @@ export default function Players() {
 
   return (
     <div className="space-y-6">
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Player Management</h1>
           <p className="text-light-text-secondary dark:text-dark-text-secondary">
             {onlinePlayers.length} online • {offlinePlayers.length} offline
           </p>
         </div>
-        <motion.button
+        <button
           onClick={fetchPlayers}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-purple text-white rounded-xl hover:from-primary-600 hover:to-accent-purple/90 transition-all shadow-medium"
+          className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
         >
           Refresh
-        </motion.button>
-      </motion.div>
+        </button>
+      </div>
 
       {/* Search Bar */}
       <Card>

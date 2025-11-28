@@ -2,8 +2,10 @@ import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import client from '../api/client';
 import { Shield, Plus, Trash2, Key, AlertCircle, CheckCircle, X } from 'lucide-react';
 import type { UserInfo } from '../types/api';
+import { useToast } from '../contexts/ToastContext';
 
 export default function Users() {
+  const { toast } = useToast();
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +46,11 @@ export default function Users() {
     try {
       setActionLoading(true);
       await client.post('/users', { username, password });
-      showSuccess('User created successfully');
+      toast.success('User created successfully');
       setShowCreateModal(false);
       fetchUsers();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create user');
+      toast.error(err.response?.data?.message || 'Failed to create user');
     } finally {
       setActionLoading(false);
     }
@@ -58,11 +60,11 @@ export default function Users() {
     try {
       setActionLoading(true);
       await client.put(`/users/${username}/password`, { password });
-      showSuccess('Password changed successfully');
+      toast.success('Password changed successfully');
       setShowPasswordModal(false);
       setSelectedUser(null);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to change password');
+      toast.error(err.response?.data?.message || 'Failed to change password');
     } finally {
       setActionLoading(false);
     }
@@ -72,12 +74,12 @@ export default function Users() {
     try {
       setActionLoading(true);
       await client.delete(`/users/${username}`);
-      showSuccess('User deleted successfully');
+      toast.success('User deleted successfully');
       setShowDeleteModal(false);
       setSelectedUser(null);
       fetchUsers();
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete user');
+      toast.error(err.response?.data?.message || 'Failed to delete user');
     } finally {
       setActionLoading(false);
     }

@@ -72,9 +72,80 @@ public class DatabaseManager {
             )
         """;
 
+        String createBackupsTable = """
+            CREATE TABLE IF NOT EXISTS backups (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                filename TEXT NOT NULL UNIQUE,
+                file_path TEXT NOT NULL,
+                size_bytes INTEGER NOT NULL,
+                created_at INTEGER NOT NULL,
+                created_by TEXT,
+                backup_type TEXT NOT NULL,
+                includes_worlds BOOLEAN DEFAULT 0,
+                includes_plugins BOOLEAN DEFAULT 0,
+                includes_configs BOOLEAN DEFAULT 0,
+                notes TEXT
+            )
+        """;
+
+        String createUpdateHistoryTable = """
+            CREATE TABLE IF NOT EXISTS update_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                from_version TEXT NOT NULL,
+                from_build INTEGER NOT NULL,
+                to_version TEXT NOT NULL,
+                to_build INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                updated_by TEXT,
+                backup_created BOOLEAN DEFAULT 0,
+                backup_filename TEXT,
+                success BOOLEAN DEFAULT 1,
+                notes TEXT
+            )
+        """;
+
+        String createScheduledUpdatesTable = """
+            CREATE TABLE IF NOT EXISTS scheduled_updates (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scheduled_time INTEGER NOT NULL,
+                version TEXT NOT NULL,
+                build_number INTEGER NOT NULL,
+                created_by TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                status TEXT DEFAULT 'pending',
+                executed_at INTEGER,
+                cancelled_at INTEGER,
+                notes TEXT
+            )
+        """;
+
+        String createAutoBackupSchedulesTable = """
+            CREATE TABLE IF NOT EXISTS auto_backup_schedules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                enabled BOOLEAN DEFAULT 1,
+                schedule_type TEXT NOT NULL,
+                interval_value INTEGER,
+                cron_expression TEXT,
+                includes_worlds BOOLEAN DEFAULT 1,
+                includes_plugins BOOLEAN DEFAULT 1,
+                includes_configs BOOLEAN DEFAULT 1,
+                retention_type TEXT,
+                retention_value INTEGER,
+                last_run INTEGER,
+                next_run INTEGER,
+                created_by TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            )
+        """;
+
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createPlayersTable);
             stmt.execute(createPlayerStatsTable);
+            stmt.execute(createBackupsTable);
+            stmt.execute(createUpdateHistoryTable);
+            stmt.execute(createScheduledUpdatesTable);
+            stmt.execute(createAutoBackupSchedulesTable);
         }
     }
 

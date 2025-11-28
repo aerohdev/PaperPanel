@@ -4,13 +4,11 @@ import { Activity, Users, HardDrive, Clock, Server, Boxes, RefreshCw } from 'luc
 import type { DashboardStats } from '../types/api';
 import { SkeletonGrid, SkeletonInfoCard } from '../components/Skeleton';
 import { StatCard, Card } from '../components/Card';
-import { motion } from 'framer-motion';
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   useEffect(() => {
@@ -39,33 +37,15 @@ export default function Dashboard() {
     }
   };
 
-  const handleCheckUpdates = async () => {
-    setCheckingUpdates(true);
-    try {
-      await client.post('/dashboard/check-updates');
-      setTimeout(() => {
-        setCheckingUpdates(false);
-        alert('Update check complete. Refresh the page if an update is available.');
-      }, 3000);
-    } catch (err) {
-      alert('Failed to check updates');
-      setCheckingUpdates(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="p-6">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex items-center justify-between"
-        >
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Dashboard</h1>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">Server overview and statistics</p>
           </div>
-        </motion.div>
+        </div>
         <SkeletonGrid columns={4} rows={1} />
         <div className="mt-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -100,42 +80,24 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       {/* Header with Check Updates Button */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Dashboard</h1>
           <p className="text-light-text-secondary dark:text-dark-text-secondary">
-            Server overview and statistics • 
-            <span className="text-green-500 ml-1">Live</span> • 
+            Server overview and statistics •
+            <span className="text-green-500 ml-1">Live</span> •
             Last update: {lastUpdate.toLocaleTimeString()}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <motion.button
-            onClick={fetchStats}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-light-card dark:bg-dark-card hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-dark-text-primary rounded-xl transition-colors shadow-soft dark:shadow-dark-soft border border-light-border dark:border-dark-border"
-            title="Refresh now"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh
-          </motion.button>
-          <motion.button
-            onClick={handleCheckUpdates}
-            disabled={checkingUpdates}
-            whileHover={{ scale: checkingUpdates ? 1 : 1.05 }}
-            whileTap={{ scale: checkingUpdates ? 1 : 0.95 }}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-purple hover:from-primary-600 hover:to-accent-purple/90 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-xl transition-all shadow-medium dark:shadow-dark-medium"
-          >
-            <RefreshCw className={`w-4 h-4 ${checkingUpdates ? 'animate-spin' : ''}`} />
-            {checkingUpdates ? 'Checking...' : 'Check for Updates'}
-          </motion.button>
-        </div>
-      </motion.div>
+        <button
+          onClick={fetchStats}
+          className="flex items-center gap-2 px-4 py-2 bg-light-card dark:bg-dark-card hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-dark-text-primary rounded-xl transition-colors shadow-soft dark:shadow-dark-soft border border-light-border dark:border-dark-border"
+          title="Refresh now"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </button>
+      </div>
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -232,18 +194,16 @@ export default function Dashboard() {
             <span>Available: {stats.memory.maxMB}MB</span>
           </div>
           <div className="w-full bg-light-border/30 dark:bg-dark-border/30 rounded-full h-4 overflow-hidden shadow-inner">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${memoryPercent}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
+            <div
+              style={{ width: `${memoryPercent}%` }}
               className={`h-full transition-all duration-500 rounded-full ${
                 memoryPercent < 70
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                  ? 'bg-emerald-500'
                   : memoryPercent < 85
-                  ? 'bg-gradient-to-r from-yellow-500 to-orange-500'
-                  : 'bg-gradient-to-r from-red-500 to-pink-500'
+                  ? 'bg-yellow-500'
+                  : 'bg-red-500'
               }`}
-            ></motion.div>
+            ></div>
           </div>
           <p className="text-center text-light-text-secondary dark:text-dark-text-secondary text-sm font-medium">
             {memoryPercent}% utilized

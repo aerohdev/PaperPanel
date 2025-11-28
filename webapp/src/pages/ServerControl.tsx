@@ -5,12 +5,29 @@ import type { WorldInfo } from '../types/api';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
 import { Card } from '../components/Card';
-import { motion } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+
+interface ConfirmState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  variant: 'danger' | 'warning' | 'info';
+}
 
 export default function ServerControl() {
+  const { toast } = useToast();
   const [restartDelay, setRestartDelay] = useState<number>(300);
   const [worlds, setWorlds] = useState<WorldInfo[]>([]);
   const [selectedWorld, setSelectedWorld] = useState<string>('world');
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmState>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    variant: 'warning'
+  });
 
   useEffect(() => {
     fetchWorlds();
@@ -29,120 +46,148 @@ export default function ServerControl() {
     }
   };
 
-  const handleRestart = async () => {
-    if (!confirm(`Schedule server restart in ${restartDelay} seconds?`)) return;
-
-    try {
-      await client.post(`/server/restart?delay=${restartDelay}`);
-      alert(`Server restart scheduled in ${restartDelay} seconds. Players will see countdown warnings.`);
-    } catch (err: any) {
-      alert(`Failed to schedule restart: ${err.response?.data?.message || err.message}`);
-    }
+  const showConfirm = (title: string, message: string, onConfirm: () => void, variant: 'danger' | 'warning' | 'info' = 'warning') => {
+    setConfirmDialog({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: () => {
+        onConfirm();
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+      },
+      variant
+    });
   };
 
-  const handleStop = async () => {
-    if (!confirm('Stop the server immediately? This will disconnect all players and the server will restart!')) return;
-
-    try {
-      await client.post('/server/stop');
-      alert('Server is stopping...');
-    } catch (err: any) {
-      alert(`Failed to stop server: ${err.response?.data?.message || err.message}`);
-    }
+  const handleRestart = () => {
+    showConfirm(
+      'Schedule Server Restart',
+      `Schedule server restart in ${restartDelay} seconds? Players will see countdown warnings.`,
+      async () => {
+        try {
+          await client.post(`/server/restart?delay=${restartDelay}`);
+          toast.info(`Server restart scheduled in ${restartDelay} seconds. Players will see countdown warnings.`);
+        } catch (err: any) {
+          toast.error(`Failed to schedule restart: ${err.response?.data?.message || err.message}`);
+        }
+      },
+      'warning'
+    );
   };
 
-  const handleGracefulStop = async () => {
-    if (!confirm('Stop the server without restarting? This will disconnect all players and shut down the server permanently until manually restarted!')) return;
+  const handleStop = () => {
+    showConfirm(
+      'Stop Server',
+      'Stop the server immediately? This will disconnect all players and the server will restart!',
+      async () => {
+        try {
+          await client.post('/server/stop');
+          toast.warning('Server is stopping...');
+        } catch (err: any) {
+          toast.error(`Failed to stop server: ${err.response?.data?.message || err.message}`);
+        }
+      },
+      'warning'
+    );
+  };
 
-    try {
-      await client.post('/server/graceful-stop');
-      alert('Server is stopping gracefully (will not restart)...');
-    } catch (err: any) {
-      alert(`Failed to stop server gracefully: ${err.response?.data?.message || err.message}`);
-    }
+  const handleGracefulStop = () => {
+    showConfirm(
+      'Graceful Stop',
+      'Stop the server without restarting? This will disconnect all players and shut down the server permanently until manually restarted!',
+      async () => {
+        try {
+          await client.post('/server/graceful-stop');
+          toast.warning('Server is stopping gracefully (will not restart)...');
+        } catch (err: any) {
+          toast.error(`Failed to stop server gracefully: ${err.response?.data?.message || err.message}`);
+        }
+      },
+      'danger'
+    );
   };
 
   const handleSaveAll = async () => {
     try {
       await client.post('/server/save-all');
-      alert('All worlds saved successfully!');
+      toast.success('All worlds saved successfully!');
     } catch (err: any) {
-      alert(`Failed to save worlds: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to save worlds: ${err.response?.data?.message || err.message}`);
     }
   };
 
   const handleWeather = async (type: string) => {
     try {
       await client.post(`/server/weather/${selectedWorld}/${type}`);
-      alert(`Weather set to ${type} in ${selectedWorld}`);
+      toast.success(`Weather set to ${type} in ${selectedWorld}`);
     } catch (err: any) {
-      alert(`Failed to set weather: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to set weather: ${err.response?.data?.message || err.message}`);
     }
   };
 
   const handleTime = async (time: string) => {
     try {
       await client.post(`/server/time/${selectedWorld}/${time}`);
-      alert(`Time set to ${time} in ${selectedWorld}`);
+      toast.success(`Time set to ${time} in ${selectedWorld}`);
     } catch (err: any) {
-      alert(`Failed to set time: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to set time: ${err.response?.data?.message || err.message}`);
     }
   };
 
   return (
     <div className="space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        variant={confirmDialog.variant}
+      />
+
+      <div>
         <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Server Control</h1>
         <p className="text-light-text-secondary dark:text-dark-text-secondary">Manage server operations and world settings</p>
-      </motion.div>
+      </div>
 
       {/* Server Operations */}
-      <Card gradient>
+      <Card>
         <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
-            <Server className="w-6 h-6 text-blue-500" />
+          <div className="p-2 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
+            <Server className="w-6 h-6 text-primary-500" />
           </div>
           Server Operations
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <PermissionTooltip permission={Permission.SAVE_SERVER}>
-            <motion.button
+            <button
               onClick={handleSaveAll}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all shadow-medium"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors font-medium"
             >
               <Save className="w-5 h-5" />
               Save All Worlds
-            </motion.button>
+            </button>
           </PermissionTooltip>
 
           <PermissionTooltip permission={Permission.STOP_SERVER}>
-            <motion.button
+            <button
               onClick={handleStop}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white rounded-xl hover:from-orange-600 hover:to-yellow-600 transition-all shadow-medium"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium"
             >
               <Power className="w-5 h-5" />
               Stop & Restart
-            </motion.button>
+            </button>
           </PermissionTooltip>
 
           <PermissionTooltip permission={Permission.STOP_SERVER}>
-            <motion.button
+            <button
               onClick={handleGracefulStop}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all shadow-medium"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
             >
               <PowerOff className="w-5 h-5" />
               Graceful Stop
-            </motion.button>
+            </button>
           </PermissionTooltip>
 
           <div className="flex flex-col gap-2">
@@ -157,15 +202,13 @@ export default function ServerControl() {
               <span className="self-center text-light-text-secondary dark:text-dark-text-secondary text-sm">seconds</span>
             </div>
             <PermissionTooltip permission={Permission.RESTART_SERVER}>
-              <motion.button
+              <button
                 onClick={handleRestart}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all shadow-medium"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
               >
                 <Power className="w-5 h-5" />
                 Schedule Restart
-              </motion.button>
+              </button>
             </PermissionTooltip>
           </div>
         </div>
@@ -190,16 +233,16 @@ export default function ServerControl() {
       )}
 
       {/* Weather Control */}
-      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4 flex items-center gap-2">
+      <Card>
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
           <CloudRain className="w-6 h-6" />
           Weather Control
         </h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleWeather('clear')}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               <Sun className="w-5 h-5" />
               Clear
@@ -208,7 +251,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleWeather('rain')}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               <CloudRain className="w-5 h-5" />
               Rain
@@ -217,17 +260,17 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleWeather('thunder')}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               ⚡ Thunder
             </button>
           </PermissionTooltip>
         </div>
-      </div>
+      </Card>
 
       {/* Time Control */}
-      <div className="bg-light-card dark:bg-dark-surface p-6 rounded-lg border border-light-border dark:border-dark-border">
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4 flex items-center gap-2">
+      <Card>
+        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
           <Clock className="w-6 h-6" />
           Time Control
         </h2>
@@ -235,7 +278,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('day')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               <Sun className="w-5 h-5" />
               Day
@@ -244,7 +287,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('noon')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               <Sun className="w-5 h-5" />
               Noon
@@ -253,7 +296,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('night')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               <Moon className="w-5 h-5" />
               Night
@@ -262,14 +305,14 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('midnight')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
             >
               <Moon className="w-5 h-5" />
               Midnight
             </button>
           </PermissionTooltip>
         </div>
-      </div>
+      </Card>
 
       {/* Warning */}
       <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-500 p-4 rounded-lg">

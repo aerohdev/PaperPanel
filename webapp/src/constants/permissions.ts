@@ -53,9 +53,15 @@ export enum Permission {
   
   // System (ADMIN only)
   SUPER_ADMIN = 'super_admin',
-  
+
   // Updates
   MANAGE_UPDATES = 'manage_updates',
+
+  // Backup Management
+  CREATE_BACKUP = 'create_backup',
+  DELETE_BACKUP = 'delete_backup',
+  DOWNLOAD_BACKUP = 'download_backup',
+  MANAGE_AUTO_BACKUP = 'manage_auto_backup',
 }
 
 /**
@@ -73,6 +79,7 @@ export const PERMISSION_CATEGORIES = {
   configs: 'Configuration',
   logs: 'Logs',
   users: 'User Management',
+  backup: 'Backups',
   system: 'System',
 } as const;
 
@@ -106,7 +113,11 @@ export const PERMISSION_INFO: Record<Permission, { displayName: string; category
   [Permission.MANAGE_USERS]: { displayName: 'Manage Users', category: 'users' },
   [Permission.MANAGE_ROLES]: { displayName: 'Manage Roles', category: 'users' },
   [Permission.SUPER_ADMIN]: { displayName: 'Super Admin', category: 'system' },
-  [Permission.MANAGE_UPDATES]: { displayName: 'Manage Updates', category: 'dashboard' },
+  [Permission.MANAGE_UPDATES]: { displayName: 'Manage Updates', category: 'server' },
+  [Permission.CREATE_BACKUP]: { displayName: 'Create Backups', category: 'backup' },
+  [Permission.DELETE_BACKUP]: { displayName: 'Delete Backups', category: 'backup' },
+  [Permission.DOWNLOAD_BACKUP]: { displayName: 'Download Backups', category: 'backup' },
+  [Permission.MANAGE_AUTO_BACKUP]: { displayName: 'Manage Auto-Backup', category: 'backup' },
 };
 
 /**

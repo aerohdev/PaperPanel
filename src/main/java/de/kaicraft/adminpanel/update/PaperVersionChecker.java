@@ -248,9 +248,17 @@ public class PaperVersionChecker {
             
             // Step 2: Create backup
             plugin.getLogger().info("Step 2/5: Creating backup...");
-            boolean backupSuccess = createBackup();
+            boolean backupSuccess = false;
+            String backupFilename = null;
+            if (plugin.getBackupManager() != null) {
+                var result = plugin.getBackupManager().createUpdateBackup("update-system");
+                backupSuccess = result.success;
+                backupFilename = result.filename;
+            } else {
+                backupSuccess = createBackup();
+            }
             if (backupSuccess) {
-                plugin.getLogger().info("  ✓ Backup created");
+                plugin.getLogger().info("  ✓ Backup created" + (backupFilename != null ? ": " + backupFilename : ""));
             } else {
                 plugin.getLogger().warning("  ! Backup failed, but continuing...");
             }

@@ -5,9 +5,10 @@ import type { PluginInfo } from '../types/api';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
 import { Card } from '../components/Card';
-import { motion } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
 
 export default function Plugins() {
+  const { toast } = useToast();
   const [plugins, setPlugins] = useState<PluginInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,9 +38,10 @@ export default function Plugins() {
     setActionLoading(name);
     try {
       await client.post(`/plugins/${name}/enable`);
+      toast.success(`Plugin "${name}" enabled`);
       await fetchPlugins();
     } catch (err: any) {
-      alert(`Failed to enable plugin: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to enable plugin: ${err.response?.data?.message || err.message}`);
     } finally {
       setActionLoading(null);
     }
@@ -49,9 +51,10 @@ export default function Plugins() {
     setActionLoading(name);
     try {
       await client.post(`/plugins/${name}/disable`);
+      toast.success(`Plugin "${name}" disabled`);
       await fetchPlugins();
     } catch (err: any) {
-      alert(`Failed to disable plugin: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to disable plugin: ${err.response?.data?.message || err.message}`);
     } finally {
       setActionLoading(null);
     }
@@ -61,9 +64,9 @@ export default function Plugins() {
     setActionLoading(name);
     try {
       await client.post(`/plugins/${name}/reload`);
-      alert(`Plugin "${name}" configuration reloaded successfully!`);
+      toast.success(`Plugin "${name}" configuration reloaded successfully!`);
     } catch (err: any) {
-      alert(`Failed to reload plugin: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to reload plugin: ${err.response?.data?.message || err.message}`);
     } finally {
       setActionLoading(null);
     }
@@ -92,25 +95,19 @@ export default function Plugins() {
 
   return (
     <div className="space-y-6">
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Plugin Management</h1>
           <p className="text-light-text-secondary dark:text-dark-text-secondary">Manage server plugins ({plugins.length} total)</p>
         </div>
-        <motion.button
+        <button
           onClick={fetchPlugins}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-purple text-white rounded-xl hover:from-primary-600 hover:to-accent-purple/90 transition-all flex items-center gap-2 shadow-medium"
+          className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors flex items-center gap-2 font-medium"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
-        </motion.button>
-      </motion.div>
+        </button>
+      </div>
 
       {/* Search Bar */}
       <Card>

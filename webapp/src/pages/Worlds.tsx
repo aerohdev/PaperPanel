@@ -3,9 +3,10 @@ import client from '../api/client';
 import { Globe, Users, Boxes, Skull, RefreshCw, Settings, Sun, Moon, Cloud, CloudRain, Zap, Save, ChevronDown, ChevronUp } from 'lucide-react';
 import type { WorldInfo } from '../types/api';
 import { Card } from '../components/Card';
-import { motion } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
 
 export default function Worlds() {
+  const { toast } = useToast();
   const [worlds, setWorlds] = useState<WorldInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,8 +41,9 @@ export default function Worlds() {
         [setting]: !currentValue
       });
       await fetchWorlds();
+      toast.success(`${setting} updated successfully`);
     } catch (err: any) {
-      alert(`Failed to update world setting: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to update world setting: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -49,8 +51,9 @@ export default function Worlds() {
     try {
       await client.post(`/worlds/${worldName}/time/${time}`);
       await fetchWorlds();
+      toast.success(`Time set to ${time} in ${worldName}`);
     } catch (err: any) {
-      alert(`Failed to set time: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to set time: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -58,8 +61,9 @@ export default function Worlds() {
     try {
       await client.post(`/worlds/${worldName}/weather/${weather}`);
       await fetchWorlds();
+      toast.success(`Weather set to ${weather} in ${worldName}`);
     } catch (err: any) {
-      alert(`Failed to set weather: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to set weather: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -67,17 +71,18 @@ export default function Worlds() {
     try {
       await client.post(`/worlds/${worldName}/difficulty/${difficulty}`);
       await fetchWorlds();
+      toast.success(`Difficulty set to ${difficulty} in ${worldName}`);
     } catch (err: any) {
-      alert(`Failed to set difficulty: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to set difficulty: ${err.response?.data?.message || err.message}`);
     }
   };
 
   const handleSaveWorld = async (worldName: string) => {
     try {
       await client.post(`/worlds/${worldName}/save`);
-      alert(`World "${worldName}" saved successfully!`);
+      toast.success(`World "${worldName}" saved successfully!`);
     } catch (err: any) {
-      alert(`Failed to save world: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to save world: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -88,8 +93,9 @@ export default function Worlds() {
         value: !currentValue
       });
       await fetchWorlds();
+      toast.success(`Game rule ${rule} updated`);
     } catch (err: any) {
-      alert(`Failed to update game rule: ${err.response?.data?.message || err.message}`);
+      toast.error(`Failed to update game rule: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -138,7 +144,7 @@ export default function Worlds() {
         </div>
         <button
           onClick={fetchWorlds}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
@@ -194,43 +200,33 @@ export default function Worlds() {
                   </div>
 
                   {/* World Settings */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm mb-4">
-                    <button
-                      onClick={() => handleToggleSetting(world.name, 'pvp', world.pvp)}
-                      className={`px-3 py-2 rounded transition-colors ${
-                        world.pvp 
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-500' 
-                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-500'
-                      }`}
-                    >
-                      PVP: {world.pvp ? 'Enabled' : 'Disabled'}
-                    </button>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm mb-4">
                     <button
                       onClick={() => handleToggleSetting(world.name, 'allowAnimals', world.allowAnimals)}
-                      className={`px-3 py-2 rounded transition-colors ${
-                        world.allowAnimals 
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-500' 
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400 border border-gray-500'
+                      className={`px-3 py-2 rounded-xl transition-colors font-medium ${
+                        world.allowAnimals
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
+                          : 'bg-light-card dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary border border-light-border dark:border-dark-border hover:bg-light-surface dark:hover:bg-dark-surface'
                       }`}
                     >
                       Animals: {world.allowAnimals ? 'Yes' : 'No'}
                     </button>
                     <button
                       onClick={() => handleToggleSetting(world.name, 'allowMonsters', world.allowMonsters)}
-                      className={`px-3 py-2 rounded transition-colors ${
-                        world.allowMonsters 
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-500' 
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400 border border-gray-500'
+                      className={`px-3 py-2 rounded-xl transition-colors font-medium ${
+                        world.allowMonsters
+                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 hover:bg-emerald-500/30'
+                          : 'bg-light-card dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary border border-light-border dark:border-dark-border hover:bg-light-surface dark:hover:bg-dark-surface'
                       }`}
                     >
                       Monsters: {world.allowMonsters ? 'Yes' : 'No'}
                     </button>
                     <button
                       onClick={() => handleToggleSetting(world.name, 'hardcore', world.hardcore)}
-                      className={`px-3 py-2 rounded transition-colors ${
-                        world.hardcore 
-                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-500' 
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-400 border border-gray-500'
+                      className={`px-3 py-2 rounded-xl transition-colors font-medium ${
+                        world.hardcore
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/50 hover:bg-red-500/30'
+                          : 'bg-light-card dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary border border-light-border dark:border-dark-border hover:bg-light-surface dark:hover:bg-dark-surface'
                       }`}
                     >
                       Hardcore: {world.hardcore ? 'Yes' : 'No'}
@@ -238,38 +234,38 @@ export default function Worlds() {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                     <button
                       onClick={() => handleSetTime(world.name, 'day')}
-                      className="flex items-center gap-2 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
                     >
                       <Sun className="w-4 h-4" />
                       Set Day
                     </button>
                     <button
                       onClick={() => handleSetTime(world.name, 'night')}
-                      className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm"
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
                     >
                       <Moon className="w-4 h-4" />
                       Set Night
                     </button>
                     <button
                       onClick={() => handleSetWeather(world.name, 'clear')}
-                      className="flex items-center gap-2 px-3 py-2 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm"
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
                     >
                       <Sun className="w-4 h-4" />
                       Clear Weather
                     </button>
                     <button
                       onClick={() => handleSetWeather(world.name, 'rain')}
-                      className="flex items-center gap-2 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
                     >
                       <CloudRain className="w-4 h-4" />
                       Rain
                     </button>
                     <button
                       onClick={() => handleSaveWorld(world.name)}
-                      className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors text-sm font-medium"
                     >
                       <Save className="w-4 h-4" />
                       Save World
@@ -279,7 +275,7 @@ export default function Worlds() {
                   {/* Advanced Options Toggle */}
                   <button
                     onClick={() => setExpandedWorld(expandedWorld === world.name ? null : world.name)}
-                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors text-sm mb-3"
+                    className="flex items-center gap-2 text-primary-500 hover:text-accent-purple transition-colors text-sm mb-3 font-medium"
                   >
                     {expandedWorld === world.name ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     Advanced Options
@@ -308,11 +304,15 @@ export default function Worlds() {
 
                         {/* Common Game Rules */}
                         {world.gameRules.doDaylightCycle !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Daylight Cycle</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Daylight Cycle</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'doDaylightCycle', world.gameRules.doDaylightCycle)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.doDaylightCycle ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.doDaylightCycle
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.doDaylightCycle ? 'ON' : 'OFF'}
                             </button>
@@ -320,11 +320,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.doWeatherCycle !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Weather Cycle</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Weather Cycle</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'doWeatherCycle', world.gameRules.doWeatherCycle)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.doWeatherCycle ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.doWeatherCycle
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.doWeatherCycle ? 'ON' : 'OFF'}
                             </button>
@@ -332,11 +336,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.keepInventory !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Keep Inventory</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Keep Inventory</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'keepInventory', world.gameRules.keepInventory)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.keepInventory ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.keepInventory
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.keepInventory ? 'ON' : 'OFF'}
                             </button>
@@ -344,11 +352,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.mobGriefing !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Mob Griefing</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Mob Griefing</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'mobGriefing', world.gameRules.mobGriefing)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.mobGriefing ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.mobGriefing
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.mobGriefing ? 'ON' : 'OFF'}
                             </button>
@@ -356,11 +368,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.doMobSpawning !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Mob Spawning</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Mob Spawning</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'doMobSpawning', world.gameRules.doMobSpawning)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.doMobSpawning ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.doMobSpawning
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.doMobSpawning ? 'ON' : 'OFF'}
                             </button>
@@ -368,11 +384,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.naturalRegeneration !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Natural Regeneration</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Natural Regeneration</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'naturalRegeneration', world.gameRules.naturalRegeneration)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.naturalRegeneration ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.naturalRegeneration
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.naturalRegeneration ? 'ON' : 'OFF'}
                             </button>
@@ -380,11 +400,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.doFireTick !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Fire Tick</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Fire Tick</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'doFireTick', world.gameRules.doFireTick)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.doFireTick ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.doFireTick
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.doFireTick ? 'ON' : 'OFF'}
                             </button>
@@ -392,11 +416,15 @@ export default function Worlds() {
                         )}
 
                         {world.gameRules.doImmediateRespawn !== undefined && (
-                          <div className="flex items-center justify-between p-2 bg-light-card dark:bg-dark-surface rounded">
-                            <span className="text-light-text-secondary dark:text-gray-300 text-sm">Immediate Respawn</span>
+                          <div className="flex items-center justify-between p-3 bg-light-card dark:bg-dark-surface rounded-xl border border-light-border dark:border-dark-border">
+                            <span className="text-light-text-secondary dark:text-gray-300 text-sm font-medium">Immediate Respawn</span>
                             <button
                               onClick={() => handleToggleGameRule(world.name, 'doImmediateRespawn', world.gameRules.doImmediateRespawn)}
-                              className={`px-3 py-1 rounded text-xs ${world.gameRules.doImmediateRespawn ? 'bg-green-600' : 'bg-gray-600'} text-white`}
+                              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                                world.gameRules.doImmediateRespawn
+                                  ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                  : 'bg-light-surface dark:bg-dark-card text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:hover:bg-dark-border'
+                              }`}
                             >
                               {world.gameRules.doImmediateRespawn ? 'ON' : 'OFF'}
                             </button>

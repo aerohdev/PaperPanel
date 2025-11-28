@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
 
 interface CardProps {
@@ -10,11 +9,7 @@ interface CardProps {
 
 export function Card({ children, className = '', gradient = false, glow = false }: CardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.5, ease: [0.175, 0.885, 0.32, 1.275] }}
+    <div
       className={`
         rounded-2xl p-6
         ${gradient
@@ -25,12 +20,11 @@ export function Card({ children, className = '', gradient = false, glow = false 
         shadow-soft hover:shadow-medium dark:shadow-dark-soft dark:hover:shadow-dark-medium
         ${glow ? 'shadow-glow' : ''}
         transition-all duration-300
-        hover:-translate-y-1
         ${className}
       `}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -94,11 +88,7 @@ interface GlassCardProps {
 
 export function GlassCard({ children, className = '' }: GlassCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.4, ease: [0.175, 0.885, 0.32, 1.275] }}
+    <div
       className={`
         rounded-2xl p-6
         bg-white/10 dark:bg-black/20
@@ -110,6 +100,6 @@ export function GlassCard({ children, className = '' }: GlassCardProps) {
       `}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

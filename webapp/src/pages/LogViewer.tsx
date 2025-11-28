@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import client from '../api/client';
-import { Search, Download, RefreshCw, FileText, AlertCircle, XCircle } from 'lucide-react';
+import { Search, Download, RefreshCw, AlertCircle, XCircle } from 'lucide-react';
 import type { LogFileInfo, LogMatch } from '../types/api';
 import { SkeletonLogViewer } from '../components/Skeleton';
-
-type LogType = 'audit' | 'security' | 'api' | 'server';
+import { useToast } from '../contexts/ToastContext';
 
 export default function LogViewer() {
+  const { toast } = useToast();
   const [logFiles, setLogFiles] = useState<LogFileInfo[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [logContent, setLogContent] = useState<string[]>([]);
@@ -14,26 +14,13 @@ export default function LogViewer() {
   const [searchResults, setSearchResults] = useState<LogMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<LogType>('audit');
-  
-  const wsRef = useRef<WebSocket | null>(null);
+
   const logContainerRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(true);
 
   useEffect(() => {
     fetchLogFiles();
-    return () => {
-      disconnectWebSocket();
-    };
   }, []);
-
-  useEffect(() => {
-    if (autoScroll && logContainerRef.current) {
-      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
-    }
-  }, [logContent, autoScroll]);
 
   const fetchLogFiles = async () => {
     try {
@@ -96,7 +83,7 @@ export default function LogViewer() {
       const response = await client.get(`/logs/download/${filename}`, {
         responseType: 'blob'
       });
-      
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -105,68 +92,13 @@ export default function LogViewer() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+      toast.success('Download started');
     } catch (err) {
       console.error('Error downloading log:', err);
-      alert('Failed to download log file');
+      toast.error('Failed to download log file');
     }
   };
 
-  const connectWebSocket = (logType: LogType) => {
-    disconnectWebSocket();
-    
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/logs/${logType}`;
-    
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      console.log('WebSocket connected for log streaming');
-      setStreaming(true);
-      setLogContent([]);
-      setError(null);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        if (message.type === 'line' && message.data) {
-          setLogContent(prev => [...prev.slice(-4999), message.data]); // Keep last 5000 lines
-        } else if (message.type === 'error') {
-          setError(message.message || 'Stream error');
-        }
-      } catch (err) {
-        console.error('Error parsing WebSocket message:', err);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setError('WebSocket connection error');
-      setStreaming(false);
-    };
-
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-      setStreaming(false);
-    };
-  };
-
-  const disconnectWebSocket = () => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-      setStreaming(false);
-    }
-  };
-
-  const toggleStreaming = () => {
-    if (streaming) {
-      disconnectWebSocket();
-    } else {
-      connectWebSocket(selectedType);
-    }
-  };
 
   const getLogTypeColor = (type: string): string => {
     if (type.includes('audit')) return 'text-blue-400';
@@ -200,7 +132,7 @@ export default function LogViewer() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">Log Viewer</h1>
-          <p className="text-light-text-muted dark:text-gray-400">View and search server logs with real-time streaming</p>
+          <p className="text-light-text-muted dark:text-gray-400">View and search server logs</p>
         </div>
         <button
           onClick={fetchLogFiles}
@@ -225,57 +157,6 @@ export default function LogViewer() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar - Log Files List */}
         <div className="lg:col-span-1 space-y-4">
-          {/* Real-time Streaming Controls */}
-          <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
-            <h3 className="text-light-text-primary dark:text-white font-semibold mb-3 flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Live Stream
-            </h3>
-            <div className="space-y-2">
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value as LogType)}
-                className="w-full bg-light-surface dark:bg-dark-bg border border-light-border dark:border-dark-border text-light-text-primary dark:text-white px-3 py-2 rounded-lg focus:outline-none focus:border-blue-500"
-                disabled={streaming}
-              >
-                <option value="audit">Audit Logs</option>
-                <option value="security">Security Logs</option>
-                <option value="api">API Logs</option>
-                <option value="server">Server Logs</option>
-              </select>
-              <button
-                onClick={toggleStreaming}
-                className={`w-full px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                  streaming
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-green-600 hover:bg-green-700'
-                } text-white`}
-              >
-                {streaming ? (
-                  <>
-                    <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                    Stop Stream
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4" />
-                    Start Stream
-                  </>
-                )}
-              </button>
-              {streaming && (
-                <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoScroll}
-                    onChange={(e) => setAutoScroll(e.target.checked)}
-                    className="rounded"
-                  />
-                  Auto-scroll
-                </label>
-              )}
-            </div>
-          </div>
 
           {/* Log Files */}
           <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
@@ -391,7 +272,7 @@ export default function LogViewer() {
           <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
             <div className="bg-light-surface dark:bg-dark-bg px-4 py-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
               <h3 className="text-light-text-primary dark:text-white font-semibold">
-                {streaming ? `Live: ${selectedType} logs` : selectedFile || 'No file selected'}
+                {selectedFile || 'No file selected'}
               </h3>
               <span className="text-gray-400 text-sm">
                 {logContent.length} lines
@@ -415,14 +296,7 @@ export default function LogViewer() {
                 ))
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
-                  {streaming ? (
-                    <div className="text-center">
-                      <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-                      <p>Waiting for log entries...</p>
-                    </div>
-                  ) : (
-                    <p>Select a log file or start live streaming</p>
-                  )}
+                  <p>Select a log file to view its contents</p>
                 </div>
               )}
             </div>

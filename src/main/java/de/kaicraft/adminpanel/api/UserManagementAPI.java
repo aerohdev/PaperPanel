@@ -217,9 +217,76 @@ public class UserManagementAPI {
     }
 
     /**
+     * Get user's theme preference
+     */
+    @TypeScriptEndpoint(path = "GET /api/v1/users/{username}/theme", responseType = "{ theme: string }")
+    public void getUserTheme(Context ctx) {
+        try {
+            String currentUser = (String) ctx.attribute("username");
+            String targetUsername = ctx.pathParam("username");
+
+            // Users can only get their own theme
+            if (!targetUsername.equals(currentUser)) {
+                ctx.status(403).json(ApiResponse.error("You can only access your own theme preference"));
+                return;
+            }
+
+            // Check if user exists
+            if (!authManager.userExists(targetUsername)) {
+                ctx.status(404).json(ApiResponse.error("User not found"));
+                return;
+            }
+
+            String theme = authManager.getUserTheme(targetUsername);
+            ctx.json(ApiResponse.success("theme", theme));
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("GET /api/v1/users/{username}/theme", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to retrieve theme preference"));
+        }
+    }
+
+    /**
+     * Set user's theme preference
+     */
+    @TypeScriptEndpoint(path = "PUT /api/v1/users/{username}/theme", responseType = "{ message: string }")
+    public void setUserTheme(Context ctx) {
+        try {
+            String currentUser = (String) ctx.attribute("username");
+            String targetUsername = ctx.pathParam("username");
+            @SuppressWarnings("unchecked")
+            Map<String, String> data = gson.fromJson(ctx.body(), Map.class);
+
+            String theme = data.get("theme");
+
+            // Users can only set their own theme
+            if (!targetUsername.equals(currentUser)) {
+                ctx.status(403).json(ApiResponse.error("You can only change your own theme preference"));
+                return;
+            }
+
+            // Validate theme value
+            if (theme == null || (!theme.equals("dark") && !theme.equals("light"))) {
+                ctx.status(400).json(ApiResponse.error("Theme must be 'dark' or 'light'"));
+                return;
+            }
+
+            // Attempt to set theme
+            if (authManager.setUserTheme(targetUsername, theme)) {
+                plugin.getAuditLogger().logUserAction(currentUser, "change-theme", theme);
+                ctx.json(ApiResponse.successMessage("Theme updated successfully"));
+            } else {
+                ctx.status(404).json(ApiResponse.error("User not found"));
+            }
+        } catch (Exception e) {
+            plugin.getAuditLogger().logApiError("PUT /api/v1/users/{username}/theme", e.getMessage(), e);
+            ctx.status(500).json(ApiResponse.error("Failed to update theme preference"));
+        }
+    }
+
+    /**
      * Validate password strength
      * Requirements: Min 8 chars, uppercase, lowercase, digit, special char
-     * 
+     *
      * @param password The password to validate
      * @return Error message if invalid, null if valid
      */
@@ -227,23 +294,23 @@ public class UserManagementAPI {
         if (password.length() < MIN_PASSWORD_LENGTH) {
             return "Password must be at least " + MIN_PASSWORD_LENGTH + " characters long";
         }
-        
+
         if (!UPPERCASE_PATTERN.matcher(password).find()) {
             return "Password must contain at least one uppercase letter";
         }
-        
+
         if (!LOWERCASE_PATTERN.matcher(password).find()) {
             return "Password must contain at least one lowercase letter";
         }
-        
+
         if (!DIGIT_PATTERN.matcher(password).find()) {
             return "Password must contain at least one digit";
         }
-        
+
         if (!SPECIAL_CHAR_PATTERN.matcher(password).find()) {
             return "Password must contain at least one special character (!@#$%^&*(),.?\":{}|<>)";
         }
-        
+
         return null; // Valid
     }
 }

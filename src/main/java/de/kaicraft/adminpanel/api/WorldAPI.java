@@ -432,11 +432,10 @@ public class WorldAPI {
             }
         }
         
-        // PVP
+        // PVP - Removed from UI as it cannot be changed at runtime in Paper
+        // PVP setting is controlled by server.properties and requires a server restart
         if (settings.containsKey("pvp")) {
-            boolean pvp = (Boolean) settings.get("pvp");
-            world.setPVP(pvp);
-            plugin.getLogger().fine("Set PVP to " + pvp + " in world '" + world.getName() + "'");
+            plugin.getLogger().warning("PVP setting cannot be changed at runtime. This setting is controlled by server.properties and requires a server restart.");
         }
         
         // Allow Animals (deprecated - use world.setSpawnFlags instead)

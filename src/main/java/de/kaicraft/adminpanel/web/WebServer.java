@@ -6,7 +6,9 @@ import de.kaicraft.adminpanel.auth.AuthManager;
 import de.kaicraft.adminpanel.auth.AuthMiddleware;
 import de.kaicraft.adminpanel.auth.PermissionMiddleware;
 import de.kaicraft.adminpanel.auth.Permission;
+import de.kaicraft.adminpanel.backup.BackupManager;
 import de.kaicraft.adminpanel.config.ConfigManager;
+import de.kaicraft.adminpanel.database.DatabaseManager;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -38,11 +40,14 @@ public class WebServer {
     private final WhitelistAPI whitelistAPI;
     private final RoleManagementAPI roleManagementAPI;
     private final AuditLogAPI auditLogAPI;
+    private final BackupAPI backupAPI;
+    private final UpdatesAPI updatesAPI;
 
     private Javalin app;
 
     public WebServer(ServerAdminPanelPlugin plugin, ConfigManager config, AuthManager authManager,
-                     PlayerAPI playerAPI, ServerControlAPI serverControlAPI, WorldAPI worldAPI) {
+                     PlayerAPI playerAPI, ServerControlAPI serverControlAPI, WorldAPI worldAPI,
+                     BackupManager backupManager, DatabaseManager databaseManager) {
         this.plugin = plugin;
         this.config = config;
         this.authManager = authManager;
@@ -65,6 +70,8 @@ public class WebServer {
         this.whitelistAPI = new WhitelistAPI(plugin);
         this.roleManagementAPI = new RoleManagementAPI(plugin, authManager);
         this.auditLogAPI = new AuditLogAPI(plugin);
+        this.backupAPI = new BackupAPI(plugin, backupManager);
+        this.updatesAPI = new UpdatesAPI(plugin, databaseManager, backupManager);
     }
 
     /**
@@ -352,6 +359,10 @@ public class WebServer {
         app.before("/api/v1/users/{username}", permissionMiddleware.requirePermission(Permission.MANAGE_USERS));
         app.delete("/api/v1/users/{username}", userManagementAPI::deleteUser);
 
+        // Theme preference routes (users can access their own theme)
+        app.get("/api/v1/users/{username}/theme", userManagementAPI::getUserTheme);
+        app.put("/api/v1/users/{username}/theme", userManagementAPI::setUserTheme);
+
         // Role management routes (require MANAGE_ROLES permission)
         app.before("/api/v1/roles", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
         app.get("/api/v1/roles", roleManagementAPI::getRoles);
@@ -369,9 +380,59 @@ public class WebServer {
         // Audit log routes (require MANAGE_ROLES permission to view audit logs)
         app.before("/api/v1/audit/entries", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
         app.get("/api/v1/audit/entries", auditLogAPI::getAuditEntries);
-        
+
         app.before("/api/v1/audit/stats", permissionMiddleware.requirePermission(Permission.MANAGE_ROLES));
         app.get("/api/v1/audit/stats", auditLogAPI::getAuditStats);
+
+        // Updates routes
+        app.before("/api/v1/updates/status", permissionMiddleware.requirePermission(Permission.VIEW_DASHBOARD));
+        app.get("/api/v1/updates/status", updatesAPI::getStatus);
+
+        app.before("/api/v1/updates/check", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/updates/check", updatesAPI::checkForUpdates);
+
+        app.before("/api/v1/updates/download", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/updates/download", updatesAPI::downloadUpdate);
+
+        app.before("/api/v1/updates/install", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/updates/install", updatesAPI::installUpdate);
+
+        app.before("/api/v1/updates/history", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.get("/api/v1/updates/history", updatesAPI::getHistory);
+
+        app.before("/api/v1/updates/schedule", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.post("/api/v1/updates/schedule", updatesAPI::scheduleUpdate);
+
+        app.before("/api/v1/updates/scheduled", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.get("/api/v1/updates/scheduled", updatesAPI::getScheduledUpdates);
+
+        app.before("/api/v1/updates/schedule/{id}", permissionMiddleware.requirePermission(Permission.MANAGE_UPDATES));
+        app.delete("/api/v1/updates/schedule/{id}", updatesAPI::cancelScheduledUpdate);
+
+        // Backup routes
+        app.before("/api/v1/backups", permissionMiddleware.requirePermission(Permission.CREATE_BACKUP));
+        app.get("/api/v1/backups", backupAPI::listBackups);
+
+        app.before("/api/v1/backups/create", permissionMiddleware.requirePermission(Permission.CREATE_BACKUP));
+        app.post("/api/v1/backups/create", backupAPI::createBackup);
+
+        app.before("/api/v1/backups/schedules", permissionMiddleware.requirePermission(Permission.MANAGE_AUTO_BACKUP));
+        app.get("/api/v1/backups/schedules", backupAPI::getSchedules);
+        app.post("/api/v1/backups/schedules", backupAPI::saveSchedule);
+
+        app.before("/api/v1/backups/schedules/{id}", permissionMiddleware.requirePermission(Permission.MANAGE_AUTO_BACKUP));
+        app.delete("/api/v1/backups/schedules/{id}", backupAPI::deleteSchedule);
+
+        app.before("/api/v1/backups/{id}", permissionMiddleware.requirePermission(Permission.CREATE_BACKUP));
+        app.get("/api/v1/backups/{id}", backupAPI::getBackup);
+
+        app.before("/api/v1/backups/{id}/download", permissionMiddleware.requirePermission(Permission.DOWNLOAD_BACKUP));
+        app.get("/api/v1/backups/{id}/download", backupAPI::downloadBackup);
+
+        app.delete("/api/v1/backups/{id}", ctx -> {
+            permissionMiddleware.requirePermission(Permission.DELETE_BACKUP).handle(ctx);
+            if (!ctx.res().isCommitted()) backupAPI.deleteBackup(ctx);
+        });
     }
 
     /**
@@ -465,5 +526,12 @@ public class WebServer {
      */
     public WebSocketHandler getWebSocketHandler() {
         return webSocketHandler;
+    }
+
+    /**
+     * Get the Updates API handler
+     */
+    public UpdatesAPI getUpdatesAPI() {
+        return updatesAPI;
     }
 }

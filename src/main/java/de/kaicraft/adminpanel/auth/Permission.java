@@ -56,7 +56,13 @@ public enum Permission {
     
     // Role Management
     MANAGE_ROLES("manage_roles", "Manage Roles and Permissions", "roles"),
-    
+
+    // Backup Management
+    CREATE_BACKUP("create_backup", "Create Backups", "backup"),
+    DELETE_BACKUP("delete_backup", "Delete Backups", "backup"),
+    DOWNLOAD_BACKUP("download_backup", "Download Backups", "backup"),
+    MANAGE_AUTO_BACKUP("manage_auto_backup", "Manage Auto-Backup Settings", "backup"),
+
     // System Admin (cannot be revoked from ADMIN role)
     SUPER_ADMIN("super_admin", "Super Administrator", "system");
 

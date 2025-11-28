@@ -26,6 +26,25 @@ security:
   # Rate limiting per IP (requests per minute)
   rate-limit: 60
 
+backup:
+  # Default auto-backup settings (applied when creating first schedule)
+  default-auto-backup:
+    enabled: true
+    schedule-type: "daily"
+    interval-value: 1
+    includes-worlds: true
+    includes-plugins: true
+    includes-configs: true
+    retention-type: "keep-last"
+    retention-value: 7
+  # Trigger points for automatic backups
+  triggers:
+    on-startup: false
+    before-shutdown: true
+    before-update: true
+  # Warning threshold for backup size in MB
+  max-size-warning: 5000
+
 logging:
   # Log level: INFO, WARNING, SEVERE, FINE, FINER, FINEST
   level: INFO

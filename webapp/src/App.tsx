@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { PermissionProvider } from './contexts/PermissionContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ToastProvider } from './contexts/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
@@ -17,47 +18,51 @@ import ConfigEditor from './pages/ConfigEditor';
 import WhitelistOps from './pages/WhitelistOps';
 import UserRoleManagement from './pages/UserRoleManagement';
 import { AuditLog } from './pages/AuditLog';
+import Updates from './pages/Updates';
 
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <PermissionProvider>
-          <Router>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
+      <ToastProvider>
+        <AuthProvider>
+          <PermissionProvider>
+            <Router>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="console" element={<Console />} />
-              <Route path="plugins" element={<Plugins />} />
-              <Route path="players" element={<Players />} />
-              <Route path="whitelist" element={<WhitelistOps />} />
-              <Route path="server" element={<ServerControl />} />
-              <Route path="worlds" element={<Worlds />} />
-              <Route path="broadcast" element={<Broadcast />} />
-              <Route path="users" element={<UserRoleManagement />} />
-              <Route path="audit" element={<AuditLog />} />
-              <Route path="logs" element={<LogViewer />} />
-              <Route path="configs" element={<ConfigEditor />} />
-            </Route>
+                {/* Protected routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Layout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="console" element={<Console />} />
+                  <Route path="plugins" element={<Plugins />} />
+                  <Route path="players" element={<Players />} />
+                  <Route path="whitelist" element={<WhitelistOps />} />
+                  <Route path="server" element={<ServerControl />} />
+                  <Route path="worlds" element={<Worlds />} />
+                  <Route path="broadcast" element={<Broadcast />} />
+                  <Route path="users" element={<UserRoleManagement />} />
+                  <Route path="audit" element={<AuditLog />} />
+                  <Route path="logs" element={<LogViewer />} />
+                  <Route path="configs" element={<ConfigEditor />} />
+                  <Route path="updates" element={<Updates />} />
+                </Route>
 
-            {/* Catch all - redirect to dashboard */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Router>
-      </PermissionProvider>
-    </AuthProvider>
+                {/* Catch all - redirect to dashboard */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </Router>
+          </PermissionProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

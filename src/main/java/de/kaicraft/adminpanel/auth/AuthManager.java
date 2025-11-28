@@ -27,6 +27,7 @@ public class AuthManager {
     private final Map<String, String> users; // username -> hashed password
     private final Map<String, Role> userRoles; // username -> role
     private final Map<String, Set<Permission>> customPermissions; // username -> custom permissions (for CUSTOM role)
+    private final Map<String, String> userThemes; // username -> theme preference (dark/light)
     private final Set<String> activeSessions; // active JWT tokens
     private final File usersFile;
 
@@ -36,6 +37,7 @@ public class AuthManager {
         this.users = new HashMap<>();
         this.userRoles = new HashMap<>();
         this.customPermissions = new HashMap<>();
+        this.userThemes = new HashMap<>();
         this.activeSessions = ConcurrentHashMap.newKeySet();
         this.usersFile = new File(plugin.getDataFolder(), "users.txt");
 
@@ -96,14 +98,14 @@ public class AuthManager {
                     String username = parts[0];
                     String hashedPassword = parts[1];
                     users.put(username, hashedPassword);
-                    
+
                     // Load role (default to ADMIN for backward compatibility)
                     if (parts.length >= 3 && !parts[2].isEmpty()) {
                         userRoles.put(username, Role.fromKey(parts[2]));
                     } else {
                         userRoles.put(username, Role.ADMIN);
                     }
-                    
+
                     // Load custom permissions for CUSTOM role
                     if (parts.length >= 4 && !parts[3].isEmpty() && userRoles.get(username) == Role.CUSTOM) {
                         Set<Permission> perms = new HashSet<>();
@@ -114,6 +116,13 @@ public class AuthManager {
                             }
                         }
                         customPermissions.put(username, perms);
+                    }
+
+                    // Load theme preference (default to dark)
+                    if (parts.length >= 5 && !parts[4].isEmpty()) {
+                        userThemes.put(username, parts[4]);
+                    } else {
+                        userThemes.put(username, "dark");
                     }
                 }
             });
@@ -145,14 +154,17 @@ public class AuthManager {
                     
                     StringBuilder line = new StringBuilder();
                     line.append(username).append(":").append(hashedPassword).append(":").append(role.getKey());
-                    
+
                     // Save custom permissions if role is CUSTOM
+                    line.append(":");
                     if (role == Role.CUSTOM && customPermissions.containsKey(username)) {
-                        line.append(":");
                         Set<Permission> perms = customPermissions.get(username);
                         line.append(perms.stream().map(Permission::getKey).collect(Collectors.joining(",")));
                     }
-                    
+
+                    // Save theme preference (default to dark)
+                    line.append(":").append(userThemes.getOrDefault(username, "dark"));
+
                     line.append("\n");
                     writer.write(line.toString());
                 }
@@ -516,5 +528,36 @@ public class AuthManager {
         
         Set<Permission> userPerms = getUserPermissions(username);
         return userPerms.contains(permission);
+    }
+
+    /**
+     * Get user's theme preference
+     * @param username The username
+     * @return Theme preference ("dark" or "light"), defaults to "dark"
+     */
+    public String getUserTheme(String username) {
+        return userThemes.getOrDefault(username, "dark");
+    }
+
+    /**
+     * Set user's theme preference
+     * @param username The username
+     * @param theme Theme preference ("dark" or "light")
+     * @return true if successful, false if user doesn't exist
+     */
+    public boolean setUserTheme(String username, String theme) {
+        if (!users.containsKey(username)) {
+            return false;
+        }
+
+        // Validate theme value
+        if (!"dark".equals(theme) && !"light".equals(theme)) {
+            return false;
+        }
+
+        userThemes.put(username, theme);
+        saveUsers();
+        plugin.getLogger().info("Set theme for user '" + username + "': " + theme);
+        return true;
     }
 }

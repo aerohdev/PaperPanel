@@ -4,6 +4,7 @@ import de.kaicraft.adminpanel.api.PlayerAPI;
 import de.kaicraft.adminpanel.api.ServerControlAPI;
 import de.kaicraft.adminpanel.api.WorldAPI;
 import de.kaicraft.adminpanel.auth.AuthManager;
+import de.kaicraft.adminpanel.backup.BackupManager;
 import de.kaicraft.adminpanel.config.ConfigManager;
 import de.kaicraft.adminpanel.database.DatabaseManager;
 import de.kaicraft.adminpanel.stats.PlayerStatsListener;
@@ -34,6 +35,7 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
     private ConsoleAppender consoleAppender;
     private PaperVersionChecker versionChecker;
     private AuditLogger auditLogger;
+    private BackupManager backupManager;
 
     @Override
     public void onEnable() {
@@ -64,12 +66,17 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         authManager = new AuthManager(this, configManager);
         getLogger().info("Authentication system initialized");
 
+        // Initialize backup manager
+        backupManager = new BackupManager(this, databaseManager);
+        backupManager.startScheduler();
+        getLogger().info("Backup management system initialized");
+
         // Start web server if enabled
         if (configManager.isWebServerEnabled()) {
             // CRITICAL: Switch classloader before creating Javalin to prevent Paper plugin conflicts
             ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-            
+
             try {
                 // Initialize Phase 3 APIs
                 PlayerAPI playerAPI = new PlayerAPI(this, statsManager);
@@ -77,8 +84,13 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
                 WorldAPI worldAPI = new WorldAPI(this);
 
                 webServer = new WebServer(this, configManager, authManager,
-                        playerAPI, serverControlAPI, worldAPI);
+                        playerAPI, serverControlAPI, worldAPI, backupManager, databaseManager);
                 webServer.start();
+
+                // Start updates scheduler
+                if (webServer.getUpdatesAPI() != null) {
+                    webServer.getUpdatesAPI().startScheduler();
+                }
 
                 // Setup console log interceptor
                 setupConsoleAppender();
@@ -99,6 +111,16 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Stop backup manager scheduler
+        if (backupManager != null) {
+            backupManager.stopScheduler();
+        }
+
+        // Stop updates scheduler
+        if (webServer != null && webServer.getUpdatesAPI() != null) {
+            webServer.getUpdatesAPI().stopScheduler();
+        }
+
         // Stop web server
         if (webServer != null) {
             webServer.stop();
@@ -269,5 +291,13 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
 
     public AuditLogger getAuditLogger() {
         return auditLogger;
+    }
+
+    public BackupManager getBackupManager() {
+        return backupManager;
+    }
+
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
 }

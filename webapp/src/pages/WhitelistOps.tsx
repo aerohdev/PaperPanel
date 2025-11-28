@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, UserPlus, Download, Upload, AlertCircle, X, Check, Crown } from 'lucide-react';
 import axios from '../api/client';
+import { TabNavigation, Tab } from '../components/TabNavigation';
 
 interface PlayerListEntry {
   uuid: string;
@@ -19,6 +20,11 @@ interface WhitelistData {
 interface OpsData {
   players: PlayerListEntry[];
 }
+
+const TABS: Tab[] = [
+  { id: 'whitelist', label: 'Whitelist', icon: <Shield className="w-4 h-4" /> },
+  { id: 'ops', label: 'Operators', icon: <Crown className="w-4 h-4" /> },
+];
 
 export default function WhitelistOps() {
   const [activeTab, setActiveTab] = useState<'whitelist' | 'ops'>('whitelist');
@@ -202,37 +208,7 @@ export default function WhitelistOps() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 bg-light-card dark:bg-dark-surface rounded-lg p-1">
-        <button
-          onClick={() => setActiveTab('whitelist')}
-          className={`flex-1 px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2 ${
-            activeTab === 'whitelist'
-              ? 'bg-blue-600 text-white'
-              : 'text-light-text-muted dark:text-gray-400 hover:text-light-text-primary dark:hover:text-white hover:bg-light-surface dark:hover:bg-dark-hover'
-          }`}
-        >
-          <Shield className="w-5 h-5" />
-          <span>Whitelist</span>
-          <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-            {whitelistData.players.length}
-          </span>
-        </button>
-        <button
-          onClick={() => setActiveTab('ops')}
-          className={`flex-1 px-4 py-2 rounded-md transition-colors flex items-center justify-center gap-2 ${
-            activeTab === 'ops'
-              ? 'bg-yellow-600 text-white'
-              : 'text-light-text-muted dark:text-gray-400 hover:text-light-text-primary dark:hover:text-white hover:bg-light-surface dark:hover:bg-dark-hover'
-          }`}
-        >
-          <Crown className="w-5 h-5" />
-          <span>Operators</span>
-          <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
-            {opsData.players.length}
-          </span>
-        </button>
-      </div>
+      <TabNavigation tabs={TABS} activeTab={activeTab} onTabChange={(tab) => setActiveTab(tab as 'whitelist' | 'ops')} />
 
       {/* Whitelist Toggle (only for whitelist tab) */}
       {activeTab === 'whitelist' && (

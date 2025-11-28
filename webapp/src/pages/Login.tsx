@@ -1,8 +1,10 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Server, Lock, User } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Lock, User } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
+import logoBlack from '../img/pp_logo_black.png';
+import logoWhite from '../img/pp_logo_white.png';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -10,6 +12,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -29,26 +32,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-light-bg via-light-surface to-light-card dark:from-dark-bg dark:via-dark-surface dark:to-dark-card flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur-xl p-8 rounded-3xl shadow-strong dark:shadow-dark-strong w-full max-w-md border border-light-border/50 dark:border-dark-border/50"
-      >
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-center justify-center mb-8"
-        >
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-primary-500/20 to-accent-purple/20 mr-3 shadow-glow">
-            <Server className="w-12 h-12 text-primary-500" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
+      <div className="bg-light-surface/80 dark:bg-dark-surface/80 backdrop-blur-xl p-8 rounded-3xl shadow-strong dark:shadow-dark-strong w-full max-w-md border border-light-border/50 dark:border-dark-border/50">
+        <div className="flex flex-col items-center justify-center mb-8">
+          <img
+            src={theme === 'dark' ? logoWhite : logoBlack}
+            alt="PaperPanel Logo"
+            className="w-32 h-32 sm:w-40 sm:h-40 object-contain mb-4"
+          />
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">PaperPanel</h1>
             <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">Server Management</p>
           </div>
-        </motion.div>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -87,37 +82,26 @@ export default function Login() {
           </div>
 
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-red-500/10 border border-red-500/50 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm backdrop-blur-sm"
-            >
+            <div className="bg-red-500/10 border border-red-500/50 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl text-sm backdrop-blur-sm">
               {error}
-            </motion.div>
+            </div>
           )}
 
-          <motion.button
+          <button
             type="submit"
             disabled={loading}
-            whileHover={{ scale: loading ? 1 : 1.02 }}
-            whileTap={{ scale: loading ? 1 : 0.98 }}
-            className="w-full bg-gradient-to-r from-primary-500 to-accent-purple hover:from-primary-600 hover:to-accent-purple/90 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 rounded-xl transition-all disabled:cursor-not-allowed shadow-medium"
+            className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-500 text-white font-semibold py-3 rounded-xl transition-colors disabled:cursor-not-allowed"
           >
             {loading ? 'Signing in...' : 'Sign In'}
-          </motion.button>
+          </button>
         </form>
 
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-6 text-center text-xs text-light-text-muted dark:text-dark-text-muted"
-        >
+        <div className="mt-6 text-center text-xs text-light-text-muted dark:text-dark-text-muted">
           <p>Default credentials:</p>
           <p className="mt-1 font-mono text-light-text-secondary dark:text-dark-text-secondary">admin / changeme</p>
           <p className="mt-3 text-yellow-600 dark:text-yellow-500">⚠️ Please change default password after first login</p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

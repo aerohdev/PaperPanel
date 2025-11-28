@@ -1,8 +1,7 @@
-import { useState, FormEvent, ChangeEvent } from 'react';
+import { useState, ChangeEvent } from 'react';
 import client from '../api/client';
 import { Radio, Type, MessageSquare, Volume2 } from 'lucide-react';
-import { Card } from '../components/Card';
-import { motion } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
 
 interface BroadcastMessageRequest {
   message: string;
@@ -28,6 +27,7 @@ interface SoundRequest {
 }
 
 export default function Broadcast() {
+  const { toast } = useToast();
   const [message, setMessage] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [subtitle, setSubtitle] = useState<string>('');
@@ -44,10 +44,10 @@ export default function Broadcast() {
         message: message.trim(),
         color: '#FFFFFF'
       });
-      alert('Message sent to all players!');
+      toast.success('Message sent to all players!');
       setMessage('');
     } catch (error: any) {
-      alert('Failed to send message: ' + error.message);
+      toast.error('Failed to send message: ' + error.message);
     } finally {
       setSending(false);
     }
@@ -65,11 +65,11 @@ export default function Broadcast() {
         stay: 3,
         fadeOut: 1
       });
-      alert('Title sent to all players!');
+      toast.success('Title sent to all players!');
       setTitle('');
       setSubtitle('');
     } catch (error: any) {
-      alert('Failed to send title: ' + error.message);
+      toast.error('Failed to send title: ' + error.message);
     } finally {
       setSending(false);
     }
@@ -83,10 +83,10 @@ export default function Broadcast() {
       await client.post<ActionBarRequest>('/broadcast/actionbar', {
         message: actionBarText.trim()
       });
-      alert('Action bar sent to all players!');
+      toast.success('Action bar sent to all players!');
       setActionBarText('');
     } catch (error: any) {
-      alert('Failed to send action bar: ' + error.message);
+      toast.error('Failed to send action bar: ' + error.message);
     } finally {
       setSending(false);
     }
@@ -100,9 +100,9 @@ export default function Broadcast() {
         volume: 1.0,
         pitch: 1.0
       });
-      alert('Sound played for all players!');
+      toast.success('Sound played for all players!');
     } catch (error: any) {
-      alert('Failed to play sound: ' + error.message);
+      toast.error('Failed to play sound: ' + error.message);
     } finally {
       setSending(false);
     }
@@ -147,9 +147,9 @@ export default function Broadcast() {
           });
           break;
       }
-      alert('Quick action executed successfully!');
+      toast.success('Quick action executed successfully!');
     } catch (error: any) {
-      alert('Failed to execute quick action: ' + error.message);
+      toast.error('Failed to execute quick action: ' + error.message);
     } finally {
       setSending(false);
     }

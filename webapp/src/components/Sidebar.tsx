@@ -1,8 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe, Radio, Shield, FileText, FileCog, UserCheck, Key, ScrollText } from 'lucide-react';
+import { LayoutDashboard, Terminal, Package, Server, Users, Settings, Globe, Radio, Shield, FileText, FileCog, UserCheck, Key, ScrollText, Download } from 'lucide-react';
 import { usePermissions } from '../contexts/PermissionContext';
 import { Permission } from '../constants/permissions';
-import { motion } from 'framer-motion';
 
 export default function Sidebar() {
   const { hasPermission, isAdmin, isLoading } = usePermissions();
@@ -18,6 +17,7 @@ export default function Sidebar() {
     { to: '/broadcast', icon: Radio, label: 'Broadcast', permission: Permission.SEND_BROADCASTS },
     { to: '/configs', icon: FileCog, label: 'Config Editor', permission: Permission.VIEW_CONFIGS },
     { to: '/server', icon: Settings, label: 'Server Control', anyPermission: [Permission.RESTART_SERVER, Permission.STOP_SERVER, Permission.SAVE_SERVER] },
+    { to: '/updates', icon: Download, label: 'Updates & Backups', anyPermission: [Permission.MANAGE_UPDATES, Permission.CREATE_BACKUP] },
     { to: '/users', icon: Shield, label: 'Users & Roles', anyPermission: [Permission.VIEW_USERS, Permission.MANAGE_ROLES] },
     { to: '/audit', icon: ScrollText, label: 'Audit Log', permission: Permission.MANAGE_ROLES },
   ];
@@ -57,13 +57,8 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 p-4 overflow-y-auto">
         <ul className="space-y-2">
-          {visibleNavItems.map((item, index) => (
-            <motion.li
-              key={item.to}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-            >
+          {visibleNavItems.map((item) => (
+            <li key={item.to}>
               <NavLink
                 to={item.to}
                 className={({ isActive }) =>
@@ -74,15 +69,10 @@ export default function Sidebar() {
                   }`
                 }
               >
-                <motion.div
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <item.icon className="w-5 h-5" />
-                </motion.div>
+                <item.icon className="w-5 h-5" />
                 <span className="font-medium">{item.label}</span>
               </NavLink>
-            </motion.li>
+            </li>
           ))}
         </ul>
       </nav>
@@ -90,7 +80,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-light-border dark:border-[#2a2a2a]">
         <div className="text-xs text-light-text-muted dark:text-dark-text-muted text-center">
-          <p>PaperPanel v3.4.0</p>
+          <p>PaperPanel v3.5.20</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

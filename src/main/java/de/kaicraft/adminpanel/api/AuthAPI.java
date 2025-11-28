@@ -92,6 +92,14 @@ public class AuthAPI {
     @TypeScriptEndpoint(path = "/api/v1/auth/verify", method = "GET", description = "Verify token")
     public void verify(Context ctx) {
         String username = ctx.attribute("username");
+        if (username == null) {
+            ctx.status(401).json(Map.of(
+                    "success", false,
+                    "valid", false,
+                    "message", "Invalid or missing token"
+            ));
+            return;
+        }
         ctx.status(200).json(Map.of(
                 "success", true,
                 "valid", true,
@@ -107,11 +115,18 @@ public class AuthAPI {
     public void getSecurityStatus(Context ctx) {
         try {
             String username = (String) ctx.attribute("username");
+
+            // If username is null, user is not authenticated
+            if (username == null) {
+                ctx.status(401).json(ApiResponse.error("Not authenticated"));
+                return;
+            }
+
             boolean usingDefaultPassword = authManager.isUsingDefaultPassword(username);
-            
+
             SecurityStatus status = new SecurityStatus(usingDefaultPassword);
             ctx.json(ApiResponse.success("securityStatus", status));
-            
+
         } catch (Exception e) {
             plugin.getAuditLogger().logApiError("GET /api/v1/auth/security-status", e.getMessage(), e);
             ctx.status(500).json(ApiResponse.error("Failed to check security status"));

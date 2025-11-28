@@ -240,3 +240,75 @@ export interface LogStreamMessage {
   data?: string;
   message?: string;
 }
+
+/**
+ * Backup Types
+ */
+export interface BackupInfo {
+  id: number;
+  filename: string;
+  sizeBytes: number;
+  sizeMB: number;
+  createdAt: number;
+  createdBy: string;
+  backupType: 'manual' | 'auto' | 'update';
+  includesWorlds: boolean;
+  includesPlugins: boolean;
+  includesConfigs: boolean;
+  notes?: string;
+}
+
+export interface AutoBackupSchedule {
+  id: number;
+  enabled: boolean;
+  scheduleType: 'daily' | 'every-6-hours' | 'weekly' | 'custom';
+  intervalValue: number;
+  includesWorlds: boolean;
+  includesPlugins: boolean;
+  includesConfigs: boolean;
+  retentionType: 'keep-last' | 'delete-older';
+  retentionValue: number;
+  lastRun?: number;
+  nextRun?: number;
+  createdBy?: string;
+  createdAt?: number;
+}
+
+export interface BackupCreateRequest {
+  includesWorlds: boolean;
+  includesPlugins: boolean;
+  includesConfigs: boolean;
+}
+
+/**
+ * Update History Types
+ */
+export interface UpdateHistoryEntry {
+  id: number;
+  fromVersion: string;
+  fromBuild: number;
+  toVersion: string;
+  toBuild: number;
+  updatedAt: number;
+  updatedBy: string;
+  backupCreated: boolean;
+  backupFilename?: string;
+  success: boolean;
+  notes?: string;
+}
+
+export interface ScheduledUpdate {
+  id: number;
+  scheduledTime: number;
+  version: string;
+  buildNumber: number;
+  createdBy: string;
+  createdAt: number;
+  status: 'pending' | 'executing' | 'completed' | 'cancelled' | 'failed';
+  notes?: string;
+}
+
+export interface ScheduleUpdateRequest {
+  scheduledTime: number;
+  notes?: string;
+}

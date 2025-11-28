@@ -5,8 +5,9 @@ import SecurityBanner from './SecurityBanner';
 import UpdateBanner from './UpdateBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { LogOut, User, Moon, Sun, Server } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { LogOut, User, Moon, Sun } from 'lucide-react';
+import logoBlack from '../img/pp_logo_black.png';
+import logoWhite from '../img/pp_logo_white.png';
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -20,31 +21,26 @@ export default function Layout() {
   return (
     <div className="flex h-screen bg-light-bg dark:bg-[#0a0a0a] text-light-text-primary dark:text-dark-text-primary overflow-hidden">
       {/* Unified Header across the top */}
-      <motion.header
-        initial={{ y: -10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="fixed top-0 left-0 right-0 bg-white/90 dark:bg-[#121212]/90 backdrop-blur-md border-b border-light-border dark:border-[#2a2a2a] px-6 py-4 shadow-soft dark:shadow-dark-soft z-50"
-      >
+      <header className="fixed top-0 left-0 right-0 bg-white/90 dark:bg-[#121212]/90 backdrop-blur-md border-b border-light-border dark:border-[#2a2a2a] px-6 py-4 shadow-soft dark:shadow-dark-soft z-50">
         <div className="flex items-center justify-between">
           {/* Logo Section */}
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
-              <Server className="w-8 h-8 text-primary-500" />
-            </div>
+            <img
+              src={theme === 'dark' ? logoWhite : logoBlack}
+              alt="PaperPanel"
+              className="h-10 w-10 object-contain"
+            />
             <div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary-500 to-accent-purple bg-clip-text text-transparent">PaperPanel</h1>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.2.6</p>
+              <h1 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">PaperPanel</h1>
+              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.5.20</p>
             </div>
           </div>
 
           {/* User Controls */}
           <div className="flex items-center gap-4">
-            <motion.button
+            <button
               onClick={toggleTheme}
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-2 rounded-xl bg-white dark:bg-[#1a1a1a] hover:bg-gradient-to-br hover:from-primary-500/20 hover:to-accent-purple/20 text-light-text-primary dark:text-dark-text-primary transition-all duration-300 shadow-soft dark:shadow-dark-soft border border-light-border dark:border-[#2a2a2a]"
+              className="p-2 rounded-xl bg-white dark:bg-[#1a1a1a] hover:bg-gradient-to-br hover:from-primary-500/20 hover:to-accent-purple/20 text-light-text-primary dark:text-dark-text-primary transition-colors duration-300 shadow-soft dark:shadow-dark-soft border border-light-border dark:border-[#2a2a2a]"
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
               {theme === 'dark' ? (
@@ -52,7 +48,7 @@ export default function Layout() {
               ) : (
                 <Moon className="w-5 h-5 text-blue-500" />
               )}
-            </motion.button>
+            </button>
 
             <div className="flex items-center gap-2 text-light-text-primary dark:text-dark-text-primary px-3 py-2 rounded-xl bg-white dark:bg-[#1a1a1a] border border-light-border dark:border-[#2a2a2a]">
               <div className="p-1 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
@@ -60,19 +56,17 @@ export default function Layout() {
               </div>
               <span className="font-medium">{user?.username}</span>
             </div>
-            
-            <motion.button
+
+            <button
               onClick={handleLogout}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white rounded-xl transition-all shadow-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors font-medium"
             >
               <LogOut className="w-4 h-4" />
               Logout
-            </motion.button>
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Main Content Area with Sidebar */}
       <div className="flex w-full pt-[88px]">
