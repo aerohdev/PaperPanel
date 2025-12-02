@@ -1,7 +1,7 @@
 {
     "name":  "server-admin-panel",
     "private":  true,
-    "version": "3.5.20",
+    "version": "3.7.5",
     "type":  "module",
     "scripts":  {
                     "dev":  "vite",

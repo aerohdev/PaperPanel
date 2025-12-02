@@ -89,9 +89,9 @@ export default function UpdateBanner() {
       {/* Installation Timer Banner */}
       {isInstalling && (
         <div className="bg-red-600 border-b border-orange-700 px-6 py-4">
-          <div className="flex items-center justify-center max-w-7xl mx-auto gap-4">
+          <div className="flex items-center gap-4">
             <AlertTriangle className="w-6 h-6 text-white flex-shrink-0 animate-pulse" />
-            <div className="text-center">
+            <div>
               <p className="text-white font-bold text-lg">
                 Server Restart in Progress
               </p>
@@ -99,7 +99,7 @@ export default function UpdateBanner() {
                 Server will restart in <span className="font-mono font-bold text-white text-base">{formatTime(timeRemaining)}</span>
               </p>
             </div>
-            <RefreshCw className="w-6 h-6 text-white flex-shrink-0 animate-spin" />
+            <RefreshCw className="w-6 h-6 text-white flex-shrink-0 animate-spin ml-auto" />
           </div>
         </div>
       )}
@@ -108,7 +108,7 @@ export default function UpdateBanner() {
       {!isInstalling && (
         <Link to="/updates" className="block">
           <div className="bg-blue-600 border-b border-blue-700 px-6 py-4 hover:bg-blue-700 transition-all cursor-pointer">
-            <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1">
                 {updateStatus.updateDownloaded ? (
                   <CheckCircle className="w-6 h-6 text-green-300 flex-shrink-0" />

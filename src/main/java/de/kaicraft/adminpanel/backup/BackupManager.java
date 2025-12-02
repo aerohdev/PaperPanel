@@ -71,6 +71,7 @@ public class BackupManager {
 
                 while (rs.next()) {
                     int scheduleId = rs.getInt("id");
+                    long nextRun = rs.getLong("next_run");
                     boolean includesWorlds = rs.getBoolean("includes_worlds");
                     boolean includesPlugins = rs.getBoolean("includes_plugins");
                     boolean includesConfigs = rs.getBoolean("includes_configs");
@@ -78,6 +79,46 @@ public class BackupManager {
                     int intervalValue = rs.getInt("interval_value");
                     String retentionType = rs.getString("retention_type");
                     int retentionValue = rs.getInt("retention_value");
+
+                    // Safety check: Skip if next_run is 0 or suspiciously recent (within last 2 minutes)
+                    // This prevents immediate execution on schedule creation
+                    if (nextRun == 0 || (currentTime - nextRun) > (2 * 60 * 1000)) {
+                        plugin.getLogger().warning(String.format("Skipping schedule ID %d: next_run is too old or 0 (was: %s). Recalculating...",
+                            scheduleId,
+                            new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(nextRun))));
+
+                        // Recalculate and update next_run to prevent running again
+                        long newNextRun = calculateNextRun(scheduleType, intervalValue);
+                        String updateQuery = "UPDATE auto_backup_schedules SET next_run = ?, updated_at = ? WHERE id = ?";
+                        try (PreparedStatement updateStmt = databaseManager.getConnection().prepareStatement(updateQuery)) {
+                            updateStmt.setLong(1, newNextRun);
+                            updateStmt.setLong(2, currentTime);
+                            updateStmt.setInt(3, scheduleId);
+                            updateStmt.executeUpdate();
+                        }
+                        continue; // Skip to next schedule
+                    }
+
+                    plugin.getLogger().info(String.format("Running scheduled backup (ID: %d, Type: %s, Next run was: %s)",
+                        scheduleId, scheduleType,
+                        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(nextRun))));
+
+                    // Calculate next run time IMMEDIATELY to prevent concurrent executions
+                    long newNextRun = calculateNextRun(scheduleType, intervalValue);
+
+                    // Update the schedule BEFORE starting the backup to prevent other scheduler ticks from running it again
+                    String updateQuery = "UPDATE auto_backup_schedules SET last_run = ?, next_run = ?, updated_at = ? WHERE id = ?";
+                    try (PreparedStatement updateStmt = databaseManager.getConnection().prepareStatement(updateQuery)) {
+                        updateStmt.setLong(1, currentTime);
+                        updateStmt.setLong(2, newNextRun);
+                        updateStmt.setLong(3, currentTime);
+                        updateStmt.setInt(4, scheduleId);
+                        updateStmt.executeUpdate();
+                    }
+
+                    plugin.getLogger().info(String.format("Updated schedule ID %d: next_run set to %s",
+                        scheduleId,
+                        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(newNextRun))));
 
                     // Create the backup
                     BackupOptions options = new BackupOptions(includesWorlds, includesPlugins, includesConfigs);
@@ -90,19 +131,6 @@ public class BackupManager {
                         applyRetentionPolicy(retentionType, retentionValue);
                     } else {
                         plugin.getLogger().warning("Auto-backup failed: " + result.message);
-                    }
-
-                    // Calculate next run time
-                    long nextRun = calculateNextRun(scheduleType, intervalValue);
-
-                    // Update the schedule
-                    String updateQuery = "UPDATE auto_backup_schedules SET last_run = ?, next_run = ?, updated_at = ? WHERE id = ?";
-                    try (PreparedStatement updateStmt = databaseManager.getConnection().prepareStatement(updateQuery)) {
-                        updateStmt.setLong(1, currentTime);
-                        updateStmt.setLong(2, nextRun);
-                        updateStmt.setLong(3, currentTime);
-                        updateStmt.setInt(4, scheduleId);
-                        updateStmt.executeUpdate();
                     }
                 }
             }
@@ -117,13 +145,20 @@ public class BackupManager {
     private long calculateNextRun(String scheduleType, int intervalValue) {
         long now = System.currentTimeMillis();
 
-        return switch (scheduleType) {
+        long calculatedNextRun = switch (scheduleType) {
             case "daily" -> now + (24L * 60 * 60 * 1000);
             case "every-6-hours" -> now + (6L * 60 * 60 * 1000);
             case "weekly" -> now + (7L * 24 * 60 * 60 * 1000);
             case "custom" -> now + ((long) intervalValue * 60 * 60 * 1000); // intervalValue in hours
             default -> now + (24L * 60 * 60 * 1000);
         };
+
+        plugin.getLogger().info(String.format("Calculated next run for '%s': %s (in %d hours)",
+            scheduleType,
+            new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(calculatedNextRun)),
+            (calculatedNextRun - now) / (60 * 60 * 1000)));
+
+        return calculatedNextRun;
     }
 
     /**
@@ -449,74 +484,103 @@ public class BackupManager {
 
     /**
      * Apply retention policy - delete old backups based on settings
+     * Only applies to auto-scheduled backups, not manual or update backups
      */
     public void applyRetentionPolicy(String retentionType, int retentionValue) {
         if (retentionType == null || retentionValue <= 0) return;
 
         try {
             if ("keep-last".equals(retentionType)) {
-                // Keep only the last N backups
-                String query = """
-                    DELETE FROM backups WHERE id NOT IN (
-                        SELECT id FROM backups ORDER BY created_at DESC LIMIT ?
+                // Keep only the last N auto-scheduled backups
+                // First, get IDs of backups to delete
+                String selectQuery = """
+                    SELECT id, file_path, filename FROM backups
+                    WHERE backup_type = 'manual' AND created_by = 'auto-scheduler'
+                    AND id NOT IN (
+                        SELECT id FROM backups
+                        WHERE backup_type = 'manual' AND created_by = 'auto-scheduler'
+                        ORDER BY created_at DESC
+                        LIMIT ?
                     )
                 """;
 
-                // Get backups to delete for file cleanup
-                String selectQuery = """
-                    SELECT file_path FROM backups WHERE id NOT IN (
-                        SELECT id FROM backups ORDER BY created_at DESC LIMIT ?
-                    )
-                """;
+                List<Integer> idsToDelete = new ArrayList<>();
 
                 try (PreparedStatement selectStmt = databaseManager.getConnection().prepareStatement(selectQuery)) {
                     selectStmt.setInt(1, retentionValue);
                     ResultSet rs = selectStmt.executeQuery();
 
                     while (rs.next()) {
-                        File file = new File(rs.getString("file_path"));
+                        int id = rs.getInt("id");
+                        String filePath = rs.getString("file_path");
+                        String filename = rs.getString("filename");
+
+                        // Delete the file
+                        File file = new File(filePath);
                         if (file.exists()) {
                             file.delete();
-                            plugin.getLogger().info("Retention policy: deleted old backup " + file.getName());
+                            plugin.getLogger().info("Retention policy: deleted old backup file " + filename);
                         }
+
+                        idsToDelete.add(id);
                     }
                 }
 
-                try (PreparedStatement stmt = databaseManager.getConnection().prepareStatement(query)) {
-                    stmt.setInt(1, retentionValue);
-                    int deleted = stmt.executeUpdate();
-                    if (deleted > 0) {
-                        plugin.getLogger().info("Retention policy: cleaned up " + deleted + " old backup records");
+                // Delete records from database
+                if (!idsToDelete.isEmpty()) {
+                    String deleteQuery = "DELETE FROM backups WHERE id = ?";
+                    try (PreparedStatement deleteStmt = databaseManager.getConnection().prepareStatement(deleteQuery)) {
+                        for (int id : idsToDelete) {
+                            deleteStmt.setInt(1, id);
+                            deleteStmt.executeUpdate();
+                        }
                     }
+                    plugin.getLogger().info("Retention policy: cleaned up " + idsToDelete.size() + " old backup records");
                 }
 
             } else if ("delete-older".equals(retentionType)) {
-                // Delete backups older than N days
+                // Delete auto-scheduled backups older than N days
                 long cutoffTime = System.currentTimeMillis() - ((long) retentionValue * 24 * 60 * 60 * 1000);
 
-                // Get backups to delete for file cleanup
-                String selectQuery = "SELECT file_path FROM backups WHERE created_at < ?";
+                // Get backups to delete for file cleanup (only auto-scheduled ones)
+                String selectQuery = """
+                    SELECT id, file_path, filename FROM backups
+                    WHERE backup_type = 'manual' AND created_by = 'auto-scheduler'
+                    AND created_at < ?
+                """;
+
+                List<Integer> idsToDelete = new ArrayList<>();
 
                 try (PreparedStatement selectStmt = databaseManager.getConnection().prepareStatement(selectQuery)) {
                     selectStmt.setLong(1, cutoffTime);
                     ResultSet rs = selectStmt.executeQuery();
 
                     while (rs.next()) {
-                        File file = new File(rs.getString("file_path"));
+                        int id = rs.getInt("id");
+                        String filePath = rs.getString("file_path");
+                        String filename = rs.getString("filename");
+
+                        // Delete the file
+                        File file = new File(filePath);
                         if (file.exists()) {
                             file.delete();
-                            plugin.getLogger().info("Retention policy: deleted old backup " + file.getName());
+                            plugin.getLogger().info("Retention policy: deleted old backup file " + filename);
                         }
+
+                        idsToDelete.add(id);
                     }
                 }
 
-                String query = "DELETE FROM backups WHERE created_at < ?";
-                try (PreparedStatement stmt = databaseManager.getConnection().prepareStatement(query)) {
-                    stmt.setLong(1, cutoffTime);
-                    int deleted = stmt.executeUpdate();
-                    if (deleted > 0) {
-                        plugin.getLogger().info("Retention policy: cleaned up " + deleted + " old backup records");
+                // Delete records from database
+                if (!idsToDelete.isEmpty()) {
+                    String deleteQuery = "DELETE FROM backups WHERE id = ?";
+                    try (PreparedStatement deleteStmt = databaseManager.getConnection().prepareStatement(deleteQuery)) {
+                        for (int id : idsToDelete) {
+                            deleteStmt.setInt(1, id);
+                            deleteStmt.executeUpdate();
+                        }
                     }
+                    plugin.getLogger().info("Retention policy: cleaned up " + idsToDelete.size() + " old backup records");
                 }
             }
         } catch (SQLException e) {
@@ -604,6 +668,10 @@ public class BackupManager {
         try {
             long now = System.currentTimeMillis();
             long nextRun = calculateNextRun(schedule.scheduleType, schedule.intervalValue);
+
+            plugin.getLogger().info(String.format("Saving schedule (ID: %d, Type: %s) with next_run: %s",
+                schedule.id, schedule.scheduleType,
+                new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(nextRun))));
 
             if (schedule.id > 0) {
                 // Update existing

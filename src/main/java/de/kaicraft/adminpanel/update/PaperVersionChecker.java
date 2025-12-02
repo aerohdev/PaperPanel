@@ -20,7 +20,7 @@ import java.util.zip.ZipOutputStream;
 public class PaperVersionChecker {
     private final ServerAdminPanelPlugin plugin;
     private final Gson gson;
-    
+
     private String currentVersion;
     private String latestVersion;
     private String latestBuild;
@@ -30,6 +30,11 @@ public class PaperVersionChecker {
     private String downloadUrl;
     private File downloadedJar;
     private int installedBuildNumber; // Persisted build number after update
+
+    // Async backup tracking
+    private volatile boolean updateBackupCompleted = false;
+    private volatile String updateBackupFilename = null;
+    private boolean createBackupBeforeUpdate = true; // Default to true for safety
 
     private static final String PAPER_API_BASE = "https://api.papermc.io/v2/projects/paper";
     private static final long CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
@@ -42,6 +47,10 @@ public class PaperVersionChecker {
         this.updateDownloaded = false;
         this.lastCheck = 0;
         this.installedBuildNumber = -1;
+
+        // Load config setting for backup before update
+        this.createBackupBeforeUpdate = plugin.getConfig().getBoolean("update-settings.create-backup-before-update", true);
+        plugin.getLogger().info("Update backup setting: " + (createBackupBeforeUpdate ? "enabled" : "disabled"));
 
         loadInstalledBuildNumber();
         extractVersionNumber();
@@ -207,13 +216,50 @@ public class PaperVersionChecker {
         plugin.getLogger().info("========================================");
         plugin.getLogger().info("Starting update installation...");
         plugin.getLogger().info("========================================");
-        
+
+        // Start backup asynchronously if enabled
+        if (createBackupBeforeUpdate) {
+            plugin.getLogger().info("[UPDATE] Creating pre-update backup asynchronously...");
+            updateBackupCompleted = false;
+            updateBackupFilename = null;
+
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                try {
+                    if (plugin.getBackupManager() != null) {
+                        var result = plugin.getBackupManager().createUpdateBackup("update-system");
+                        updateBackupCompleted = true;
+                        if (result.success) {
+                            updateBackupFilename = result.filename;
+                            plugin.getLogger().info("✓ Update backup created: " + result.filename);
+                        } else {
+                            plugin.getLogger().warning("✗ Update backup failed: " + result.message);
+                        }
+                    } else {
+                        // Fallback to built-in backup if BackupManager is not available
+                        boolean success = createBackup();
+                        updateBackupCompleted = true;
+                        if (success) {
+                            plugin.getLogger().info("✓ Update backup created (fallback method)");
+                        } else {
+                            plugin.getLogger().warning("✗ Update backup failed (fallback method)");
+                        }
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("✗ Update backup error: " + e.getMessage());
+                    updateBackupCompleted = true; // Mark as complete even on error to avoid hanging
+                }
+            });
+        } else {
+            plugin.getLogger().info("[UPDATE] Backup disabled - proceeding without backup");
+            updateBackupCompleted = true; // Set to true so we don't wait
+        }
+
         // Phase 1: 5-minute countdown with broadcasts
         broadcastUpdate("§e§l[UPDATE] Server update will be installed in 5 minutes!");
         broadcastUpdate("§e§lPlease finish your activities and prepare to disconnect.");
-        
+
         scheduleCountdownBroadcasts();
-        
+
         // Phase 2: After 5 minutes, execute installation
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             executeInstallationSteps();
@@ -245,22 +291,36 @@ public class PaperVersionChecker {
                 player.kickPlayer("§c§lServer Update\n§e\nThe server is being updated to a new version.\n§7Please reconnect in a few minutes!");
             }
             plugin.getLogger().info("  ✓ All players kicked");
-            
-            // Step 2: Create backup
-            plugin.getLogger().info("Step 2/5: Creating backup...");
-            boolean backupSuccess = false;
-            String backupFilename = null;
-            if (plugin.getBackupManager() != null) {
-                var result = plugin.getBackupManager().createUpdateBackup("update-system");
-                backupSuccess = result.success;
-                backupFilename = result.filename;
+
+            // Step 2: Wait for backup completion if enabled
+            if (createBackupBeforeUpdate) {
+                plugin.getLogger().info("Step 2/5: Waiting for backup to complete...");
+
+                // Wait up to 30 seconds for backup to complete if not ready
+                int waitTime = 0;
+                while (!updateBackupCompleted && waitTime < 30) {
+                    try {
+                        Thread.sleep(1000);
+                        waitTime++;
+                        if (waitTime % 5 == 0) {
+                            plugin.getLogger().info("  ... still waiting for backup (" + waitTime + "s)");
+                        }
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+
+                if (updateBackupCompleted) {
+                    if (updateBackupFilename != null) {
+                        plugin.getLogger().info("  ✓ Backup ready: " + updateBackupFilename);
+                    } else {
+                        plugin.getLogger().info("  ✓ Backup completed");
+                    }
+                } else {
+                    plugin.getLogger().warning("  ! Backup did not complete in time, proceeding without backup!");
+                }
             } else {
-                backupSuccess = createBackup();
-            }
-            if (backupSuccess) {
-                plugin.getLogger().info("  ✓ Backup created" + (backupFilename != null ? ": " + backupFilename : ""));
-            } else {
-                plugin.getLogger().warning("  ! Backup failed, but continuing...");
+                plugin.getLogger().info("Step 2/5: Skipping backup (disabled in config)...");
             }
             
             // Step 3: Update start.sh

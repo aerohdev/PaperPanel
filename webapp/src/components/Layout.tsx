@@ -32,7 +32,6 @@ export default function Layout() {
             />
             <div>
               <h1 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">PaperPanel</h1>
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">v3.5.20</p>
             </div>
           </div>
 

@@ -75,7 +75,19 @@ export default function Dashboard() {
 
   const tpsColor = stats.tps >= 19 ? 'text-green-500' : stats.tps >= 15 ? 'text-yellow-500' : 'text-red-500';
   const memoryPercent = Math.round((stats.memory.used / stats.memory.max) * 100);
-  const memoryColor = memoryPercent < 70 ? 'text-green-500' : memoryPercent < 85 ? 'text-yellow-500' : 'text-red-500';
+  const memoryColor = memoryPercent < 70 ? 'text-green-500' : memoryPercent < 75 ? 'text-yellow-500' : 'text-red-500';
+
+  // Player capacity calculation
+  const playerPercent = Math.round((stats.onlinePlayers / stats.maxPlayers) * 100);
+  const playerCapacityHigh = playerPercent >= 75;
+
+  // Uptime day calculation
+  const uptimeDays = (() => {
+    // Parse uptime string (e.g., "5d 12h 34m" or "12h 34m" or "34m")
+    const match = stats.uptimeFormatted.match(/(\d+)d/);
+    return match ? parseInt(match[1]) : 0;
+  })();
+  const uptimeTooLong = uptimeDays >= 30;
 
   return (
     <div className="p-6 space-y-6">
@@ -104,7 +116,7 @@ export default function Dashboard() {
         <StatCard
           title="TPS"
           value={stats.tps.toFixed(1)}
-          change={stats.tps >= 19 ? "Excellent" : stats.tps >= 15 ? "Good" : "Poor"}
+          change={stats.tps >= 19 ? "Excellent" : stats.tps >= 15 ? "Good" : "Server under load"}
           changeType={stats.tps >= 15 ? "up" : "down"}
           icon={<Activity className="w-6 h-6" />}
           gradient="blue"
@@ -113,7 +125,8 @@ export default function Dashboard() {
         <StatCard
           title="Players"
           value={`${stats.onlinePlayers}/${stats.maxPlayers}`}
-          change={`${Math.round((stats.onlinePlayers / stats.maxPlayers) * 100)}% capacity`}
+          change={playerCapacityHigh ? "High player count" : `${playerPercent}% capacity`}
+          changeType={playerCapacityHigh ? "down" : "up"}
           icon={<Users className="w-6 h-6" />}
           gradient="purple"
         />
@@ -121,8 +134,8 @@ export default function Dashboard() {
         <StatCard
           title="Memory"
           value={`${stats.memory.usedMB}MB`}
-          change={`${memoryPercent}% used`}
-          changeType={memoryPercent < 85 ? "up" : "down"}
+          change={memoryPercent >= 75 ? "High memory usage" : `${memoryPercent}% used`}
+          changeType={memoryPercent >= 75 ? "down" : "up"}
           icon={<HardDrive className="w-6 h-6" />}
           gradient="pink"
         />
@@ -130,8 +143,8 @@ export default function Dashboard() {
         <StatCard
           title="Uptime"
           value={stats.uptimeFormatted}
-          change="Running smoothly"
-          changeType="up"
+          change={uptimeTooLong ? "Restart recommended" : "Running smoothly"}
+          changeType={uptimeTooLong ? "down" : "up"}
           icon={<Clock className="w-6 h-6" />}
           gradient="green"
         />
@@ -199,7 +212,7 @@ export default function Dashboard() {
               className={`h-full transition-all duration-500 rounded-full ${
                 memoryPercent < 70
                   ? 'bg-emerald-500'
-                  : memoryPercent < 85
+                  : memoryPercent < 75
                   ? 'bg-yellow-500'
                   : 'bg-red-500'
               }`}

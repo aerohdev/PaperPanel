@@ -6,10 +6,19 @@ import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
 import { Card } from '../components/Card';
 import { useToast } from '../contexts/ToastContext';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface SelectedPlayer {
   uuid: string;
   name: string;
+}
+
+interface ConfirmState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  variant: 'danger' | 'warning' | 'info';
 }
 
 export default function Players() {
@@ -20,6 +29,13 @@ export default function Players() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedPlayer, setSelectedPlayer] = useState<SelectedPlayer | null>(null);
   const [message, setMessage] = useState<string>('');
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmState>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    variant: 'warning'
+  });
 
   useEffect(() => {
     fetchPlayers();
@@ -42,45 +58,65 @@ export default function Players() {
     }
   };
 
-  const handleKick = async (uuid: string, name: string) => {
-    if (!confirm(`Kick ${name} from the server?`)) return;
-
-    try {
-      await client.post(`/players/${uuid}/kick`, {
-        reason: 'Kicked by administrator'
-      });
-      toast.success(`${name} has been kicked`);
-      fetchPlayers();
-    } catch (err: any) {
-      toast.error(`Failed to kick player: ${err.response?.data?.message || err.message}`);
-    }
+  const handleKick = (uuid: string, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Kick Player',
+      message: `Kick ${name} from the server?`,
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          await client.post(`/players/${uuid}/kick`, {
+            reason: 'Kicked by administrator'
+          });
+          toast.success(`${name} has been kicked`);
+          fetchPlayers();
+        } catch (err: any) {
+          toast.error(`Failed to kick player: ${err.response?.data?.message || err.message}`);
+        }
+      },
+      variant: 'warning'
+    });
   };
 
-  const handleBan = async (uuid: string, name: string) => {
-    const reason = prompt(`Enter ban reason for ${name}:`, 'Banned by administrator');
-    if (reason === null) return; // User cancelled
-
-    try {
-      await client.post(`/players/${uuid}/ban`, {
-        reason: reason || 'Banned by administrator'
-      });
-      toast.success(`${name} has been banned`);
-      fetchPlayers();
-    } catch (err: any) {
-      toast.error(`Failed to ban player: ${err.response?.data?.message || err.message}`);
-    }
+  const handleBan = (uuid: string, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Ban Player',
+      message: `Ban ${name}? Reason: "Banned by administrator"`,
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          await client.post(`/players/${uuid}/ban`, {
+            reason: 'Banned by administrator'
+          });
+          toast.success(`${name} has been banned`);
+          fetchPlayers();
+        } catch (err: any) {
+          toast.error(`Failed to ban player: ${err.response?.data?.message || err.message}`);
+        }
+      },
+      variant: 'danger'
+    });
   };
 
-  const handleUnban = async (uuid: string, name: string) => {
-    if (!confirm(`Unban ${name}?`)) return;
-
-    try {
-      await client.delete(`/players/${uuid}/ban`);
-      toast.success(`${name} has been unbanned`);
-      fetchPlayers();
-    } catch (err: any) {
-      toast.error(`Failed to unban player: ${err.response?.data?.message || err.message}`);
-    }
+  const handleUnban = (uuid: string, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Unban Player',
+      message: `Unban ${name}?`,
+      onConfirm: async () => {
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        try {
+          await client.delete(`/players/${uuid}/ban`);
+          toast.success(`${name} has been unbanned`);
+          fetchPlayers();
+        } catch (err: any) {
+          toast.error(`Failed to unban player: ${err.response?.data?.message || err.message}`);
+        }
+      },
+      variant: 'info'
+    });
   };
 
   const handleSendMessage = async (uuid: string, name: string) => {
@@ -132,7 +168,17 @@ export default function Players() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        variant={confirmDialog.variant}
+      />
+
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Player Management</h1>
@@ -249,6 +295,7 @@ export default function Players() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

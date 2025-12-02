@@ -45,6 +45,12 @@ backup:
   # Warning threshold for backup size in MB
   max-size-warning: 5000
 
+update-settings:
+  # Whether to create a backup before installing updates
+  # Set to false to skip backups and speed up update installation
+  # WARNING: Disabling backups means you cannot rollback if the update fails
+  create-backup-before-update: true
+
 logging:
   # Log level: INFO, WARNING, SEVERE, FINE, FINER, FINEST
   level: INFO

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import client from '../api/client';
-import { Download, RefreshCw, Clock, History, HardDrive, Calendar, Trash2, Settings, Check, X, Archive, Play, Server } from 'lucide-react';
+import { Download, RefreshCw, Clock, History, HardDrive, Calendar, Trash2, Settings, Check, X, Archive, Play, Server, Edit } from 'lucide-react';
 import type { UpdateStatus, BackupInfo, AutoBackupSchedule, UpdateHistoryEntry, ScheduledUpdate } from '../types/api';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
 import { Card } from '../components/Card';
 import { useToast } from '../contexts/ToastContext';
 import { TabNavigation, Tab } from '../components/TabNavigation';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 type TabType = 'updates' | 'backups';
 
@@ -42,6 +43,8 @@ function UpdatesTab() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleTime, setScheduleTime] = useState('');
+  const [showInstallConfirm, setShowInstallConfirm] = useState(false);
+  const [scheduledToCancel, setScheduledToCancel] = useState<number | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -90,12 +93,19 @@ function UpdatesTab() {
     }
   };
 
-  const handleInstallUpdate = async () => {
-    if (!confirm('This will restart the server in 5 minutes. Continue?')) return;
+  const handleInstallUpdate = () => {
+    setShowInstallConfirm(true);
+  };
+
+  const executeInstallUpdate = async () => {
+    setShowInstallConfirm(false);
     setActionLoading('install');
     try {
       await client.post('/updates/install');
       toast.warning('Update installation started. Server will restart in 5 minutes.');
+
+      // Trigger the installation timer event for UpdateBanner
+      window.dispatchEvent(new Event('update-installing'));
     } catch (err: any) {
       toast.error('Failed to install update: ' + (err.response?.data?.error || err.message));
     } finally {
@@ -124,14 +134,20 @@ function UpdatesTab() {
     }
   };
 
-  const handleCancelScheduled = async (id: number) => {
-    if (!confirm('Cancel this scheduled update?')) return;
+  const handleCancelScheduled = (id: number) => {
+    setScheduledToCancel(id);
+  };
+
+  const executeCancelScheduled = async () => {
+    if (scheduledToCancel === null) return;
     try {
-      await client.delete(`/updates/schedule/${id}`);
+      await client.delete(`/updates/schedule/${scheduledToCancel}`);
       toast.success('Scheduled update cancelled');
       fetchData();
     } catch (err: any) {
       toast.error('Failed to cancel: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setScheduledToCancel(null);
     }
   };
 
@@ -140,7 +156,26 @@ function UpdatesTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <ConfirmDialog
+        isOpen={showInstallConfirm}
+        title="Install Update"
+        message="This will restart the server in 5 minutes. Continue?"
+        onConfirm={executeInstallUpdate}
+        onCancel={() => setShowInstallConfirm(false)}
+        variant="warning"
+      />
+
+      <ConfirmDialog
+        isOpen={scheduledToCancel !== null}
+        title="Cancel Scheduled Update"
+        message="Cancel this scheduled update?"
+        onConfirm={executeCancelScheduled}
+        onCancel={() => setScheduledToCancel(null)}
+        variant="warning"
+      />
+
+      <div className="space-y-6">
       {/* Current Version & Update Status */}
       <Card>
         <div className="flex items-start justify-between">
@@ -317,6 +352,7 @@ function UpdatesTab() {
         </div>
       )}
     </div>
+    </>
   );
 }
 
@@ -329,6 +365,9 @@ function BackupsTab() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<AutoBackupSchedule | null>(null);
+  const [backupToDelete, setBackupToDelete] = useState<number | null>(null);
+  const [scheduleToDelete, setScheduleToDelete] = useState<number | null>(null);
   const [createOptions, setCreateOptions] = useState({
     includesWorlds: true,
     includesPlugins: true,
@@ -399,36 +438,87 @@ function BackupsTab() {
     }
   };
 
-  const handleDeleteBackup = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this backup? This cannot be undone.')) return;
+  const handleDeleteBackup = (id: number) => {
+    setBackupToDelete(id);
+  };
+
+  const executeDeleteBackup = async () => {
+    if (backupToDelete === null) return;
     try {
-      await client.delete(`/backups/${id}`);
+      await client.delete(`/backups/${backupToDelete}`);
       toast.success('Backup deleted');
       fetchData();
     } catch (err: any) {
       toast.error('Failed to delete backup: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setBackupToDelete(null);
     }
+  };
+
+  const handleAddSchedule = () => {
+    setEditingSchedule(null);
+    setScheduleForm({
+      enabled: true,
+      scheduleType: 'daily',
+      intervalValue: 24,
+      includesWorlds: true,
+      includesPlugins: true,
+      includesConfigs: true,
+      retentionType: 'keep-last',
+      retentionValue: 7,
+    });
+    setShowScheduleModal(true);
+  };
+
+  const handleEditSchedule = (schedule: AutoBackupSchedule) => {
+    setEditingSchedule(schedule);
+    setScheduleForm({
+      id: schedule.id,
+      enabled: schedule.enabled,
+      scheduleType: schedule.scheduleType,
+      intervalValue: schedule.intervalValue,
+      includesWorlds: schedule.includesWorlds,
+      includesPlugins: schedule.includesPlugins,
+      includesConfigs: schedule.includesConfigs,
+      retentionType: schedule.retentionType,
+      retentionValue: schedule.retentionValue,
+    });
+    setShowScheduleModal(true);
   };
 
   const handleSaveSchedule = async () => {
     try {
-      await client.post('/backups/schedules', scheduleForm);
-      toast.success('Schedule saved successfully!');
+      if (editingSchedule) {
+        // Update existing schedule
+        await client.put(`/backups/schedules/${editingSchedule.id}`, scheduleForm);
+        toast.success('Schedule updated successfully!');
+      } else {
+        // Create new schedule
+        await client.post('/backups/schedules', scheduleForm);
+        toast.success('Schedule created successfully!');
+      }
       setShowScheduleModal(false);
+      setEditingSchedule(null);
       fetchData();
     } catch (err: any) {
       toast.error('Failed to save schedule: ' + (err.response?.data?.error || err.message));
     }
   };
 
-  const handleDeleteSchedule = async (id: number) => {
-    if (!confirm('Delete this auto-backup schedule?')) return;
+  const handleDeleteSchedule = (id: number) => {
+    setScheduleToDelete(id);
+  };
+
+  const executeDeleteSchedule = async () => {
+    if (scheduleToDelete === null) return;
     try {
-      await client.delete(`/backups/schedules/${id}`);
+      await client.delete(`/backups/schedules/${scheduleToDelete}`);
       toast.success('Schedule deleted');
       fetchData();
     } catch (err: any) {
       toast.error('Failed to delete schedule: ' + (err.response?.data?.error || err.message));
+    } finally {
+      setScheduleToDelete(null);
     }
   };
 
@@ -437,7 +527,26 @@ function BackupsTab() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <ConfirmDialog
+        isOpen={backupToDelete !== null}
+        title="Delete Backup"
+        message="Are you sure you want to delete this backup? This cannot be undone."
+        onConfirm={executeDeleteBackup}
+        onCancel={() => setBackupToDelete(null)}
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        isOpen={scheduleToDelete !== null}
+        title="Delete Auto-Backup Schedule"
+        message="Delete this auto-backup schedule?"
+        onConfirm={executeDeleteSchedule}
+        onCancel={() => setScheduleToDelete(null)}
+        variant="warning"
+      />
+
+      <div className="space-y-6">
       {/* Manual Backup Section */}
       <Card>
         <div className="flex items-start justify-between">
@@ -471,7 +580,7 @@ function BackupsTab() {
           </h2>
           <PermissionTooltip permission={Permission.MANAGE_AUTO_BACKUP}>
             <button
-              onClick={() => setShowScheduleModal(true)}
+              onClick={handleAddSchedule}
               className="px-3 py-1 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1 text-sm"
             >
               <Settings className="w-3 h-3" />
@@ -502,12 +611,26 @@ function BackupsTab() {
                     </p>
                   )}
                 </div>
-                <button
-                  onClick={() => handleDeleteSchedule(schedule.id)}
-                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <PermissionTooltip permission={Permission.MANAGE_AUTO_BACKUP}>
+                    <button
+                      onClick={() => handleEditSchedule(schedule)}
+                      className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors"
+                      title="Edit"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                  </PermissionTooltip>
+                  <PermissionTooltip permission={Permission.MANAGE_AUTO_BACKUP}>
+                    <button
+                      onClick={() => handleDeleteSchedule(schedule.id)}
+                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </PermissionTooltip>
+                </div>
               </div>
             ))}
           </div>
@@ -628,7 +751,9 @@ function BackupsTab() {
       {showScheduleModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <Card className="w-full max-w-md">
-            <h3 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Auto-Backup Schedule</h3>
+            <h3 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">
+              {editingSchedule ? 'Edit Auto-Backup Schedule' : 'Create Auto-Backup Schedule'}
+            </h3>
             <div className="space-y-4">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -732,7 +857,7 @@ function BackupsTab() {
                   onClick={handleSaveSchedule}
                   className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                 >
-                  Save Schedule
+                  {editingSchedule ? 'Update Schedule' : 'Create Schedule'}
                 </button>
               </div>
             </div>
@@ -740,5 +865,6 @@ function BackupsTab() {
         </div>
       )}
     </div>
+    </>
   );
 }

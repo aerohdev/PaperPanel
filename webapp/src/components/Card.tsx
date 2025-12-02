@@ -59,12 +59,9 @@ export function StatCard({ title, value, change, changeType, icon, gradient = 'b
           {change && (
             <div className="flex items-center gap-1">
               <span className={`text-sm font-medium ${
-                changeType === 'up' ? 'text-emerald-500' : 'text-red-500'
+                changeType === 'up' ? 'text-emerald-500' : 'text-emerald-500'
               }`}>
-                {changeType === 'up' ? '↑' : '↓'} {change}
-              </span>
-              <span className="text-xs text-light-text-muted dark:text-dark-text-muted">
-                from last period
+                {changeType === 'up' ? '' : ''} {change}
               </span>
             </div>
           )}

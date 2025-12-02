@@ -61,23 +61,14 @@ public class ConfigEditorAPI {
             addConfigIfExists(configs, "start.sh", "Start Script (Linux)", "shell");
             addConfigIfExists(configs, "start.bat", "Start Script (Windows)", "batch");
             
-            // Plugin configs
+            // Plugin configs - recursively scan all plugin folders for YAML files
             File pluginsDir = new File(serverRoot, "plugins");
             if (pluginsDir.exists() && pluginsDir.isDirectory()) {
                 File[] pluginFolders = pluginsDir.listFiles(File::isDirectory);
                 if (pluginFolders != null) {
                     for (File pluginFolder : pluginFolders) {
-                        File configYml = new File(pluginFolder, "config.yml");
-                        if (configYml.exists() && configYml.isFile()) {
-                            Map<String, Object> config = new HashMap<>();
-                            config.put("path", "plugins/" + pluginFolder.getName() + "/config.yml");
-                            config.put("name", pluginFolder.getName());
-                            config.put("category", "Plugin");
-                            config.put("type", "yaml");
-                            config.put("size", configYml.length());
-                            config.put("lastModified", configYml.lastModified());
-                            configs.add(config);
-                        }
+                        // Scan all YAML files in plugin folder recursively
+                        scanPluginFolder(configs, pluginFolder, pluginFolder, pluginFolder.getName());
                     }
                 }
             }
@@ -200,6 +191,37 @@ public class ConfigEditorAPI {
             config.put("size", file.length());
             config.put("lastModified", file.lastModified());
             configs.add(config);
+        }
+    }
+
+    /**
+     * Helper: Recursively scan plugin folder for YAML configuration files
+     */
+    private void scanPluginFolder(List<Map<String, Object>> configs, File currentDir, File pluginRoot, String pluginName) {
+        File[] files = currentDir.listFiles();
+        if (files == null) return;
+
+        for (File file : files) {
+            if (file.isDirectory()) {
+                // Recursively scan subdirectories
+                scanPluginFolder(configs, file, pluginRoot, pluginName);
+            } else if (file.isFile() && (file.getName().endsWith(".yml") || file.getName().endsWith(".yaml"))) {
+                // Calculate relative path from plugin root
+                String fullPath = file.getAbsolutePath();
+                String pluginRootPath = pluginRoot.getAbsolutePath();
+                String relativePath = fullPath.substring(pluginRootPath.length() + 1).replace("\\", "/");
+
+                Map<String, Object> config = new HashMap<>();
+                config.put("path", "plugins/" + pluginName + "/" + relativePath);
+                config.put("name", file.getName());
+                config.put("category", "Plugin");
+                config.put("type", "yaml");
+                config.put("size", file.length());
+                config.put("lastModified", file.lastModified());
+                config.put("plugin", pluginName);
+                config.put("relativePath", relativePath);
+                configs.add(config);
+            }
         }
     }
 

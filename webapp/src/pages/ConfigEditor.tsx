@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import client from '../api/client';
-import { FileText, Save, RefreshCw, FolderOpen, AlertCircle } from 'lucide-react';
+import { FileText, Save, RefreshCw, FolderOpen, AlertCircle, ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface ConfigFile {
   path: string;
@@ -10,6 +11,8 @@ interface ConfigFile {
   type: string;
   size: number;
   lastModified?: number;
+  plugin?: string; // Plugin name for plugin configs
+  relativePath?: string; // Path relative to plugin folder
 }
 
 export default function ConfigEditor() {
@@ -21,6 +24,8 @@ export default function ConfigEditor() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [expandedPlugins, setExpandedPlugins] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchConfigs();
@@ -54,13 +59,14 @@ export default function ConfigEditor() {
     }
   };
 
+  const handleSaveClick = () => {
+    if (!selectedFile) return;
+    setShowSaveConfirm(true);
+  };
+
   const saveFile = async () => {
     if (!selectedFile) return;
-    
-    if (!confirm('Are you sure you want to save changes to ' + selectedFile + '? A backup will be created automatically.')) {
-      return;
-    }
-    
+
     setSaving(true);
     setError(null);
     try {
@@ -77,12 +83,49 @@ export default function ConfigEditor() {
     }
   };
 
+  const togglePlugin = (pluginName: string) => {
+    setExpandedPlugins(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(pluginName)) {
+        newSet.delete(pluginName);
+      } else {
+        newSet.add(pluginName);
+      }
+      return newSet;
+    });
+  };
+
   const hasChanges = content !== originalContent;
   const serverConfigs = configs.filter(c => c.category === 'Server');
   const pluginConfigs = configs.filter(c => c.category === 'Plugin');
 
+  // Group plugin configs by plugin name
+  const pluginsByName = pluginConfigs.reduce((acc, cfg) => {
+    const pluginName = cfg.plugin || 'Unknown';
+    if (!acc[pluginName]) {
+      acc[pluginName] = [];
+    }
+    acc[pluginName].push(cfg);
+    return acc;
+  }, {} as Record<string, ConfigFile[]>);
+
+  const sortedPluginNames = Object.keys(pluginsByName).sort();
+
   return (
-    <div className="flex h-[calc(100vh-4rem)] gap-4 p-4">
+    <>
+      <ConfirmDialog
+        isOpen={showSaveConfirm}
+        title="Save Configuration"
+        message={`Are you sure you want to save changes to ${selectedFile}? A backup will be created automatically.`}
+        onConfirm={() => {
+          saveFile();
+          setShowSaveConfirm(false);
+        }}
+        onCancel={() => setShowSaveConfirm(false)}
+        variant="warning"
+      />
+
+      <div className="flex h-[calc(100vh-4rem)] gap-4 p-4">
       {/* Sidebar */}
       <div className="w-80 bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-y-auto flex-shrink-0">
         <div className="p-4 border-b border-light-border dark:border-dark-border">
@@ -122,29 +165,64 @@ export default function ConfigEditor() {
         )}
 
         {/* Plugin Configs */}
-        {pluginConfigs.length > 0 && (
+        {sortedPluginNames.length > 0 && (
           <div className="p-3 border-t border-light-border dark:border-dark-border">
             <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 mb-2">PLUGINS</h3>
             <div className="space-y-1">
-              {pluginConfigs.map(cfg => (
-                <button
-                  key={cfg.path}
-                  onClick={() => loadFile(cfg.path)}
-                  className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                    selectedFile === cfg.path
-                      ? 'bg-blue-600 text-white'
-                      : 'text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{cfg.name}</div>
-                      <div className="text-xs text-light-text-muted dark:text-dark-text-muted">{(cfg.size / 1024).toFixed(1)} KB</div>
-                    </div>
+              {sortedPluginNames.map(pluginName => {
+                const isExpanded = expandedPlugins.has(pluginName);
+                const files = pluginsByName[pluginName];
+
+                return (
+                  <div key={pluginName}>
+                    {/* Plugin Folder Header */}
+                    <button
+                      onClick={() => togglePlugin(pluginName)}
+                      className="w-full text-left px-2 py-2 rounded transition-colors text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover flex items-center gap-2"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 flex-shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 flex-shrink-0" />
+                      )}
+                      <Folder className="w-4 h-4 flex-shrink-0 text-yellow-500" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{pluginName}</div>
+                        <div className="text-xs text-light-text-muted dark:text-dark-text-muted">
+                          {files.length} file{files.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Plugin Files */}
+                    {isExpanded && (
+                      <div className="ml-4 mt-1 space-y-1">
+                        {files.map(cfg => (
+                          <button
+                            key={cfg.path}
+                            onClick={() => loadFile(cfg.path)}
+                            className={`w-full text-left px-3 py-2 rounded transition-colors ${
+                              selectedFile === cfg.path
+                                ? 'bg-blue-600 text-white'
+                                : 'text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm truncate">{cfg.relativePath || cfg.name}</div>
+                                <div className={`text-xs ${selectedFile === cfg.path ? 'text-white/70' : 'text-light-text-muted dark:text-dark-text-muted'}`}>
+                                  {(cfg.size / 1024).toFixed(1)} KB
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -181,7 +259,7 @@ export default function ConfigEditor() {
                   Reload
                 </button>
                 <button
-                  onClick={saveFile}
+                  onClick={handleSaveClick}
                   disabled={!hasChanges || saving}
                   className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-2"
                   title="Save changes (creates backup)"
@@ -232,5 +310,6 @@ export default function ConfigEditor() {
         )}
       </div>
     </div>
+    </>
   );
 }

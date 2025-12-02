@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { Permission, PERMISSION_INFO, PERMISSION_CATEGORIES, getPermissionsByCategory } from '../constants/permissions';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface User {
   username: string;
@@ -34,6 +35,7 @@ export function RoleManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -159,16 +161,16 @@ export function RoleManagement() {
     setSelectedUsers(newSelection);
   };
 
-  const handleBulkRoleAssignment = async () => {
+  const handleBulkRoleAssignment = () => {
     if (selectedUsers.size === 0) {
       setError('No users selected for bulk assignment');
       return;
     }
+    setShowBulkConfirm(true);
+  };
 
-    if (!confirm(`Assign role "${bulkRole}" to ${selectedUsers.size} selected user(s)?`)) {
-      return;
-    }
-
+  const executeBulkRoleAssignment = async () => {
+    setShowBulkConfirm(false);
     try {
       setIsSaving(true);
       setError(null);
@@ -207,7 +209,17 @@ export function RoleManagement() {
   }
 
   return (
-    <div className="p-6">
+    <>
+      <ConfirmDialog
+        isOpen={showBulkConfirm}
+        title="Assign Role to Multiple Users"
+        message={`Assign role "${bulkRole}" to ${selectedUsers.size} selected user(s)?`}
+        onConfirm={executeBulkRoleAssignment}
+        onCancel={() => setShowBulkConfirm(false)}
+        variant="warning"
+      />
+
+      <div className="p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Role Management</h1>
         <p className="text-gray-600 mt-2">Manage user roles and permissions for PaperPanel access</p>
@@ -455,5 +467,6 @@ export function RoleManagement() {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -42,6 +42,7 @@ public class WebServer {
     private final AuditLogAPI auditLogAPI;
     private final BackupAPI backupAPI;
     private final UpdatesAPI updatesAPI;
+    private final MaintenanceAPI maintenanceAPI;
 
     private Javalin app;
 
@@ -72,6 +73,7 @@ public class WebServer {
         this.auditLogAPI = new AuditLogAPI(plugin);
         this.backupAPI = new BackupAPI(plugin, backupManager);
         this.updatesAPI = new UpdatesAPI(plugin, databaseManager, backupManager);
+        this.maintenanceAPI = new MaintenanceAPI(plugin);
     }
 
     /**
@@ -320,6 +322,28 @@ public class WebServer {
         
         app.before("/api/v1/ops/export", permissionMiddleware.requirePermission(Permission.VIEW_OPS));
         app.get("/api/v1/ops/export", whitelistAPI::exportOps);
+
+        // Maintenance routes
+        app.before("/api/v1/maintenance/status", permissionMiddleware.requirePermission(Permission.VIEW_SERVER));
+        app.get("/api/v1/maintenance/status", maintenanceAPI::getStatus);
+
+        app.before("/api/v1/maintenance/enable", permissionMiddleware.requirePermission(Permission.RESTART_SERVER));
+        app.post("/api/v1/maintenance/enable", maintenanceAPI::enableMaintenance);
+
+        app.before("/api/v1/maintenance/disable", permissionMiddleware.requirePermission(Permission.RESTART_SERVER));
+        app.post("/api/v1/maintenance/disable", maintenanceAPI::disableMaintenance);
+
+        app.before("/api/v1/maintenance/settings", permissionMiddleware.requirePermission(Permission.RESTART_SERVER));
+        app.put("/api/v1/maintenance/settings", maintenanceAPI::updateSettings);
+
+        app.before("/api/v1/maintenance/whitelist/add", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.post("/api/v1/maintenance/whitelist/add", maintenanceAPI::addToWhitelist);
+
+        app.before("/api/v1/maintenance/whitelist/remove/{uuid}", permissionMiddleware.requirePermission(Permission.MANAGE_WHITELIST));
+        app.delete("/api/v1/maintenance/whitelist/remove/{uuid}", maintenanceAPI::removeFromWhitelist);
+
+        app.before("/api/v1/maintenance/timer", permissionMiddleware.requirePermission(Permission.RESTART_SERVER));
+        app.post("/api/v1/maintenance/timer", maintenanceAPI::setTimer);
 
         // WebSocket route for live console
         app.ws("/ws/console", ws -> {

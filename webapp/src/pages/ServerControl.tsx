@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import client from '../api/client';
-import { Server, Power, Save, CloudRain, Sun, Moon, Clock, PowerOff } from 'lucide-react';
+import { Server, Power, Save, CloudRain, Sun, Moon, Clock, PowerOff, Shield, Users, X, Settings as SettingsIcon } from 'lucide-react';
 import type { WorldInfo } from '../types/api';
 import { PermissionTooltip } from '../components/PermissionTooltip';
 import { Permission } from '../constants/permissions';
@@ -16,6 +16,21 @@ interface ConfirmState {
   variant: 'danger' | 'warning' | 'info';
 }
 
+interface MaintenanceWhitelistPlayer {
+  uuid: string;
+  name: string;
+}
+
+interface MaintenanceStatus {
+  enabled: boolean;
+  kickMessage: string;
+  motd: string;
+  playerCountText: string;
+  serverIconPath: string;
+  endTime: number;
+  whitelist: MaintenanceWhitelistPlayer[];
+}
+
 export default function ServerControl() {
   const { toast } = useToast();
   const [restartDelay, setRestartDelay] = useState<number>(300);
@@ -29,8 +44,21 @@ export default function ServerControl() {
     variant: 'warning'
   });
 
+  // Maintenance mode state
+  const [maintenance, setMaintenance] = useState<MaintenanceStatus | null>(null);
+  const [maintenanceSettings, setMaintenanceSettings] = useState({
+    kickMessage: '',
+    motd: '',
+    playerCountText: '',
+    serverIconPath: ''
+  });
+  const [maintenanceTimer, setMaintenanceTimer] = useState<number>(0);
+  const [newWhitelistPlayer, setNewWhitelistPlayer] = useState('');
+  const [showMaintenanceSettings, setShowMaintenanceSettings] = useState(false);
+
   useEffect(() => {
     fetchWorlds();
+    fetchMaintenanceStatus();
   }, []);
 
   const fetchWorlds = async () => {
@@ -134,6 +162,105 @@ export default function ServerControl() {
     }
   };
 
+  // Maintenance mode functions
+  const fetchMaintenanceStatus = async () => {
+    try {
+      const { data } = await client.get('/maintenance/status');
+      setMaintenance(data);
+      setMaintenanceSettings({
+        kickMessage: data.kickMessage,
+        motd: data.motd,
+        playerCountText: data.playerCountText || '',
+        serverIconPath: data.serverIconPath || ''
+      });
+    } catch (err: any) {
+      console.error('Failed to fetch maintenance status:', err);
+    }
+  };
+
+  const toggleMaintenance = async () => {
+    if (!maintenance) return;
+
+    try {
+      if (maintenance.enabled) {
+        await client.post('/maintenance/disable');
+        toast.success('Maintenance mode disabled!');
+      } else {
+        await client.post('/maintenance/enable');
+        toast.success('Maintenance mode enabled!');
+      }
+      await fetchMaintenanceStatus();
+    } catch (err: any) {
+      toast.error(`Failed to toggle maintenance mode: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const saveMaintenanceSettings = async () => {
+    try {
+      await client.put('/maintenance/settings', maintenanceSettings);
+      toast.success('Maintenance settings saved!');
+      await fetchMaintenanceStatus();
+      setShowMaintenanceSettings(false);
+    } catch (err: any) {
+      toast.error(`Failed to save settings: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const setMaintenanceTimerDuration = async () => {
+    try {
+      if (maintenanceTimer > 0) {
+        await client.post('/maintenance/timer', { duration: maintenanceTimer });
+        toast.success(`Maintenance timer set to ${maintenanceTimer} minutes`);
+      } else {
+        await client.post('/maintenance/timer', {});
+        toast.success('Maintenance timer cleared');
+      }
+      await fetchMaintenanceStatus();
+      setMaintenanceTimer(0);
+    } catch (err: any) {
+      toast.error(`Failed to set timer: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const addToMaintenanceWhitelist = async () => {
+    if (!newWhitelistPlayer.trim()) return;
+
+    try {
+      await client.post('/maintenance/whitelist/add', { playerName: newWhitelistPlayer.trim() });
+      toast.success(`Added ${newWhitelistPlayer} to maintenance whitelist`);
+      setNewWhitelistPlayer('');
+      await fetchMaintenanceStatus();
+    } catch (err: any) {
+      toast.error(`Failed to add player: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const removeFromMaintenanceWhitelist = async (uuid: string, name: string) => {
+    try {
+      await client.delete(`/maintenance/whitelist/remove/${uuid}`);
+      toast.success(`Removed ${name} from maintenance whitelist`);
+      await fetchMaintenanceStatus();
+    } catch (err: any) {
+      toast.error(`Failed to remove player: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const formatTimeRemaining = (endTime: number) => {
+    if (endTime === 0) return null;
+    const now = Date.now();
+    if (endTime <= now) return 'Ending soon...';
+
+    const diff = endTime - now;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days}d ${hours % 24}h remaining`;
+    if (hours > 0) return `${hours}h ${minutes % 60}m remaining`;
+    if (minutes > 0) return `${minutes}m remaining`;
+    return 'Less than 1m remaining';
+  };
+
   return (
     <div className="space-y-6">
       <ConfirmDialog
@@ -213,6 +340,212 @@ export default function ServerControl() {
           </div>
         </div>
       </Card>
+
+      {/* Maintenance Mode */}
+      {maintenance && (
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20">
+                <Shield className="w-6 h-6 text-orange-500" />
+              </div>
+              Maintenance Mode
+            </h2>
+            <PermissionTooltip permission={Permission.RESTART_SERVER}>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                  {maintenance.enabled ? 'Enabled' : 'Disabled'}
+                </span>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={maintenance.enabled}
+                    onChange={toggleMaintenance}
+                    className="sr-only peer"
+                  />
+                  <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-orange-500"></div>
+                </div>
+              </label>
+            </PermissionTooltip>
+          </div>
+
+          {maintenance.enabled && (
+            <div className="mb-4 p-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-500 rounded-lg">
+              <p className="text-orange-900 dark:text-orange-200 text-sm font-medium flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Maintenance mode is active - only whitelisted players can join
+              </p>
+              {maintenance.endTime > 0 && (
+                <p className="text-orange-900 dark:text-orange-200 text-xs mt-1">
+                  {formatTimeRemaining(maintenance.endTime)}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Settings Panel */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400">SETTINGS</h3>
+                <button
+                  onClick={() => setShowMaintenanceSettings(!showMaintenanceSettings)}
+                  className="text-sm text-primary-500 hover:text-primary-600 flex items-center gap-1"
+                >
+                  <SettingsIcon className="w-3 h-3" />
+                  {showMaintenanceSettings ? 'Hide' : 'Edit Messages'}
+                </button>
+              </div>
+
+              {showMaintenanceSettings && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                      Kick Message
+                    </label>
+                    <textarea
+                      value={maintenanceSettings.kickMessage}
+                      onChange={(e) => setMaintenanceSettings({...maintenanceSettings, kickMessage: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      placeholder="Message shown to players trying to join"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                      MOTD (Server List Message)
+                    </label>
+                    <textarea
+                      value={maintenanceSettings.motd}
+                      onChange={(e) => setMaintenanceSettings({...maintenanceSettings, motd: e.target.value})}
+                      rows={2}
+                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      placeholder="Message shown in server list. Use %TIMER% for countdown."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                      Player Count Text (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={maintenanceSettings.playerCountText}
+                      onChange={(e) => setMaintenanceSettings({...maintenanceSettings, playerCountText: e.target.value})}
+                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      placeholder="Leave empty for normal count"
+                    />
+                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted mt-1">
+                      Custom text shown in place of player count (e.g., "Maintenance in progress")
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                      Server Icon Path (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={maintenanceSettings.serverIconPath}
+                      onChange={(e) => setMaintenanceSettings({...maintenanceSettings, serverIconPath: e.target.value})}
+                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      placeholder="Leave empty for default icon"
+                    />
+                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted mt-1">
+                      Absolute path to custom PNG icon (64x64, e.g., /path/to/maintenance-icon.png)
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={saveMaintenanceSettings}
+                    className="w-full px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
+                  >
+                    Save Settings
+                  </button>
+                </div>
+              )}
+
+              {/* Timer */}
+              <div className="pt-3 border-t border-light-border dark:border-dark-border">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+                  Auto-Disable Timer (minutes)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={maintenanceTimer}
+                    onChange={(e) => setMaintenanceTimer(parseInt(e.target.value) || 0)}
+                    min={0}
+                    className="flex-1 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                    placeholder="0 = no timer"
+                  />
+                  <button
+                    onClick={setMaintenanceTimerDuration}
+                    className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
+                  >
+                    Set Timer
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Whitelist Panel */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                WHITELIST ({maintenance.whitelist.length})
+              </h3>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newWhitelistPlayer}
+                  onChange={(e) => setNewWhitelistPlayer(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addToMaintenanceWhitelist()}
+                  placeholder="Player name"
+                  className="flex-1 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                />
+                <button
+                  onClick={addToMaintenanceWhitelist}
+                  className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
+                >
+                  Add
+                </button>
+              </div>
+
+              <div className="max-h-48 overflow-y-auto space-y-1">
+                {maintenance.whitelist.length === 0 ? (
+                  <p className="text-sm text-light-text-muted dark:text-dark-text-muted text-center py-4">
+                    No players whitelisted
+                  </p>
+                ) : (
+                  maintenance.whitelist.map(player => (
+                    <div
+                      key={player.uuid}
+                      className="flex items-center justify-between px-3 py-2 bg-light-surface dark:bg-dark-surface rounded-lg"
+                    >
+                      <span className="text-sm text-light-text-primary dark:text-dark-text-primary">
+                        {player.name}
+                      </span>
+                      <button
+                        onClick={() => removeFromMaintenanceWhitelist(player.uuid, player.name)}
+                        className="text-red-500 hover:text-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">
+                Players with <code className="px-1 bg-light-surface dark:bg-dark-surface rounded">paperpanel.maintenance.bypass</code> permission can also join
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* World Selection */}
       {worlds.length > 0 && (

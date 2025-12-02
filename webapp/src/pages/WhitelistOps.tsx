@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Shield, UserPlus, Download, Upload, AlertCircle, X, Check, Crown } from 'lucide-react';
 import axios from '../api/client';
 import { TabNavigation, Tab } from '../components/TabNavigation';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 interface PlayerListEntry {
   uuid: string;
@@ -35,6 +36,7 @@ export default function WhitelistOps() {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [importText, setImportText] = useState('');
+  const [playerToRemove, setPlayerToRemove] = useState<{ uuid: string; name: string } | null>(null);
 
   useEffect(() => {
     loadAllData();
@@ -109,18 +111,23 @@ export default function WhitelistOps() {
     }
   };
 
-  const removePlayer = async (uuid: string, name: string) => {
-    if (!confirm(`Are you sure you want to remove ${name}?`)) return;
+  const removePlayer = (uuid: string, name: string) => {
+    setPlayerToRemove({ uuid, name });
+  };
 
+  const executeRemovePlayer = async () => {
+    if (!playerToRemove) return;
     try {
-      const endpoint = activeTab === 'whitelist' 
-        ? `/whitelist/remove/${uuid}` 
-        : `/ops/remove/${uuid}`;
+      const endpoint = activeTab === 'whitelist'
+        ? `/whitelist/remove/${playerToRemove.uuid}`
+        : `/ops/remove/${playerToRemove.uuid}`;
       await axios.delete(endpoint);
-      showMessage('success', `${name} removed successfully`);
+      showMessage('success', `${playerToRemove.name} removed successfully`);
       await loadData();
     } catch (error: any) {
       showMessage('error', error.response?.data?.error || 'Failed to remove player');
+    } finally {
+      setPlayerToRemove(null);
     }
   };
 
@@ -184,7 +191,17 @@ export default function WhitelistOps() {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <ConfirmDialog
+        isOpen={playerToRemove !== null}
+        title={`Remove ${activeTab === 'whitelist' ? 'Whitelisted' : 'Operator'} Player`}
+        message={`Are you sure you want to remove ${playerToRemove?.name}?`}
+        onConfirm={executeRemovePlayer}
+        onCancel={() => setPlayerToRemove(null)}
+        variant="warning"
+      />
+
+      <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">Whitelist & Operators</h1>
@@ -385,5 +402,6 @@ export default function WhitelistOps() {
         )}
       </div>
     </div>
+    </>
   );
 }
