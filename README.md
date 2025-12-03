@@ -14,12 +14,14 @@ A comprehensive web-based administration panel for Minecraft Paper servers featu
 A full-stack application that transforms Minecraft server management with a modern web interface. Built with Java 21, React 18, and TypeScript 5.3, this panel provides everything you need to manage your Paper server efficiently.
 
 **✨ What's New in v3.8.1:**
+
 - 🎨 **Liquid Glass Design System** - Complete UI transformation with modern glassmorphism aesthetic
   - Semi-transparent panels with backdrop blur and saturation effects
   - Multi-layered shadow system for depth and luminosity
   - Gradient backgrounds with inner highlights
   - Smooth animations and hover effects throughout
   - Apple-inspired design language
+    
 - 🔐 **Role-Based Access Control (RBAC)** - Comprehensive permission system
   - Multiple predefined roles: Admin, Moderator, Operator, Viewer, Custom
   - 30+ granular permissions across all features
@@ -27,6 +29,7 @@ A full-stack application that transforms Minecraft server management with a mode
   - Bulk role assignment for multiple users
   - Permission tooltips showing requirements on disabled buttons
   - Dynamic sidebar - shows/hides menu items based on user permissions
+    
 - 📋 **Whitelist & Ops Management** - Full-featured whitelist/ops control page
   - Add/remove whitelist entries (by name or UUID)
   - Manage server operators with level control
@@ -34,27 +37,26 @@ A full-stack application that transforms Minecraft server management with a mode
   - Export current lists to files
   - Tab-based interface with separate management
   - Player existence validation
+    
 - 📝 **Config Editor** - Edit server configuration files through web interface
   - Edit server.properties, bukkit.yml, spigot.yml, paper.yml
   - Live syntax highlighting and formatting
   - Save changes directly from browser
   - Configuration validation
   - Backup before changes
+    
 - 🔄 **Updates & Backups System** - Comprehensive server maintenance
   - **Updates Tab**: Check for Paper updates, download new versions, schedule installations
   - **Backups Tab**: Create manual backups, configure auto-backup schedules, restore from backups
   - One-click update process with automatic restart
   - Selective backup options (worlds, plugins, configs)
+  
 - 📜 **Audit Log Viewer** - View comprehensive audit logs
   - Track all user actions with timestamps
   - Filter by user, action type, date range
   - Export logs for compliance
   - Real-time log updates
-- 🌓 **Enhanced Theme System** - Light and dark mode support
-  - Smooth theme transitions
-  - Theme persistence across sessions
-  - Optimized colors for both themes
-  - Theme-aware logo and icons
+    
 - ✨ **Scroll Animations** - Smooth page load animations
   - Staggered animations for list items
   - Fade-in effects for cards and panels
