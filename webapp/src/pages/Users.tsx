@@ -111,7 +111,7 @@ export default function Users() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 text-white rounded-lg transition-colors border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)]"
         >
           <Plus className="w-5 h-5" />
           Create User
@@ -340,7 +340,7 @@ function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 disabled:from-gray-600/60 disabled:via-gray-700/60 disabled:to-gray-600/60 disabled:cursor-not-allowed text-white rounded-lg transition-colors border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
           >
             {loading ? 'Creating...' : 'Create User'}
           </button>
@@ -348,7 +348,7 @@ function CreateUserModal({ onClose, onCreate, loading }: CreateUserModalProps) {
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-900/60 backdrop-blur-xl hover:bg-gray-800/60 text-white rounded-lg transition-colors border border-gray-700/50"
           >
             Cancel
           </button>
@@ -440,7 +440,7 @@ function PasswordModal({ username, onClose, onSubmit, loading }: PasswordModalPr
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 disabled:from-gray-600/60 disabled:via-gray-700/60 disabled:to-gray-600/60 disabled:cursor-not-allowed text-white rounded-lg transition-colors border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
           >
             {loading ? 'Changing...' : 'Change Password'}
           </button>
@@ -448,7 +448,7 @@ function PasswordModal({ username, onClose, onSubmit, loading }: PasswordModalPr
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-900/60 backdrop-blur-xl hover:bg-gray-800/60 text-white rounded-lg transition-colors border border-gray-700/50"
           >
             Cancel
           </button>
@@ -487,14 +487,14 @@ function DeleteModal({ username, onClose, onConfirm, loading }: DeleteModalProps
           <button
             onClick={() => onConfirm(username)}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gradient-to-br from-red-600/80 via-red-700/80 to-red-600/80 backdrop-blur-xl hover:from-red-600 hover:via-red-700 hover:to-red-600 disabled:from-gray-600/60 disabled:via-gray-700/60 disabled:to-gray-600/60 disabled:cursor-not-allowed text-white rounded-lg transition-colors border border-red-500/50 shadow-[0_4px_16px_0_rgba(239,68,68,0.3)]"
           >
             {loading ? 'Deleting...' : 'Delete User'}
           </button>
           <button
             onClick={onClose}
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-900/60 backdrop-blur-xl hover:bg-gray-800/60 text-white rounded-lg transition-colors border border-gray-700/50"
           >
             Cancel
           </button>
@@ -513,15 +513,20 @@ interface ModalProps {
 
 function Modal({ title, children, onClose }: ModalProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg max-w-md w-full mx-4">
-        <div className="flex items-center justify-between p-6 border-b border-light-border dark:border-dark-border">
-          <h2 className="text-xl font-bold text-light-text-primary dark:text-white">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-light-text-muted dark:text-gray-400 hover:text-light-text-primary dark:hover:text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+      <div className="
+        bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40
+        backdrop-blur-3xl backdrop-saturate-150
+        border border-white/20
+        rounded-2xl
+        shadow-[0_20px_60px_0_rgba(0,0,0,0.7),0_0_80px_0_rgba(138,92,246,0.2),inset_0_1px_0_0_rgba(255,255,255,0.2)]
+        max-w-md w-full
+        animate-scale-in
+      ">
+        <div className="flex items-center justify-between p-6 border-b border-white/10">
+          <h3 className="text-xl font-bold text-white">{title}</h3>
+          <button onClick={onClose}>
+            <X className="w-5 h-5 text-gray-300" />
           </button>
         </div>
         <div className="p-6">

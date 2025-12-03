@@ -67,10 +67,23 @@ export function PermissionTooltip({
       <div className="opacity-50 cursor-not-allowed pointer-events-none">
         {children}
       </div>
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-lg border border-gray-700">
+      <div className="
+        absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2
+        px-3 py-2
+        bg-gray-900/95 dark:bg-gray-800/95
+        backdrop-blur-xl
+        text-white text-xs
+        rounded-lg
+        whitespace-nowrap
+        opacity-0 group-hover:opacity-100
+        transition-opacity
+        pointer-events-none z-50
+        shadow-[0_4px_20px_rgba(0,0,0,0.4)]
+        border border-white/20
+      ">
         {tooltipMessage}
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-          <div className="border-4 border-transparent border-t-gray-900"></div>
+          <div className="border-4 border-transparent border-t-gray-900/95 dark:border-t-gray-800/95"></div>
         </div>
       </div>
     </div>

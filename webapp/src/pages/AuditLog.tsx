@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../api/client';
 import { FileText, Filter, RefreshCw, AlertCircle, Shield, Terminal } from 'lucide-react';
+import { ScrollAnimatedItem } from '../components/ScrollAnimatedItem';
 
 interface AuditLogEntry {
   timestamp: number;
@@ -143,22 +144,34 @@ export function AuditLog() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-full p-6 gap-6">
       {/* Header */}
+      <ScrollAnimatedItem delay={0} className="flex-shrink-0">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Audit Logs</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">Audit Logs</h1>
           <p className="text-gray-400">View system activity and security events</p>
         </div>
         <button
           onClick={() => loadData()}
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+          className="
+            flex items-center gap-2 px-4 py-2
+            bg-white/5 backdrop-blur-xl
+            hover:bg-white/10
+            text-white
+            rounded-xl
+            transition-all duration-300
+            border border-white/10
+            disabled:opacity-50 disabled:cursor-not-allowed
+          "
+          title="Refresh now"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
+      </ScrollAnimatedItem>
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
@@ -169,42 +182,45 @@ export function AuditLog() {
 
       {/* Statistics */}
       {stats && (
+        <ScrollAnimatedItem delay={0.1} className="flex-shrink-0">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
-            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">Total Entries</div>
-            <div className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{stats.totalEntries.toLocaleString()}</div>
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-4 rounded-lg">
+            <div className="text-gray-400 text-sm mb-1">Total Entries</div>
+            <div className="text-2xl font-bold text-white">{stats.totalEntries.toLocaleString()}</div>
           </div>
-          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
-            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">Audit Events</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.categoryCounts.audit.toLocaleString()}</div>
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-4 rounded-lg">
+            <div className="text-gray-400 text-sm mb-1">Audit Events</div>
+            <div className="text-2xl font-bold text-green-400">{stats.categoryCounts.audit.toLocaleString()}</div>
           </div>
-          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
-            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">Security Events</div>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.categoryCounts.security.toLocaleString()}</div>
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-4 rounded-lg">
+            <div className="text-gray-400 text-sm mb-1">Security Events</div>
+            <div className="text-2xl font-bold text-red-400">{stats.categoryCounts.security.toLocaleString()}</div>
           </div>
-          <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
-            <div className="text-light-text-muted dark:text-gray-400 text-sm mb-1">API Events</div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.categoryCounts.api.toLocaleString()}</div>
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-4 rounded-lg">
+            <div className="text-gray-400 text-sm mb-1">API Events</div>
+            <div className="text-2xl font-bold text-purple-400">{stats.categoryCounts.api.toLocaleString()}</div>
           </div>
         </div>
+        </ScrollAnimatedItem>
       )}
 
       {/* Filters */}
-      <div className="bg-light-card dark:bg-dark-surface p-4 rounded-lg border border-light-border dark:border-dark-border">
+      <ScrollAnimatedItem delay={0.2} className="flex-shrink-0">
+      <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-4 rounded-lg">
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-5 h-5 text-light-text-muted dark:text-gray-400" />
-          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Filters</h2>
+          <Filter className="w-5 h-5 text-gray-400" />
+          <h2 className="text-lg font-semibold text-white">Filters</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-light-text-muted dark:text-gray-400 mb-2">Category</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Category</label>
             <select
               value={category}
               onChange={(e) => {
                 setCategory(e.target.value);
                 setOffset(0);
               }}
-              className="w-full px-3 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded-lg border border-light-border dark:border-dark-border focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none [&>option]:bg-gray-900 [&>option]:text-white"
             >
               <option value="all">All Categories</option>
               <option value="audit">Audit</option>
@@ -213,14 +229,14 @@ export function AuditLog() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-light-text-muted dark:text-gray-400 mb-2">Level</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Level</label>
             <select
               value={levelFilter}
               onChange={(e) => {
                 setLevelFilter(e.target.value);
                 setOffset(0);
               }}
-              className="w-full px-3 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded-lg border border-light-border dark:border-dark-border focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none [&>option]:bg-gray-900 [&>option]:text-white"
             >
               <option value="all">All Levels</option>
               <option value="info">Info</option>
@@ -229,7 +245,7 @@ export function AuditLog() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-light-text-muted dark:text-gray-400 mb-2">Search</label>
+            <label className="block text-sm font-medium text-gray-400 mb-2">Search</label>
             <input
               type="text"
               value={searchTerm}
@@ -238,17 +254,19 @@ export function AuditLog() {
                 setOffset(0);
               }}
               placeholder="Search messages..."
-              className="w-full px-3 py-2 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded-lg border border-light-border dark:border-dark-border focus:border-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white rounded-lg border border-white/20 focus:border-blue-500 focus:outline-none"
             />
           </div>
         </div>
       </div>
+      </ScrollAnimatedItem>
 
       {/* Log Entries */}
-      <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
-        <div className="overflow-x-auto">
+      <ScrollAnimatedItem delay={0.3} className="flex-1 flex flex-col min-h-[500px]">
+      <div className="flex-1 bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-x-auto overflow-y-auto">
           <table className="w-full">
-            <thead className="bg-light-surface dark:bg-dark-bg border-b border-light-border dark:border-dark-border">
+            <thead className="bg-gray-900/40 backdrop-blur-xl border-b border-white/20">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Timestamp
@@ -267,17 +285,17 @@ export function AuditLog() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-light-border dark:divide-dark-border">
+            <tbody className="divide-y divide-white/20">
               {entries.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-light-text-muted dark:text-gray-400">
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
                     No audit log entries found
                   </td>
                 </tr>
               ) : (
                 entries.map((entry, index) => (
-                  <tr key={index} className="hover:bg-light-surface dark:hover:bg-dark-hover transition-colors">
-                    <td className="px-4 py-3 text-sm text-light-text-secondary dark:text-gray-300 whitespace-nowrap">
+                  <tr key={index} className="hover:bg-white/10 transition-colors">
+                    <td className="px-4 py-3 text-sm text-gray-300 whitespace-nowrap">
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td className="px-4 py-3 text-sm">
@@ -291,10 +309,10 @@ export function AuditLog() {
                         {entry.level}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-light-text-secondary dark:text-gray-300">
-                      {entry.username || <span className="text-light-text-muted dark:text-gray-500">—</span>}
+                    <td className="px-4 py-3 text-sm text-gray-300">
+                      {entry.username || <span className="text-gray-400">—</span>}
                     </td>
-                    <td className="px-4 py-3 text-sm text-light-text-secondary dark:text-gray-300">
+                    <td className="px-4 py-3 text-sm text-gray-300">
                       {entry.message}
                     </td>
                   </tr>
@@ -306,22 +324,22 @@ export function AuditLog() {
 
         {/* Pagination */}
         {total > limit && (
-          <div className="px-4 py-3 border-t border-light-border dark:border-dark-border flex items-center justify-between">
-            <div className="text-sm text-light-text-muted dark:text-gray-400">
+          <div className="px-4 py-3 border-t border-white/20 flex items-center justify-between">
+            <div className="text-sm text-gray-400">
               Showing {offset + 1} to {Math.min(offset + limit, total || entries.length)} of {total || entries.length} entries
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={offset === 0}
-                className="px-3 py-1 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded hover:bg-light-border dark:hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-gray-900/40 backdrop-blur-xl text-white rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={offset + limit >= total}
-                className="px-3 py-1 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white rounded hover:bg-light-border dark:hover:bg-dark-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-3 py-1 bg-gray-900/40 backdrop-blur-xl text-white rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
               </button>
@@ -329,6 +347,7 @@ export function AuditLog() {
           </div>
         )}
       </div>
+      </ScrollAnimatedItem>
     </div>
   );
 }

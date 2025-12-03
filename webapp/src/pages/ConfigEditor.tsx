@@ -3,6 +3,7 @@ import client from '../api/client';
 import { FileText, Save, RefreshCw, FolderOpen, AlertCircle, ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ScrollAnimatedItem } from '../components/ScrollAnimatedItem';
 
 interface ConfigFile {
   path: string;
@@ -125,15 +126,16 @@ export default function ConfigEditor() {
         variant="warning"
       />
 
-      <div className="flex h-[calc(100vh-4rem)] gap-4 p-4">
+      <div className="flex h-[calc(100vh-150px)] gap-4 p-6">
       {/* Sidebar */}
-      <div className="w-80 bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-y-auto flex-shrink-0">
-        <div className="p-4 border-b border-light-border dark:border-dark-border">
-          <h2 className="text-xl font-bold text-light-text-primary dark:text-white flex items-center gap-2">
+      <ScrollAnimatedItem delay={0} className="w-80 flex-shrink-0">
+      <div className="h-full bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg overflow-y-auto flex flex-col">
+        <div className="p-4 border-b border-white/20">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <FolderOpen className="w-5 h-5" />
             Config Files
           </h2>
-          <p className="text-sm text-light-text-muted dark:text-gray-400 mt-1">
+          <p className="text-sm text-gray-400 mt-1">
             {configs.length} file(s) available
           </p>
         </div>
@@ -141,7 +143,7 @@ export default function ConfigEditor() {
         {/* Server Configs */}
         {serverConfigs.length > 0 && (
           <div className="p-3">
-            <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 mb-2">SERVER</h3>
+            <h3 className="text-sm font-semibold text-gray-400 mb-2">SERVER</h3>
             {serverConfigs.map(cfg => (
               <button
                 key={cfg.path}
@@ -149,7 +151,7 @@ export default function ConfigEditor() {
                 className={`w-full text-left px-3 py-2 rounded mb-1 transition-colors ${
                   selectedFile === cfg.path
                     ? 'bg-blue-600 text-white'
-                    : 'text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover'
+                    : 'text-gray-300 hover:bg-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -166,8 +168,8 @@ export default function ConfigEditor() {
 
         {/* Plugin Configs */}
         {sortedPluginNames.length > 0 && (
-          <div className="p-3 border-t border-light-border dark:border-dark-border">
-            <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 mb-2">PLUGINS</h3>
+          <div className="p-3 border-t border-white/20">
+            <h3 className="text-sm font-semibold text-gray-400 mb-2">PLUGINS</h3>
             <div className="space-y-1">
               {sortedPluginNames.map(pluginName => {
                 const isExpanded = expandedPlugins.has(pluginName);
@@ -178,7 +180,7 @@ export default function ConfigEditor() {
                     {/* Plugin Folder Header */}
                     <button
                       onClick={() => togglePlugin(pluginName)}
-                      className="w-full text-left px-2 py-2 rounded transition-colors text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover flex items-center gap-2"
+                      className="w-full text-left px-2 py-2 rounded transition-colors text-gray-300 hover:bg-white/10 flex items-center gap-2"
                     >
                       {isExpanded ? (
                         <ChevronDown className="w-4 h-4 flex-shrink-0" />
@@ -188,7 +190,7 @@ export default function ConfigEditor() {
                       <Folder className="w-4 h-4 flex-shrink-0 text-yellow-500" />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium truncate">{pluginName}</div>
-                        <div className="text-xs text-light-text-muted dark:text-dark-text-muted">
+                        <div className="text-xs text-gray-400">
                           {files.length} file{files.length !== 1 ? 's' : ''}
                         </div>
                       </div>
@@ -204,14 +206,14 @@ export default function ConfigEditor() {
                             className={`w-full text-left px-3 py-2 rounded transition-colors ${
                               selectedFile === cfg.path
                                 ? 'bg-blue-600 text-white'
-                                : 'text-light-text-secondary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-hover'
+                                : 'text-gray-300 hover:bg-white/10'
                             }`}
                           >
                             <div className="flex items-center gap-2">
                               <FileText className="w-4 h-4 flex-shrink-0" />
                               <div className="flex-1 min-w-0">
                                 <div className="text-sm truncate">{cfg.relativePath || cfg.name}</div>
-                                <div className={`text-xs ${selectedFile === cfg.path ? 'text-white/70' : 'text-light-text-muted dark:text-dark-text-muted'}`}>
+                                <div className={`text-xs ${selectedFile === cfg.path ? 'text-white/70' : 'text-gray-400'}`}>
                                   {(cfg.size / 1024).toFixed(1)} KB
                                 </div>
                               </div>
@@ -227,15 +229,17 @@ export default function ConfigEditor() {
           </div>
         )}
       </div>
+      </ScrollAnimatedItem>
 
       {/* Editor */}
-      <div className="flex-1 bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border flex flex-col overflow-hidden">
+      <ScrollAnimatedItem delay={0.1} className="flex-1 min-w-0">
+      <div className="h-full bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg flex flex-col overflow-hidden">
         {selectedFile ? (
           <>
             {/* Editor Header */}
-            <div className="p-4 border-b border-light-border dark:border-dark-border flex items-center justify-between flex-shrink-0">
+            <div className="p-4 border-b border-white/20 flex items-center justify-between flex-shrink-0">
               <div>
-                <h3 className="text-lg font-bold text-light-text-primary dark:text-white">{selectedFile}</h3>
+                <h3 className="text-lg font-bold text-white">{selectedFile}</h3>
                 <div className="flex items-center gap-2 mt-1">
                   {hasChanges && (
                     <span className="text-sm text-yellow-400 flex items-center gap-1">
@@ -252,7 +256,7 @@ export default function ConfigEditor() {
                 <button
                   onClick={() => loadFile(selectedFile)}
                   disabled={loading}
-                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-gray-900/40 backdrop-blur-xl text-white rounded-lg hover:bg-white/10 transition disabled:opacity-50 flex items-center gap-2 border border-white/20 shadow-[0_4px_16px_0_rgba(0,0,0,0.4),0_0_30px_0_rgba(138,92,246,0.1)]"
                   title="Reload from disk"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -261,7 +265,7 @@ export default function ConfigEditor() {
                 <button
                   onClick={handleSaveClick}
                   disabled={!hasChanges || saving}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-gradient-to-br from-green-600/80 via-green-700/80 to-green-600/80 backdrop-blur-xl text-white rounded-lg hover:from-green-600 hover:via-green-700 hover:to-green-600 transition disabled:opacity-50 flex items-center gap-2 border border-green-500/50 shadow-[0_4px_16px_0_rgba(34,197,94,0.3)]"
                   title="Save changes (creates backup)"
                 >
                   <Save className="w-4 h-4" />
@@ -283,14 +287,14 @@ export default function ConfigEditor() {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="absolute inset-0 w-full h-full p-4 bg-light-surface dark:bg-dark-bg text-light-text-primary dark:text-white font-mono text-sm resize-none focus:outline-none"
+                className="absolute inset-0 w-full h-full p-4 bg-gray-900/40 backdrop-blur-xl text-white font-mono text-sm resize-none focus:outline-none"
                 spellCheck={false}
                 placeholder="Loading..."
               />
             </div>
 
             {/* Footer */}
-            <div className="p-2 border-t border-light-border dark:border-dark-border flex items-center justify-between text-xs text-light-text-muted dark:text-gray-400 flex-shrink-0">
+            <div className="p-2 border-t border-white/20 flex items-center justify-between text-xs text-gray-400 flex-shrink-0">
               <div>
                 Lines: {content.split('\n').length} • Characters: {content.length}
               </div>
@@ -309,6 +313,7 @@ export default function ConfigEditor() {
           </div>
         )}
       </div>
+      </ScrollAnimatedItem>
     </div>
     </>
   );

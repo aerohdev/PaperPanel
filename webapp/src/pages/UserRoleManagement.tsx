@@ -3,6 +3,7 @@ import { apiClient } from '../api/client';
 import { Shield, Plus, Trash2, Key, AlertCircle, CheckCircle, X, Users as UsersIcon, UserCog, Save } from 'lucide-react';
 import { Permission, PERMISSION_INFO, PERMISSION_CATEGORIES, getPermissionsByCategory } from '../constants/permissions';
 import { TabNavigation, Tab } from '../components/TabNavigation';
+import { ScrollAnimatedItem } from '../components/ScrollAnimatedItem';
 
 interface User {
   username: string;
@@ -269,8 +270,8 @@ export default function UserRoleManagement() {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">User & Role Management</h1>
-        <p className="text-light-text-muted dark:text-dark-text-muted">Manage users, roles, and permissions</p>
+        <h1 className="text-3xl font-bold text-white mb-2">User & Role Management</h1>
+        <p className="text-gray-400">Manage users, roles, and permissions</p>
       </div>
 
       {/* Messages */}
@@ -387,34 +388,35 @@ function UsersTab({
   onDeleteUser: (username: string) => void;
 }) {
   return (
-    <div>
-      <div className="mb-4 flex justify-end">
-        <button
-          onClick={onCreateUser}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Create User
-        </button>
-      </div>
-
-      <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
+    <div className="mt-6">
+      <ScrollAnimatedItem delay={0}>
+      <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 rounded-lg border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+          <h2 className="text-xl font-bold text-white">User Management</h2>
+          <button
+            onClick={onCreateUser}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)] disabled:opacity-50"
+          >
+            <Plus className="w-5 h-5" />
+            Create User
+          </button>
+        </div>
         <table className="w-full">
-          <thead className="bg-light-surface dark:bg-dark-hover border-b border-light-border dark:border-dark-border">
+          <thead className="bg-black/30 border-b border-white/10">
             <tr>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Username</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Role</th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-light-text-secondary dark:text-gray-300">Status</th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-light-text-secondary dark:text-gray-300">Actions</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Username</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Role</th>
+              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
+              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-light-border dark:divide-dark-border">
+          <tbody className="divide-y divide-white/20">
             {users.map((user) => (
-              <tr key={user.username} className="hover:bg-light-surface dark:hover:bg-dark-hover transition-colors">
+              <tr key={user.username} className="hover:bg-white/5 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-blue-500" />
-                    <span className="text-light-text-primary dark:text-white font-medium">{user.username}</span>
+                    <span className="text-white font-medium">{user.username}</span>
                     {user.isCurrentUser && (
                       <span className="px-2 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 text-xs rounded-full border border-blue-500">
                         You
@@ -427,7 +429,7 @@ function UsersTab({
                     user.role === 'admin' ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500' :
                     user.role === 'moderator' ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 border-purple-500' :
                     user.role === 'support' ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-500' :
-                    'bg-gray-200 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400 border-gray-500'
+                    'bg-gray-200 dark:bg-gray-500/20 text-gray-700 text-gray-400 border-gray-500'
                   }`}>
                     {user.roleDisplayName}
                   </span>
@@ -465,6 +467,7 @@ function UsersTab({
           </tbody>
         </table>
       </div>
+      </ScrollAnimatedItem>
     </div>
   );
 }
@@ -506,152 +509,162 @@ function RolesTab({
   onToggleUserSelection: (username: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* User List */}
-      <div className="lg:col-span-1">
-        <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-4">
-          <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">Select User</h3>
-          
-          {/* Bulk Actions */}
-          {selectedUsers.size > 0 && (
-            <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500 rounded-lg">
-              <div className="text-sm text-blue-400 mb-2">{selectedUsers.size} user(s) selected</div>
-              <div className="flex gap-2">
-                <select
-                  value={bulkRole}
-                  onChange={(e) => onBulkRoleChange(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {roles.map((role) => (
-                    <option key={role.key} value={role.key}>
-                      {role.displayName}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={onBulkRoleAssignment}
-                  disabled={isSaving}
-                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isSaving ? 'Saving...' : 'Assign'}
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {users.map((user) => (
-              <div
-                key={user.username}
-                className="flex items-center gap-2"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedUsers.has(user.username)}
-                  onChange={() => onToggleUserSelection(user.username)}
-                  className="w-4 h-4"
-                />
-                <button
-                  onClick={() => onUserSelect(user.username)}
-                  className={`flex-1 text-left px-3 py-2 rounded-lg transition-colors border ${
-                    selectedUser === user.username
-                      ? 'bg-primary-500/20 text-primary-500 border-primary-500'
-                      : 'bg-light-card dark:bg-dark-hover text-light-text-primary dark:text-gray-300 hover:bg-light-surface dark:hover:bg-dark-border border-light-border dark:border-dark-border'
-                  }`}
-                >
-                  <div className="font-medium">{user.username}</div>
-                  <div className="text-xs text-light-text-muted dark:text-dark-text-muted">{user.roleDisplayName}</div>
-                </button>
-              </div>
-            ))}
+    <div className="space-y-6">
+      {/* Role Selection - Moved to Top */}
+      <ScrollAnimatedItem delay={0}>
+      {selectedUser && userPermissions ? (
+        <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 rounded-lg border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">User Role</h3>
+          <div className="flex items-center gap-4">
+            <select
+              value={userPermissions.role}
+              onChange={(e) => onRoleChange(e.target.value)}
+              disabled={isSaving}
+              className="flex-1 px-4 py-3 bg-gray-900/40 backdrop-blur-xl border border-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 [&>option]:bg-gray-900 [&>option]:text-white"
+            >
+              {roles.map((role) => (
+                <option key={role.key} value={role.key}>
+                  {role.displayName}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
-      </div>
+      ) : null}
+      </ScrollAnimatedItem>
 
-      {/* User Details */}
-      <div className="lg:col-span-2">
-        {selectedUser && userPermissions ? (
-          <div className="space-y-6">
-            {/* Role Selection */}
-            <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-6">
-              <h3 className="text-lg font-semibold text-light-text-primary dark:text-white mb-4">User Role</h3>
-              <div className="flex items-center gap-4">
-                <select
-                  value={userPermissions.role}
-                  onChange={(e) => onRoleChange(e.target.value)}
-                  disabled={isSaving}
-                  className="flex-1 px-4 py-3 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {roles.map((role) => (
-                    <option key={role.key} value={role.key}>
-                      {role.displayName}
-                    </option>
-                  ))}
-                </select>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* User List - Changed to 1/3 width */}
+        <ScrollAnimatedItem delay={0.1}>
+        <div className="lg:col-span-1">
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 rounded-lg border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-4">
+            <h3 className="text-lg font-semibold text-white mb-4">Select User</h3>
+
+            {/* Bulk Actions */}
+            {selectedUsers.size > 0 && (
+              <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500 rounded-lg">
+                <div className="text-sm text-blue-400 mb-2">{selectedUsers.size} user(s) selected</div>
+                <div className="flex gap-2">
+                  <select
+                    value={bulkRole}
+                    onChange={(e) => onBulkRoleChange(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-gray-900/40 backdrop-blur-xl border border-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {roles.map((role) => (
+                      <option key={role.key} value={role.key}>
+                        {role.displayName}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={onBulkRoleAssignment}
+                    disabled={isSaving}
+                    className="px-3 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)] disabled:opacity-50"
+                  >
+                    {isSaving ? 'Saving...' : 'Assign'}
+                  </button>
+                </div>
               </div>
+            )}
+
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {users.map((user) => (
+                <div
+                  key={user.username}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedUsers.has(user.username)}
+                    onChange={() => onToggleUserSelection(user.username)}
+                    className="w-4 h-4"
+                  />
+                  <button
+                    onClick={() => onUserSelect(user.username)}
+                    className={`flex-1 text-left px-3 py-2 rounded-lg transition-colors border ${
+                      selectedUser === user.username
+                        ? 'bg-primary-500/20 text-primary-500 border-primary-500'
+                        : 'bg-gray-900/40 backdrop-blur-xl text-gray-300 hover:bg-white/10 border-white/20'
+                    }`}
+                  >
+                    <div className="font-medium">{user.username}</div>
+                    <div className="text-xs text-gray-400">{user.roleDisplayName}</div>
+                  </button>
+                </div>
+              ))}
             </div>
+          </div>
+        </div>
+        </ScrollAnimatedItem>
 
-            {/* Custom Permissions */}
-            <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-light-text-primary dark:text-white">Custom Permissions</h3>
-                <button
-                  onClick={onSavePermissions}
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
-                >
-                  <Save className="w-4 h-4" />
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
+        {/* User Details - Changed to 2/3 width */}
+        <ScrollAnimatedItem delay={0.2}>
+        <div className="lg:col-span-2">
+          {selectedUser && userPermissions ? (
+            <div className="space-y-6">
+              {/* Custom Permissions */}
+              <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 rounded-lg border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-white">Custom Permissions</h3>
+                  <button
+                    onClick={onSavePermissions}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)] disabled:opacity-50"
+                  >
+                    <Save className="w-4 h-4" />
+                    {isSaving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
 
-              <div className="space-y-6">
-                {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => {
-                  const allGrouped = getPermissionsByCategory();
-                  const categoryPerms = allGrouped[category] || [];
-                  const availablePerms = categoryPerms.filter(p => permissions.includes(p));
-                  
-                  if (availablePerms.length === 0) return null;
+                <div className="space-y-6">
+                  {Object.entries(PERMISSION_CATEGORIES).map(([category, label]) => {
+                    const allGrouped = getPermissionsByCategory();
+                    const categoryPerms = allGrouped[category] || [];
+                    const availablePerms = categoryPerms.filter(p => permissions.includes(p));
 
-                  return (
-                    <div key={category}>
-                      <h4 className="text-sm font-semibold text-light-text-secondary dark:text-gray-300 mb-3">{label}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {availablePerms.map((permission) => {
-                          const info = PERMISSION_INFO[permission];
-                          if (!info) return null;
+                    if (availablePerms.length === 0) return null;
 
-                          return (
-                            <label
-                              key={permission}
-                              className="flex items-start gap-3 p-3 bg-light-card dark:bg-dark-hover rounded-lg cursor-pointer hover:bg-light-surface dark:hover:bg-dark-border transition-colors"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={customPermissions.has(permission)}
-                                onChange={() => onPermissionToggle(permission)}
-                                className="mt-1"
-                              />
-                              <div className="flex-1">
-                                <div className="text-light-text-primary dark:text-white font-medium text-sm">{info.name}</div>
-                                <div className="text-light-text-muted dark:text-gray-400 text-xs">{info.description}</div>
-                              </div>
-                            </label>
-                          );
-                        })}
+                    return (
+                      <div key={category}>
+                        <h4 className="text-sm font-semibold text-gray-300 mb-3">{label}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {availablePerms.map((permission) => {
+                            const info = PERMISSION_INFO[permission];
+                            if (!info) return null;
+
+                            return (
+                              <label
+                                key={permission}
+                                className="flex items-start gap-3 p-3 bg-gray-900/40 backdrop-blur-xl rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={customPermissions.has(permission)}
+                                  onChange={() => onPermissionToggle(permission)}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1">
+                                  <div className="text-white font-medium text-sm">{info.name}</div>
+                                  <div className="text-gray-400 text-xs">{info.description}</div>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-12 text-center">
-            <UserCog className="w-16 h-16 text-light-text-muted dark:text-gray-600 mx-auto mb-4" />
-            <p className="text-light-text-muted dark:text-gray-400">Select a user to manage their role and permissions</p>
-          </div>
-        )}
+          ) : (
+            <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 rounded-lg border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-12 text-center">
+              <UserCog className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-400">Select a user to manage their role and permissions</p>
+            </div>
+          )}
+        </div>
+        </ScrollAnimatedItem>
       </div>
     </div>
   );
@@ -679,22 +692,22 @@ function CreateUserModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Create New User</h2>
+      <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-white mb-4">Create New User</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label className="block text-light-text-secondary dark:text-gray-300 mb-2">Username</label>
+              <label className="block text-gray-300 mb-2">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 bg-gray-900/40 backdrop-blur-xl border border-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-light-text-secondary dark:text-gray-300 mb-2">Password</label>
+              <label className="block text-gray-300 mb-2">Password</label>
               <input
                 type="password"
                 value={password}
@@ -708,14 +721,14 @@ function CreateUserModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-dark-hover hover:bg-dark-border text-white rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-gray-900/40 backdrop-blur-xl hover:bg-white/10 border border-white/20 text-white rounded-xl transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)] disabled:opacity-50"
             >
               {isLoading ? 'Creating...' : 'Create'}
             </button>
@@ -749,17 +762,17 @@ function PasswordModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Change Password</h2>
-        <p className="text-light-text-muted dark:text-gray-400 mb-4">Changing password for: <span className="text-light-text-primary dark:text-white font-medium">{username}</span></p>
+      <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-white mb-4">Change Password</h2>
+        <p className="text-gray-400 mb-4">Changing password for: <span className="text-white font-medium">{username}</span></p>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-light-text-secondary dark:text-gray-300 mb-2">New Password</label>
+            <label className="block text-gray-300 mb-2">New Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-light-surface dark:bg-dark-hover border border-light-border dark:border-dark-border text-light-text-primary dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 bg-gray-900/40 backdrop-blur-xl border border-white/20 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -767,14 +780,14 @@ function PasswordModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 bg-dark-hover hover:bg-dark-border text-white rounded-lg transition-colors"
+              className="flex-1 px-4 py-2 bg-gray-900/40 backdrop-blur-xl hover:bg-white/10 border border-white/20 text-white rounded-xl transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)] disabled:opacity-50"
             >
               {isLoading ? 'Changing...' : 'Change Password'}
             </button>
@@ -799,22 +812,22 @@ function DeleteUserModal({
 }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-white mb-4">Delete User</h2>
-        <p className="text-light-text-muted dark:text-gray-400 mb-4">
-          Are you sure you want to delete <span className="text-light-text-primary dark:text-white font-medium">{username}</span>? This action cannot be undone.
+      <div className="bg-gray-900/40 backdrop-blur-xl border border-white/20 rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-white mb-4">Delete User</h2>
+        <p className="text-gray-400 mb-4">
+          Are you sure you want to delete <span className="text-white font-medium">{username}</span>? This action cannot be undone.
         </p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 bg-light-surface dark:bg-dark-hover hover:bg-light-border dark:hover:bg-dark-border text-light-text-primary dark:text-white rounded-lg transition-colors"
+            className="flex-1 px-4 py-2 bg-gray-900/40 backdrop-blur-xl hover:bg-white/10 border border-white/20 text-white rounded-xl transition-colors font-medium"
           >
             Cancel
           </button>
           <button
             onClick={() => onDelete(username)}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2 bg-gradient-to-br from-red-600/80 via-red-700/80 to-red-600/80 backdrop-blur-xl text-white rounded-xl hover:from-red-600 hover:via-red-700 hover:to-red-600 transition-colors font-medium border border-red-500/50 shadow-[0_4px_16px_0_rgba(220,38,38,0.3),0_0_30px_0_rgba(220,38,38,0.2)] disabled:opacity-50"
           >
             {isLoading ? 'Deleting...' : 'Delete'}
           </button>

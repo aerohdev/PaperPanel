@@ -221,29 +221,29 @@ export function RoleManagement() {
 
       <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Role Management</h1>
-        <p className="text-gray-600 mt-2">Manage user roles and permissions for PaperPanel access</p>
+        <h1 className="text-3xl font-bold text-white">Role Management</h1>
+        <p className="text-gray-300 mt-2">Manage user roles and permissions for PaperPanel access</p>
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="mb-4 bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+        <div className="mb-4 bg-green-500/10 border border-green-500/50 text-green-400 px-4 py-3 rounded">
           {success}
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* User List */}
-        <div className="lg:col-span-1 bg-white rounded-lg shadow">
-          <div className="p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Users</h2>
+        <div className="lg:col-span-1 bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg">
+          <div className="p-4 border-b border-white/20">
+            <h2 className="text-lg font-semibold text-white">Users</h2>
             {selectedUsers.size > 0 && (
-              <p className="text-sm text-gray-600 mt-1">{selectedUsers.size} selected</p>
+              <p className="text-sm text-gray-300 mt-1">{selectedUsers.size} selected</p>
             )}
           </div>
           <div className="p-4">
@@ -309,10 +309,10 @@ export function RoleManagement() {
         </div>
 
         {/* Role & Permission Editor */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow">
+        <div className="lg:col-span-2 bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg">
           {selectedUser && userPermissions ? (
             <>
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-white/20">
                 <h2 className="text-lg font-semibold text-gray-900">
                   Edit Permissions: {selectedUser}
                 </h2>
@@ -456,9 +456,9 @@ export function RoleManagement() {
       </div>
 
       {/* Role Descriptions */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">Role Descriptions</h3>
-        <div className="space-y-2 text-sm text-blue-800">
+      <div className="mt-6 bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg p-4">
+        <h3 className="font-semibold text-white mb-2">Role Descriptions</h3>
+        <div className="space-y-2 text-sm text-gray-300">
           <p><strong>Admin:</strong> Full access to all features including user management</p>
           <p><strong>Moderator:</strong> Can manage players, whitelist, ops, and send broadcasts</p>
           <p><strong>Support:</strong> Can view and message players, access logs</p>

@@ -361,13 +361,23 @@ public class PaperVersionChecker {
 
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 try {
-                    // First try Paper's restart command (uses spigot.yml restart-script)
+                    // Ensure spigot.yml has restart-script configured
+                    ensureRestartScriptConfigured();
+
+                    // Save all worlds before restart
+                    plugin.getServer().savePlayers();
+                    plugin.getServer().getWorlds().forEach(world -> world.save());
+
                     plugin.getLogger().info("Attempting restart using Paper restart command...");
                     plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "restart");
                 } catch (Exception e) {
                     plugin.getLogger().severe("Restart command failed: " + e.getMessage());
-                    plugin.getLogger().warning("Please manually restart the server to complete the update.");
-                    plugin.getLogger().warning("Make sure spigot.yml has 'restart-script' configured.");
+                    plugin.getLogger().warning("Falling back to shutdown...");
+                    plugin.getLogger().warning("IMPORTANT: You must manually restart the server to use the new JAR!");
+                    plugin.getLogger().warning("The start script has been updated to use: " + downloadedJar.getName());
+
+                    // Fallback: Just shutdown and rely on external restart mechanism
+                    plugin.getServer().shutdown();
                 }
             }, 40L); // 2 seconds delay
             
@@ -755,8 +765,57 @@ public class PaperVersionChecker {
         if (!anyUpdated) {
             plugin.getLogger().warning("  ! No start scripts were updated - manual JAR name change may be needed");
         }
-        
+
         return anyUpdated;
+    }
+
+    /**
+     * Ensure spigot.yml has restart-script configured
+     */
+    private void ensureRestartScriptConfigured() {
+        try {
+            File spigotFile = new File("spigot.yml");
+            if (!spigotFile.exists()) {
+                plugin.getLogger().warning("spigot.yml not found - restart may not work properly");
+                return;
+            }
+
+            // Read spigot.yml
+            String content = new String(Files.readAllBytes(spigotFile.toPath()));
+
+            // Detect OS and determine script name
+            String scriptName = System.getProperty("os.name").toLowerCase().contains("win") ? "./start.bat" : "./start.sh";
+
+            // Check if restart-script is already configured
+            if (content.contains("restart-script:")) {
+                plugin.getLogger().info("restart-script is already configured in spigot.yml");
+                return;
+            }
+
+            // Add restart-script configuration
+            plugin.getLogger().info("Adding restart-script configuration to spigot.yml...");
+
+            // Find the settings section or create it
+            if (content.contains("settings:")) {
+                // Add under existing settings section
+                content = content.replaceFirst(
+                    "(settings:)(\\r?\\n)",
+                    "$1$2  restart-script: " + scriptName + "$2"
+                );
+            } else {
+                // Create settings section
+                content += "\nsettings:\n  restart-script: " + scriptName + "\n";
+            }
+
+            // Backup and write
+            File backup = new File("spigot.yml.backup");
+            Files.copy(spigotFile.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.write(spigotFile.toPath(), content.getBytes());
+
+            plugin.getLogger().info("✓ Added restart-script: " + scriptName + " to spigot.yml");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to configure restart-script in spigot.yml: " + e.getMessage());
+        }
     }
 
     /**

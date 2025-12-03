@@ -3,26 +3,33 @@ import { ReactNode } from 'react';
 interface CardProps {
   children: ReactNode;
   className?: string;
-  gradient?: boolean;
+  variant?: 'solid' | 'glass' | 'gradient';
   glow?: boolean;
 }
 
-export function Card({ children, className = '', gradient = false, glow = false }: CardProps) {
+export function Card({ children, className = '', variant = 'glass', glow = false }: CardProps) {
+  const baseStyles = "rounded-2xl p-6 transition-all duration-300";
+
+  const variantStyles = {
+    solid: "bg-gray-900 border border-gray-800",
+    glass: `
+      bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40
+      backdrop-blur-3xl backdrop-saturate-150
+      border border-white/20
+      shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)]
+      hover:shadow-[0_8px_32px_0_rgba(0,0,0,0.7),0_0_80px_0_rgba(138,92,246,0.2),inset_0_1px_0_0_rgba(255,255,255,0.25)]
+      transition-all duration-300
+    `,
+    gradient: `
+      bg-gradient-to-br from-purple-900/30 via-gray-900/40 to-blue-900/30
+      backdrop-blur-3xl backdrop-saturate-150
+      border border-white/20
+      shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)]
+    `
+  };
+
   return (
-    <div
-      className={`
-        rounded-2xl p-6
-        ${gradient
-          ? 'bg-gradient-to-br from-primary-500/10 to-accent-purple/10 dark:from-primary-600/20 dark:to-accent-purple/20'
-          : 'bg-white dark:bg-[#1a1a1a]'
-        }
-        border border-light-border dark:border-[#2a2a2a]
-        shadow-soft hover:shadow-medium dark:shadow-dark-soft dark:hover:shadow-dark-medium
-        ${glow ? 'shadow-glow' : ''}
-        transition-all duration-300
-        ${className}
-      `}
-    >
+    <div className={`${baseStyles} ${variantStyles[variant]} ${glow ? 'shadow-glow' : ''} ${className}`}>
       {children}
     </div>
   );
@@ -47,13 +54,13 @@ export function StatCard({ title, value, change, changeType, icon, gradient = 'b
   };
 
   return (
-    <Card>
+    <Card variant="glass">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">
+          <p className="text-sm text-gray-300 mb-1">
             {title}
           </p>
-          <h3 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">
+          <h3 className="text-3xl font-bold text-white mb-2">
             {value}
           </h3>
           {change && (

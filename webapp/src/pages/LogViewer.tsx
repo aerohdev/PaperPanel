@@ -4,6 +4,7 @@ import { Search, Download, RefreshCw, AlertCircle, XCircle } from 'lucide-react'
 import type { LogFileInfo, LogMatch } from '../types/api';
 import { SkeletonLogViewer } from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
+import { ScrollAnimatedItem } from '../components/ScrollAnimatedItem';
 
 export default function LogViewer() {
   const { toast } = useToast();
@@ -129,19 +130,22 @@ export default function LogViewer() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
+      <ScrollAnimatedItem delay={0}>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-light-text-primary dark:text-white mb-2">Log Viewer</h1>
-          <p className="text-light-text-muted dark:text-gray-400">View and search server logs</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Log Viewer</h1>
+          <p className="text-gray-400">View and search server logs</p>
         </div>
         <button
           onClick={fetchLogFiles}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl hover:bg-white/10 text-white rounded-xl transition-all duration-300 border border-white/10"
+          title="Refresh now"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
         </button>
       </div>
+      </ScrollAnimatedItem>
 
       {/* Error Banner */}
       {error && (
@@ -156,19 +160,20 @@ export default function LogViewer() {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar - Log Files List */}
-        <div className="lg:col-span-1 space-y-4">
+        <ScrollAnimatedItem delay={0.1} className="lg:col-span-1">
+        <div className="space-y-4">
 
           {/* Log Files */}
-          <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
-            <h3 className="text-light-text-primary dark:text-white font-semibold mb-3">Log Files</h3>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg p-4">
+            <h3 className="text-white font-semibold mb-3">Log Files</h3>
+            <div className="space-y-2 overflow-y-auto max-h-[600px]">
               {logFiles.map((file) => (
                 <div
                   key={file.name}
                   className={`p-3 rounded-lg cursor-pointer transition-colors border ${
                     selectedFile === file.name
                       ? 'bg-blue-600/20 border-blue-500'
-                      : 'bg-light-surface dark:bg-dark-bg border-light-border dark:border-dark-border hover:border-light-border dark:hover:border-dark-hover'
+                      : 'bg-gray-900/40 backdrop-blur-xl border-white/20 hover:border-white/40'
                   }`}
                   onClick={() => loadLogFile(file.name)}
                 >
@@ -202,9 +207,11 @@ export default function LogViewer() {
             </div>
           </div>
         </div>
+        </ScrollAnimatedItem>
 
         {/* Main Content - Log Viewer */}
-        <div className="lg:col-span-3 space-y-4">
+        <ScrollAnimatedItem delay={0.2} className="lg:col-span-3">
+        <div className="space-y-4">
           {/* Search Bar */}
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -215,13 +222,13 @@ export default function LogViewer() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchLogs()}
                 placeholder="Search logs (max 200 results)..."
-                className="w-full bg-light-card dark:bg-dark-surface border border-light-border dark:border-dark-border text-light-text-primary dark:text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-blue-500"
+                className="w-full bg-gray-900/40 backdrop-blur-xl border border-white/20 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-blue-500"
               />
             </div>
             <button
               onClick={searchLogs}
               disabled={searching || !searchQuery.trim()}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+              className="px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 disabled:from-gray-600/80 disabled:to-gray-700/80 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2 border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3),0_0_30px_0_rgba(37,99,235,0.2)] disabled:shadow-none"
             >
               {searching ? (
                 <>
@@ -239,9 +246,9 @@ export default function LogViewer() {
 
           {/* Search Results */}
           {searchResults.length > 0 && (
-            <div className="bg-light-card dark:bg-dark-surface rounded-lg p-4 border border-light-border dark:border-dark-border">
+            <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-light-text-primary dark:text-white font-semibold">
+                <h3 className="text-white font-semibold">
                   Search Results ({searchResults.length})
                 </h3>
                 <button
@@ -255,10 +262,10 @@ export default function LogViewer() {
                 {searchResults.map((match, index) => (
                   <div
                     key={index}
-                    className="font-mono text-xs p-2 bg-light-surface dark:bg-dark-bg rounded hover:bg-light-surface dark:hover:bg-dark-hover cursor-pointer"
+                    className="font-mono text-xs p-2 bg-gray-900/40 backdrop-blur-xl rounded hover:bg-white/10 cursor-pointer"
                   >
                     <span className="text-gray-500 mr-2">{match.lineNumber}:</span>
-                    <span className="text-light-text-secondary dark:text-gray-300">{match.line}</span>
+                    <span className="text-gray-300">{match.line}</span>
                     {match.file && (
                       <span className="text-gray-600 ml-2">({match.file})</span>
                     )}
@@ -269,9 +276,9 @@ export default function LogViewer() {
           )}
 
           {/* Log Content */}
-          <div className="bg-light-card dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
-            <div className="bg-light-surface dark:bg-dark-bg px-4 py-3 border-b border-light-border dark:border-dark-border flex items-center justify-between">
-              <h3 className="text-light-text-primary dark:text-white font-semibold">
+          <div className="bg-gradient-to-br from-gray-900/40 via-black/50 to-gray-900/40 backdrop-blur-3xl backdrop-saturate-150 border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),0_0_60px_0_rgba(138,92,246,0.15),inset_0_1px_0_0_rgba(255,255,255,0.2)] rounded-lg overflow-hidden">
+            <div className="bg-gray-900/40 backdrop-blur-xl px-4 py-3 border-b border-white/20 flex items-center justify-between">
+              <h3 className="text-white font-semibold">
                 {selectedFile || 'No file selected'}
               </h3>
               <span className="text-gray-400 text-sm">
@@ -280,13 +287,13 @@ export default function LogViewer() {
             </div>
             <div
               ref={logContainerRef}
-              className="p-4 h-[600px] overflow-y-auto font-mono text-sm bg-black/40"
+              className="p-4 overflow-y-auto font-mono text-sm bg-black/40 max-h-[500px]"
             >
               {logContent.length > 0 ? (
                 logContent.map((line, index) => (
                   <div
                     key={index}
-                    className="text-light-text-secondary dark:text-gray-300 hover:bg-gray-800/50 px-2 py-0.5 whitespace-pre-wrap break-all"
+                    className="text-gray-300 hover:bg-gray-800/50 px-2 py-0.5 whitespace-pre-wrap break-all"
                   >
                     <span className="text-gray-600 select-none mr-2">
                       {(index + 1).toString().padStart(4, '0')}
@@ -302,6 +309,7 @@ export default function LogViewer() {
             </div>
           </div>
         </div>
+        </ScrollAnimatedItem>
       </div>
     </div>
   );

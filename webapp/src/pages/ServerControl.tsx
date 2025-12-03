@@ -7,6 +7,7 @@ import { Permission } from '../constants/permissions';
 import { Card } from '../components/Card';
 import { useToast } from '../contexts/ToastContext';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { ScrollAnimatedItem } from '../components/ScrollAnimatedItem';
 
 interface ConfirmState {
   isOpen: boolean;
@@ -273,13 +274,14 @@ export default function ServerControl() {
       />
 
       <div>
-        <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Server Control</h1>
-        <p className="text-light-text-secondary dark:text-dark-text-secondary">Manage server operations and world settings</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Server Control</h1>
+        <p className="text-gray-300">Manage server operations and world settings</p>
       </div>
 
       {/* Server Operations */}
+      <ScrollAnimatedItem delay={0}>
       <Card>
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <div className="p-2 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
             <Server className="w-6 h-6 text-primary-500" />
           </div>
@@ -290,7 +292,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.SAVE_SERVER}>
             <button
               onClick={handleSaveAll}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-br from-emerald-600/80 via-emerald-700/80 to-emerald-600/80 backdrop-blur-xl text-white rounded-xl hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-600 transition-colors font-medium border border-emerald-500/50 shadow-[0_4px_16px_0_rgba(16,185,129,0.3),0_0_30px_0_rgba(16,185,129,0.2)]"
             >
               <Save className="w-5 h-5" />
               Save All Worlds
@@ -300,7 +302,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.STOP_SERVER}>
             <button
               onClick={handleStop}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-br from-orange-600/80 via-orange-700/80 to-orange-600/80 backdrop-blur-xl text-white rounded-xl hover:from-orange-600 hover:via-orange-700 hover:to-orange-600 transition-colors font-medium border border-orange-500/50 shadow-[0_4px_16px_0_rgba(249,115,22,0.3),0_0_30px_0_rgba(249,115,22,0.2)]"
             >
               <Power className="w-5 h-5" />
               Stop & Restart
@@ -310,7 +312,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.STOP_SERVER}>
             <button
               onClick={handleGracefulStop}
-              className="flex items-center justify-center gap-2 px-6 py-4 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-br from-red-600/80 via-red-700/80 to-red-600/80 backdrop-blur-xl text-white rounded-xl hover:from-red-600 hover:via-red-700 hover:to-red-600 transition-colors font-medium border border-red-500/50 shadow-[0_4px_16px_0_rgba(239,68,68,0.3),0_0_30px_0_rgba(239,68,68,0.2)]"
             >
               <PowerOff className="w-5 h-5" />
               Graceful Stop
@@ -324,14 +326,14 @@ export default function ServerControl() {
                 value={restartDelay}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setRestartDelay(parseInt(e.target.value))}
                 min={10}
-                className="w-24 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none transition-colors"
+                className="w-24 px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none transition-colors"
               />
-              <span className="self-center text-light-text-secondary dark:text-dark-text-secondary text-sm">seconds</span>
+              <span className="self-center text-gray-300 text-sm">seconds</span>
             </div>
             <PermissionTooltip permission={Permission.RESTART_SERVER}>
               <button
                 onClick={handleRestart}
-                className="flex items-center justify-center gap-2 px-6 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+                className="flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
               >
                 <Power className="w-5 h-5" />
                 Schedule Restart
@@ -340,12 +342,14 @@ export default function ServerControl() {
           </div>
         </div>
       </Card>
+      </ScrollAnimatedItem>
 
       {/* Maintenance Mode */}
       {maintenance && (
+        <ScrollAnimatedItem delay={0.1}>
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary flex items-center gap-2">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-red-500/20">
                 <Shield className="w-6 h-6 text-orange-500" />
               </div>
@@ -353,7 +357,7 @@ export default function ServerControl() {
             </h2>
             <PermissionTooltip permission={Permission.RESTART_SERVER}>
               <label className="flex items-center gap-3 cursor-pointer">
-                <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                <span className="text-sm font-medium text-gray-300">
                   {maintenance.enabled ? 'Enabled' : 'Disabled'}
                 </span>
                 <div className="relative">
@@ -363,20 +367,20 @@ export default function ServerControl() {
                     onChange={toggleMaintenance}
                     className="sr-only peer"
                   />
-                  <div className="w-14 h-7 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-orange-500"></div>
+                  <div className="w-14 h-7 bg-gray-300 bg-gray-900/40 backdrop-blur-xl peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-orange-500"></div>
                 </div>
               </label>
             </PermissionTooltip>
           </div>
 
           {maintenance.enabled && (
-            <div className="mb-4 p-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-500 rounded-lg">
-              <p className="text-orange-900 dark:text-orange-200 text-sm font-medium flex items-center gap-2">
+            <div className="mb-4 p-3 bg-orange-900/20 border border-orange-500 rounded-lg">
+              <p className="text-orange-200 text-sm font-medium flex items-center gap-2">
                 <Shield className="w-4 h-4" />
                 Maintenance mode is active - only whitelisted players can join
               </p>
               {maintenance.endTime > 0 && (
-                <p className="text-orange-900 dark:text-orange-200 text-xs mt-1">
+                <p className="text-orange-200 text-xs mt-1">
                   {formatTimeRemaining(maintenance.endTime)}
                 </p>
               )}
@@ -387,7 +391,7 @@ export default function ServerControl() {
             {/* Settings Panel */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400">SETTINGS</h3>
+                <h3 className="text-sm font-semibold text-gray-400">SETTINGS</h3>
                 <button
                   onClick={() => setShowMaintenanceSettings(!showMaintenanceSettings)}
                   className="text-sm text-primary-500 hover:text-primary-600 flex items-center gap-1"
@@ -400,66 +404,66 @@ export default function ServerControl() {
               {showMaintenanceSettings && (
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Kick Message
                     </label>
                     <textarea
                       value={maintenanceSettings.kickMessage}
                       onChange={(e) => setMaintenanceSettings({...maintenanceSettings, kickMessage: e.target.value})}
                       rows={3}
-                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none text-sm"
                       placeholder="Message shown to players trying to join"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       MOTD (Server List Message)
                     </label>
                     <textarea
                       value={maintenanceSettings.motd}
                       onChange={(e) => setMaintenanceSettings({...maintenanceSettings, motd: e.target.value})}
                       rows={2}
-                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none text-sm"
                       placeholder="Message shown in server list. Use %TIMER% for countdown."
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Player Count Text (Optional)
                     </label>
                     <input
                       type="text"
                       value={maintenanceSettings.playerCountText}
                       onChange={(e) => setMaintenanceSettings({...maintenanceSettings, playerCountText: e.target.value})}
-                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none text-sm"
                       placeholder="Leave empty for normal count"
                     />
-                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       Custom text shown in place of player count (e.g., "Maintenance in progress")
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    <label className="block text-sm font-medium text-gray-300 mb-1">
                       Server Icon Path (Optional)
                     </label>
                     <input
                       type="text"
                       value={maintenanceSettings.serverIconPath}
                       onChange={(e) => setMaintenanceSettings({...maintenanceSettings, serverIconPath: e.target.value})}
-                      className="w-full px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                      className="w-full px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none text-sm"
                       placeholder="Leave empty for default icon"
                     />
-                    <p className="text-xs text-light-text-muted dark:text-dark-text-muted mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       Absolute path to custom PNG icon (64x64, e.g., /path/to/maintenance-icon.png)
                     </p>
                   </div>
 
                   <button
                     onClick={saveMaintenanceSettings}
-                    className="w-full px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
+                    className="w-full px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors text-sm font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
                   >
                     Save Settings
                   </button>
@@ -467,8 +471,8 @@ export default function ServerControl() {
               )}
 
               {/* Timer */}
-              <div className="pt-3 border-t border-light-border dark:border-dark-border">
-                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+              <div className="pt-3 border-t border-white/20">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                   Auto-Disable Timer (minutes)
                 </label>
                 <div className="flex gap-2">
@@ -477,12 +481,12 @@ export default function ServerControl() {
                     value={maintenanceTimer}
                     onChange={(e) => setMaintenanceTimer(parseInt(e.target.value) || 0)}
                     min={0}
-                    className="flex-1 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                    className="flex-1 px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none text-sm"
                     placeholder="0 = no timer"
                   />
                   <button
                     onClick={setMaintenanceTimerDuration}
-                    className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors text-sm font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
                   >
                     Set Timer
                   </button>
@@ -492,7 +496,7 @@ export default function ServerControl() {
 
             {/* Whitelist Panel */}
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-light-text-muted dark:text-gray-400 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-gray-400 flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 WHITELIST ({maintenance.whitelist.length})
               </h3>
@@ -504,11 +508,11 @@ export default function ServerControl() {
                   onChange={(e) => setNewWhitelistPlayer(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addToMaintenanceWhitelist()}
                   placeholder="Player name"
-                  className="flex-1 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none text-sm"
+                  className="flex-1 px-3 py-2 bg-gray-900/40 backdrop-blur-xl text-white placeholder-gray-500 rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none text-sm"
                 />
                 <button
                   onClick={addToMaintenanceWhitelist}
-                  className="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors text-sm font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
                 >
                   Add
                 </button>
@@ -516,16 +520,16 @@ export default function ServerControl() {
 
               <div className="max-h-48 overflow-y-auto space-y-1">
                 {maintenance.whitelist.length === 0 ? (
-                  <p className="text-sm text-light-text-muted dark:text-dark-text-muted text-center py-4">
+                  <p className="text-sm text-gray-400 text-center py-4">
                     No players whitelisted
                   </p>
                 ) : (
                   maintenance.whitelist.map(player => (
                     <div
                       key={player.uuid}
-                      className="flex items-center justify-between px-3 py-2 bg-light-surface dark:bg-dark-surface rounded-lg"
+                      className="flex items-center justify-between px-3 py-2 bg-gray-900/40 backdrop-blur-xl rounded-lg"
                     >
-                      <span className="text-sm text-light-text-primary dark:text-dark-text-primary">
+                      <span className="text-sm text-white">
                         {player.name}
                       </span>
                       <button
@@ -539,22 +543,24 @@ export default function ServerControl() {
                 )}
               </div>
 
-              <p className="text-xs text-light-text-muted dark:text-dark-text-muted">
-                Players with <code className="px-1 bg-light-surface dark:bg-dark-surface rounded">paperpanel.maintenance.bypass</code> permission can also join
+              <p className="text-xs text-gray-400\">
+                Players with <code className="px-1 bg-gray-900/40 rounded">paperpanel.maintenance.bypass</code> permission can also join
               </p>
             </div>
           </div>
         </Card>
+        </ScrollAnimatedItem>
       )}
 
       {/* World Selection */}
       {worlds.length > 0 && (
+        <ScrollAnimatedItem delay={0.2}>
         <Card>
-          <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">Select World</h2>
+          <h2 className="text-xl font-bold text-white mb-4">Select World</h2>
           <select
             value={selectedWorld}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedWorld(e.target.value)}
-            className="w-full px-4 py-2 bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary rounded-xl border border-light-border dark:border-dark-border focus:border-primary-500 focus:outline-none transition-colors"
+            className="w-full px-4 py-3 bg-gray-900/40 backdrop-blur-xl text-white rounded-xl border border-white/20 focus:border-primary-500 focus:outline-none transition-colors [&>option]:bg-gray-900 [&>option]:text-white"
           >
             {worlds.map(world => (
               <option key={world.name} value={world.name}>
@@ -563,11 +569,13 @@ export default function ServerControl() {
             ))}
           </select>
         </Card>
+        </ScrollAnimatedItem>
       )}
 
       {/* Weather Control */}
+      <ScrollAnimatedItem delay={0.3}>
       <Card>
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <CloudRain className="w-6 h-6" />
           Weather Control
         </h2>
@@ -575,7 +583,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleWeather('clear')}
-              className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               <Sun className="w-5 h-5" />
               Clear
@@ -584,7 +592,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleWeather('rain')}
-              className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               <CloudRain className="w-5 h-5" />
               Rain
@@ -593,17 +601,19 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleWeather('thunder')}
-              className="flex items-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               ⚡ Thunder
             </button>
           </PermissionTooltip>
         </div>
       </Card>
+      </ScrollAnimatedItem>
 
       {/* Time Control */}
+      <ScrollAnimatedItem delay={0.4}>
       <Card>
-        <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4 flex items-center gap-2">
+        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
           <Clock className="w-6 h-6" />
           Time Control
         </h2>
@@ -611,7 +621,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('day')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               <Sun className="w-5 h-5" />
               Day
@@ -620,7 +630,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('noon')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               <Sun className="w-5 h-5" />
               Noon
@@ -629,7 +639,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('night')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               <Moon className="w-5 h-5" />
               Night
@@ -638,7 +648,7 @@ export default function ServerControl() {
           <PermissionTooltip permission={Permission.MANAGE_WORLDS}>
             <button
               onClick={() => handleTime('midnight')}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-br from-blue-600/80 via-blue-700/80 to-blue-600/80 backdrop-blur-xl text-white rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-blue-600 transition-colors font-medium border border-blue-500/50 shadow-[0_4px_16px_0_rgba(37,99,235,0.3)]"
             >
               <Moon className="w-5 h-5" />
               Midnight
@@ -646,14 +656,15 @@ export default function ServerControl() {
           </PermissionTooltip>
         </div>
       </Card>
+      </ScrollAnimatedItem>
 
       {/* Warning */}
-      <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-500 p-4 rounded-lg">
-        <p className="text-yellow-900 dark:text-yellow-200 text-sm mb-2">
+      <div className="bg-yellow-900/20 border border-yellow-500 p-4 rounded-lg">
+        <p className="text-yellow-200 text-sm mb-2">
           <strong>⚠️ Warning:</strong> Server restart and stop operations will affect all players.
           Make sure to announce these actions beforehand!
         </p>
-        <p className="text-yellow-900 dark:text-yellow-200 text-xs">
+        <p className="text-yellow-200 text-xs">
           <strong>Note:</strong> "Stop & Restart" will restart automatically. "Graceful Stop" shuts down without restarting.
         </p>
       </div>

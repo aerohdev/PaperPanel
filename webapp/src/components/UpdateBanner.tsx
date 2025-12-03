@@ -88,14 +88,20 @@ export default function UpdateBanner() {
     <>
       {/* Installation Timer Banner */}
       {isInstalling && (
-        <div className="bg-red-600 border-b border-orange-700 px-6 py-4">
+        <div className="
+          bg-gradient-to-r from-red-900/40 via-red-800/50 to-red-900/40
+          backdrop-blur-xl backdrop-saturate-150
+          border-b border-red-500/30
+          px-6 py-4
+          shadow-[0_4px_12px_0_rgba(220,38,38,0.3)]
+        ">
           <div className="flex items-center gap-4">
-            <AlertTriangle className="w-6 h-6 text-white flex-shrink-0 animate-pulse" />
+            <AlertTriangle className="w-6 h-6 text-white flex-shrink-0 animate-pulse drop-shadow-glow" />
             <div>
-              <p className="text-white font-bold text-lg">
+              <p className="text-white font-bold text-lg drop-shadow-md">
                 Server Restart in Progress
               </p>
-              <p className="text-orange-100 text-sm">
+              <p className="text-red-100 text-sm">
                 Server will restart in <span className="font-mono font-bold text-white text-base">{formatTime(timeRemaining)}</span>
               </p>
             </div>
@@ -107,17 +113,25 @@ export default function UpdateBanner() {
       {/* Update Available Banner - Now just a link to Updates page */}
       {!isInstalling && (
         <Link to="/updates" className="block">
-          <div className="bg-blue-600 border-b border-blue-700 px-6 py-4 hover:bg-blue-700 transition-all cursor-pointer">
+          <div className="
+            bg-gradient-to-r from-blue-900/40 via-blue-800/50 to-blue-900/40
+            backdrop-blur-xl backdrop-saturate-150
+            border-b border-blue-500/30
+            px-6 py-4
+            hover:from-blue-800/50 hover:via-blue-700/60 hover:to-blue-800/50
+            transition-all cursor-pointer
+            shadow-[0_4px_12px_0_rgba(59,130,246,0.3)]
+          ">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 flex-1">
                 {updateStatus.updateDownloaded ? (
-                  <CheckCircle className="w-6 h-6 text-green-300 flex-shrink-0" />
+                  <CheckCircle className="w-6 h-6 text-green-300 flex-shrink-0 drop-shadow-glow" />
                 ) : (
-                  <Download className="w-6 h-6 text-white flex-shrink-0" />
+                  <Download className="w-6 h-6 text-white flex-shrink-0 drop-shadow-glow" />
                 )}
 
                 <div className="flex-1">
-                  <p className="text-white font-semibold">
+                  <p className="text-white font-semibold drop-shadow-md">
                     {updateStatus.updateDownloaded
                       ? 'Update Ready to Install!'
                       : 'New Paper Version Available!'}
@@ -142,7 +156,7 @@ export default function UpdateBanner() {
                     e.stopPropagation();
                     setDismissed(true);
                   }}
-                  className="text-white hover:text-blue-100 transition-colors ml-2"
+                  className="text-white hover:text-blue-100 hover:bg-white/10 rounded-lg p-1 transition-all ml-2"
                   title="Dismiss (will reappear on refresh)"
                 >
                   <X className="w-5 h-5" />

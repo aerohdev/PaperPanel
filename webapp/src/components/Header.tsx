@@ -30,7 +30,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl bg-light-card dark:bg-dark-card hover:bg-gradient-to-br hover:from-primary-500/20 hover:to-accent-purple/20 text-light-text-primary dark:text-dark-text-primary transition-colors shadow-soft dark:shadow-dark-soft border border-light-border dark:border-dark-border"
+            className="p-2 rounded-xl bg-gray-900/40 backdrop-blur-xl hover:bg-white/10 text-white transition-colors border border-white/20 shadow-[0_4px_16px_0_rgba(0,0,0,0.4),0_0_30px_0_rgba(138,92,246,0.1)]"
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? (
@@ -40,7 +40,7 @@ export default function Header() {
             )}
           </button>
 
-          <div className="flex items-center gap-2 text-light-text-primary dark:text-dark-text-primary px-3 py-2 rounded-xl bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border">
+          <div className="flex items-center gap-2 text-white px-3 py-2 rounded-xl bg-gray-900/40 backdrop-blur-xl border border-white/20 shadow-[0_4px_16px_0_rgba(0,0,0,0.4),0_0_30px_0_rgba(138,92,246,0.1)]">
             <div className="p-1 rounded-lg bg-gradient-to-br from-primary-500/20 to-accent-purple/20">
               <User className="w-4 h-4" />
             </div>
@@ -49,7 +49,7 @@ export default function Header() {
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-gray-900/40 via-red-900/20 to-gray-900/40 backdrop-blur-xl hover:from-red-900/30 hover:via-red-900/40 hover:to-red-900/30 text-white rounded-xl transition-all duration-300 font-medium border border-white/20 hover:border-red-400/50 shadow-[0_4px_16px_0_rgba(0,0,0,0.4),0_0_30px_0_rgba(138,92,246,0.1)] hover:shadow-[0_4px_16px_0_rgba(239,68,68,0.3),0_0_30px_0_rgba(239,68,68,0.2)]"
           >
             <LogOut className="w-4 h-4" />
             Logout
