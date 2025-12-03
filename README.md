@@ -2,7 +2,7 @@
 
 A comprehensive web-based administration panel for Minecraft Paper servers featuring real-time monitoring, player management, server control, and an intuitive React + TypeScript interface.
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-3.8.1-blue.svg)
 ![Java](https://img.shields.io/badge/java-21-orange.svg)
 ![Paper](https://img.shields.io/badge/paper-1.21.1-green.svg)
 ![React](https://img.shields.io/badge/react-18.2.0-61dafb.svg)
@@ -13,14 +13,56 @@ A comprehensive web-based administration panel for Minecraft Paper servers featu
 
 A full-stack application that transforms Minecraft server management with a modern web interface. Built with Java 21, React 18, and TypeScript 5.3, this panel provides everything you need to manage your Paper server efficiently.
 
-**✨ What's New in v3.0.0:**
-- ⚡ **Javalin 6.3.0 Upgrade** - Complete framework modernization with Jetty 11 + Jakarta EE 9
-- 🔧 **Fixed WebSocket Issues** - Resolved ClassNotFoundException for WebSocketServerFactory
-- 🎯 **Enhanced Plugin Compatibility** - Classloader switching for Paper plugin environment
-- 📦 **Dependency Relocation** - Shaded dependencies prevent conflicts with other plugins
-- 🛡️ **Production Ready** - Stable WebSocket connections for real-time console streaming
+**✨ What's New in v3.8.1:**
+- 🎨 **Liquid Glass Design System** - Complete UI transformation with modern glassmorphism aesthetic
+  - Semi-transparent panels with backdrop blur and saturation effects
+  - Multi-layered shadow system for depth and luminosity
+  - Gradient backgrounds with inner highlights
+  - Smooth animations and hover effects throughout
+  - Apple-inspired design language
+- 🔐 **Role-Based Access Control (RBAC)** - Comprehensive permission system
+  - Multiple predefined roles: Admin, Moderator, Operator, Viewer, Custom
+  - 30+ granular permissions across all features
+  - Custom permission management per user
+  - Bulk role assignment for multiple users
+  - Permission tooltips showing requirements on disabled buttons
+  - Dynamic sidebar - shows/hides menu items based on user permissions
+- 📋 **Whitelist & Ops Management** - Full-featured whitelist/ops control page
+  - Add/remove whitelist entries (by name or UUID)
+  - Manage server operators with level control
+  - Bulk import from text files
+  - Export current lists to files
+  - Tab-based interface with separate management
+  - Player existence validation
+- 📝 **Config Editor** - Edit server configuration files through web interface
+  - Edit server.properties, bukkit.yml, spigot.yml, paper.yml
+  - Live syntax highlighting and formatting
+  - Save changes directly from browser
+  - Configuration validation
+  - Backup before changes
+- 🔄 **Updates & Backups System** - Comprehensive server maintenance
+  - **Updates Tab**: Check for Paper updates, download new versions, schedule installations
+  - **Backups Tab**: Create manual backups, configure auto-backup schedules, restore from backups
+  - One-click update process with automatic restart
+  - Selective backup options (worlds, plugins, configs)
+- 📜 **Audit Log Viewer** - View comprehensive audit logs
+  - Track all user actions with timestamps
+  - Filter by user, action type, date range
+  - Export logs for compliance
+  - Real-time log updates
+- 🌓 **Enhanced Theme System** - Light and dark mode support
+  - Smooth theme transitions
+  - Theme persistence across sessions
+  - Optimized colors for both themes
+  - Theme-aware logo and icons
+- ✨ **Scroll Animations** - Smooth page load animations
+  - Staggered animations for list items
+  - Fade-in effects for cards and panels
+  - Optimized performance with AnimatePresence
+  - Enhances perceived performance and polish
 
-**Previous releases:**
+**Previous major releases:**
+- v3.0.0: Javalin 6.3.0 upgrade, Jetty 11, WebSocket stability, production-ready
 - v2.0.0: Full TypeScript migration, structured audit logging, API versioning (v1), log viewer
 - v1.0.0: Initial release with core features
 
@@ -82,11 +124,46 @@ A full-stack application that transforms Minecraft server management with a mode
 - Auto-scroll toggle and line limits
 - File metadata (size, modified date, line count)
 
-**👥 User Management (NEW in v2.0.0)**
+**👥 User & Role Management (Enhanced in v3.8.1)**
 - Create and delete admin users
 - Change passwords with validation
-- Role-based permissions (admin/user)
+- **Role-based access control (RBAC)** with 5 predefined roles
+- **Custom permissions** - 30+ granular permissions
+- **Bulk role assignment** for multiple users
+- Permission tooltips on restricted actions
 - Protected operations for default admin
+- Dynamic UI based on user permissions
+
+**📋 Whitelist & Ops (NEW in v3.8.1)**
+- Add/remove players to whitelist by name or UUID
+- Manage server operators with customizable levels
+- Bulk import from text files
+- Export whitelist/ops lists
+- Player validation with warnings
+- Tab-based interface for easy management
+
+**📝 Config Editor (NEW in v3.8.1)**
+- Edit server.properties through web interface
+- Modify bukkit.yml, spigot.yml, paper.yml
+- Live syntax highlighting
+- Configuration validation
+- Automatic backups before changes
+- Save directly from browser
+
+**🔄 Updates & Backups (NEW in v3.8.1)**
+- **Paper Update Management**: Check, download, and install Paper updates
+- **Schedule Updates**: Plan server updates with countdown warnings
+- **Manual Backups**: Create backups of worlds, plugins, and configs
+- **Auto-Backup Schedules**: Configure recurring backup jobs
+- **Restore System**: Restore from previous backups
+- **Selective Backup**: Choose what to include in backups
+
+**📜 Audit Log (NEW in v3.8.1)**
+- View all user actions with timestamps
+- Track role changes and permission modifications
+- Filter by user, action type, and date
+- Export logs for compliance and analysis
+- Real-time audit trail
 
 **🔐 Security**
 - JWT-based authentication with 1-hour expiry
@@ -95,6 +172,8 @@ A full-stack application that transforms Minecraft server management with a mode
 - Protected API routes with middleware
 - Auto-generated secure secrets
 - Comprehensive audit logging
+- **Role-based access control (RBAC)** with granular permissions
+- **Permission-based UI** - Only show accessible features
 - **Isolated plugin classloading** for Paper compatibility
 
 ## 🚀 Quick Start
@@ -167,10 +246,10 @@ git pull
 mvn clean package
 
 # 4. Deploy
-cp target/PaperPanel-3.0.0.jar /path/to/server/plugins/
+cp target/PaperPanel-3.8.1.jar /path/to/server/plugins/
 
 # 5. Remove old JAR (if different name)
-rm /path/to/server/plugins/PaperPanel-2.*.jar
+rm /path/to/server/plugins/PaperPanel-3.*.jar
 
 # 6. Restart server
 ```
@@ -214,9 +293,9 @@ cp target/PaperPanel-*.jar /path/to/server/plugins/
 # If upgrading from v2.X and experiencing WebSocket errors:
 # ClassNotFoundException: org.eclipse.jetty.websocket.servlet.WebSocketServletFactory
 
-# Solution: Upgrade to v3.0.0 which uses Javalin 6.3.0
+# Solution: Upgrade to v3.0.0+ which uses Javalin 6.3.0
 mvn clean package
-cp target/PaperPanel-3.0.0.jar /path/to/server/plugins/
+cp target/PaperPanel-3.8.1.jar /path/to/server/plugins/
 # Restart server
 
 # Verify fix in logs:
@@ -227,7 +306,7 @@ grep "Web server started" logs/latest.log
 **Panel won't load:**
 ```bash
 # Verify frontend is bundled in JAR
-jar -tf target/PaperPanel-3.0.0.jar | grep webapp/index.html
+jar -tf target/PaperPanel-3.8.1.jar | grep webapp/index.html
 
 # Should show: webapp/index.html and other assets
 
@@ -378,7 +457,7 @@ The `pom.xml` is configured to automatically build everything with dependency re
           <path>
             <groupId>de.kaicraft</groupId>
             <artifactId>adminpanel</artifactId>
-            <version>3.0.0</version>
+            <version>3.8.1</version>
           </path>
         </annotationProcessorPaths>
       </configuration>
@@ -446,14 +525,20 @@ PaperPanel/
 │   ├── ServerAdminPanelPlugin.java       # Main plugin class with classloader switching (v3.0.0)
 │   ├── api/                              # REST API endpoints (v1)
 │   │   ├── AuthAPI.java                  # Authentication (login/logout/verify)
+│   │   ├── AuditLogAPI.java              # Audit log viewer (NEW v3.8.1)
+│   │   ├── BackupAPI.java                # Backup management (NEW v3.8.1)
 │   │   ├── BroadcastAPI.java             # Broadcast messages
+│   │   ├── ConfigEditorAPI.java          # Config file editor (NEW v3.8.1)
 │   │   ├── ConsoleAPI.java               # Console operations
 │   │   ├── DashboardAPI.java             # Server statistics
 │   │   ├── LogViewerAPI.java             # Log viewer (v2.0.0)
 │   │   ├── PlayerAPI.java                # Player management
 │   │   ├── PluginAPI.java                # Plugin management
+│   │   ├── RoleAPI.java                  # Role & permission management (NEW v3.8.1)
 │   │   ├── ServerControlAPI.java         # Server control
-│   │   ├── UserManagementAPI.java        # User CRUD (v2.0.0)
+│   │   ├── UpdateAPI.java                # Paper update management (NEW v3.8.1)
+│   │   ├── UserManagementAPI.java        # User CRUD (v2.0.0, Enhanced v3.8.1)
+│   │   ├── WhitelistOpsAPI.java          # Whitelist & ops management (NEW v3.8.1)
 │   │   └── WorldAPI.java                 # World management
 │   ├── auth/                             # Authentication system
 │   │   ├── AuthManager.java              # User management
@@ -495,28 +580,41 @@ PaperPanel/
 │   │   ├── api/
 │   │   │   └── client.ts                 # Axios HTTP client (TypeScript, v1 base URL)
 │   │   ├── components/
-│   │   │   ├── ConnectionStatus.tsx      # WebSocket status indicator
-│   │   │   ├── Header.tsx
-│   │   │   ├── Layout.tsx                # TypeScript (v2.0.0)
-│   │   │   ├── ProtectedRoute.tsx        # TypeScript (v2.0.0)
-│   │   │   ├── Sidebar.tsx               # TypeScript (v2.0.0)
-│   │   │   └── Skeleton.tsx              # Loading states (NEW v2.0.0)
+│   │   │   ├── Card.tsx                   # Liquid glass card component (NEW v3.8.1)
+│   │   │   ├── ConfirmDialog.tsx          # Confirmation modal (NEW v3.8.1)
+│   │   │   ├── ConnectionStatus.tsx       # WebSocket status indicator
+│   │   │   ├── Header.tsx                 # App header with theme toggle (v3.8.1)
+│   │   │   ├── Layout.tsx                 # TypeScript (v2.0.0)
+│   │   │   ├── LiquidEther.tsx            # Animated fluid background (NEW v3.8.1)
+│   │   │   ├── PermissionTooltip.tsx      # Permission requirement tooltips (NEW v3.8.1)
+│   │   │   ├── ProtectedRoute.tsx         # TypeScript (v2.0.0)
+│   │   │   ├── ScrollAnimatedItem.tsx     # Scroll animation wrapper (NEW v3.8.1)
+│   │   │   ├── Sidebar.tsx                # TypeScript (v2.0.0, Permission-aware v3.8.1)
+│   │   │   └── Skeleton.tsx               # Loading states (NEW v2.0.0)
+│   │   ├── constants/
+│   │   │   └── permissions.ts             # Permission definitions (NEW v3.8.1)
 │   │   ├── contexts/
-│   │   │   ├── AuthContext.jsx
-│   │   │   └── AuthContext.tsx           # TypeScript (v2.0.0)
+│   │   │   ├── AuthContext.tsx            # TypeScript (v2.0.0)
+│   │   │   ├── PermissionContext.tsx      # Permission checking (NEW v3.8.1)
+│   │   │   ├── ThemeContext.tsx           # Theme management (NEW v3.8.1)
+│   │   │   └── ToastContext.tsx           # Toast notifications (NEW v3.8.1)
 │   │   ├── hooks/
 │   │   │   ├── useWebSocket.js
 │   │   │   └── useWebSocket.ts           # TypeScript (v2.0.0)
 │   │   ├── pages/
+│   │   │   ├── AuditLog.tsx              # Audit log viewer (NEW v3.8.1)
 │   │   │   ├── Broadcast.tsx             # TypeScript (v2.0.0)
+│   │   │   ├── ConfigEditor.tsx          # Config file editor (NEW v3.8.1)
 │   │   │   ├── Console.tsx               # TypeScript (v2.0.0)
-│   │   │   ├── Dashboard.tsx             # TypeScript (v2.0.0)
-│   │   │   ├── Login.tsx                 # TypeScript (v2.0.0)
-│   │   │   ├── LogViewer.tsx             # NEW v2.0.0
-│   │   │   ├── Players.tsx               # TypeScript (v2.0.0)
+│   │   │   ├── Dashboard.tsx             # TypeScript (v2.0.0, Liquid glass v3.8.1)
+│   │   │   ├── Login.tsx                 # TypeScript (v2.0.0, LiquidEther v3.8.1)
+│   │   │   ├── LogViewer.tsx             # NEW v2.0.0, Animated v3.8.1
+│   │   │   ├── Players.tsx               # TypeScript (v2.0.0, Animated v3.8.1)
 │   │   │   ├── Plugins.tsx               # TypeScript (v2.0.0)
 │   │   │   ├── ServerControl.tsx         # TypeScript (v2.0.0)
-│   │   │   ├── Users.tsx                 # NEW v2.0.0
+│   │   │   ├── Updates.tsx               # Updates & backups (NEW v3.8.1)
+│   │   │   ├── UserRoleManagement.tsx    # Users & roles (Enhanced v3.8.1)
+│   │   │   ├── WhitelistOps.tsx          # Whitelist & ops (NEW v3.8.1)
 │   │   │   └── Worlds.tsx                # TypeScript (v2.0.0)
 │   │   ├── styles/
 │   │   │   └── index.css                 # Global styles + Tailwind
@@ -550,22 +648,27 @@ PaperPanel/
 
 ### Frontend
 - **React 18.2.0** - UI framework
-- **TypeScript 5.3.3** - Type-safe JavaScript (NEW v2.0.0)
+- **TypeScript 5.3.3** - Type-safe JavaScript (v2.0.0)
 - **Vite 5.0.10** - Build tool & dev server
-- **TailwindCSS 3.4.0** - Utility-first CSS
+- **TailwindCSS 3.4.0** - Utility-first CSS framework
+- **Framer Motion 11.x** - Animation library for smooth transitions (NEW v3.8.1)
 - **React Router DOM 6.21.0** - Client-side routing
 - **Axios 1.6.0** - HTTP client with interceptors
 - **Lucide React 0.294.0** - Icon library
-- **tsx 4.7.0** - TypeScript execution (NEW v2.0.0)
-- **@types/node 20.10.0** - Node.js type definitions (NEW v2.0.0)
+- **tsx 4.7.0** - TypeScript execution (v2.0.0)
+- **@types/node 20.10.0** - Node.js type definitions (v2.0.0)
 - **WebSocket API** - Real-time communication
 
 ### Architecture
 - **API Versioning** - All endpoints at `/api/v1/*` (v2.0.0)
 - **Standardized Responses** - `{ success: boolean, data?: any, message?: string }`
+- **RBAC System** - Role-based access control with granular permissions (NEW v3.8.1)
+- **Permission Context** - React context for permission checking throughout app (NEW v3.8.1)
 - **Audit Logging** - Daily-rotated files with 7-day retention (v2.0.0)
 - **Type Generation** - Java annotations → TypeScript interfaces (v2.0.0)
 - **Skeleton UI** - Animated loading states for better UX (v2.0.0)
+- **Liquid Glass Design** - Glassmorphism UI pattern with backdrop blur (NEW v3.8.1)
+- **Scroll Animations** - Component-level fade-in animations (NEW v3.8.1)
 
 ## ⚙️ Configuration
 
@@ -1199,7 +1302,7 @@ Main command for PaperPanel.
 **Example output:**
 ```
 === PaperPanel ===
-Version: 2.5.0
+Version: 3.8.1
 Status: Running
 Port: 8080
 Access: http://localhost:8080
@@ -1279,52 +1382,124 @@ Audit Logging: Enabled (7-day retention)
   - Maintenance notice
   - Event announcement with sound
 
-**User Management** (`/users`) **NEW in v2.0.0**
-- View all admin panel users
-- Create new users with password validation
-- Change user passwords (admin or self)
-- Delete users (admin only, restrictions apply)
-- Role indicators (Admin badge)
-- Password requirements enforced (8+ chars, mixed case, digit, special)
+**Whitelist & Ops** (`/whitelist`) **NEW in v3.8.1**
+- **Whitelist Management**: Add/remove players to server whitelist
+- **Operator Management**: Grant/revoke operator status with level control
+- **Bulk Import**: Import multiple entries from text files
+- **Export Functionality**: Export current whitelist/ops to files
+- **UUID Support**: Add players by name or UUID
+- **Player Validation**: Warnings for players who never joined
+- **Tab Interface**: Separate tabs for whitelist and ops management
+- **Real-time Sync**: Changes apply instantly to server
 
-### Theme
+**Config Editor** (`/configs`) **NEW in v3.8.1**
+- **Multi-File Support**: Edit server.properties, bukkit.yml, spigot.yml, paper.yml
+- **Syntax Highlighting**: Color-coded configuration files
+- **Live Editing**: Make changes directly in browser
+- **Validation**: Check for configuration errors before saving
+- **Auto-Backup**: Automatic backup before applying changes
+- **Search**: Find specific configuration options quickly
+- **Permission-Protected**: Only accessible to users with config permissions
 
-- **Dark Mode** - Optimized for long sessions with v2.0.0 enhancements
+**Updates & Backups** (`/updates`) **NEW in v3.8.1**
+- **Updates Tab**:
+  - Check for Paper server updates automatically
+  - Download new versions with progress tracking
+  - Schedule updates with countdown warnings
+  - Install updates with automatic restart
+  - View update history and release notes
+- **Backups Tab**:
+  - Create manual backups (worlds, plugins, configs)
+  - Configure auto-backup schedules (hourly, daily, weekly)
+  - View available backups with size and date
+  - Restore from previous backups
+  - Download backup files
+  - Manage backup retention policies
+
+**Users & Roles** (`/users`) **Enhanced in v3.8.1**
+- **User Management Tab**:
+  - View all admin panel users
+  - Create new users with strong password requirements
+  - Change user passwords (admin or self)
+  - Delete users (admin only, restrictions apply)
+  - View active sessions and last login
+- **Roles & Permissions Tab**:
+  - Select user and assign role (Admin, Moderator, Operator, Viewer, Custom)
+  - View role-based permissions
+  - Customize individual user permissions (30+ options)
+  - Bulk role assignment for multiple users
+  - Permission categories: Dashboard, Players, Console, Server Control, etc.
+  - Save custom permission configurations
+
+**Audit Log** (`/audit`) **NEW in v3.8.1**
+- View comprehensive audit trail of all user actions
+- Filter by username, action type, and date range
+- Track security events (login, logout, failed attempts)
+- Monitor role and permission changes
+- Export logs for compliance and analysis
+- Real-time updates as events occur
+- Detailed event information with timestamps
+
+### Theme & Design
+
+- **Liquid Glass Design** - Modern glassmorphism aesthetic (NEW in v3.8.1)
+  - Semi-transparent panels with backdrop blur
+  - Multi-layered shadows for depth
+  - Gradient backgrounds with subtle animations
+  - Inner highlights for 3D effect
+  - Smooth hover effects and transitions
+- **Light & Dark Mode** - Full theme support with smooth transitions (NEW in v3.8.1)
 - **Responsive Design** - Works on desktop, tablet, and mobile
-- **Modern UI** - Clean, intuitive interface with smooth animations
-- **Skeleton Loading** - Animated placeholders for better perceived performance (NEW)
+- **Scroll Animations** - Staggered fade-in effects for better UX (NEW in v3.8.1)
+- **Skeleton Loading** - Animated placeholders for perceived performance
+- **Permission Tooltips** - Visual feedback on restricted actions (NEW in v3.8.1)
 - **Color-Coded Status** - Visual indicators for quick reference
-- **TypeScript** - Full type safety prevents runtime errors (NEW)
+- **TypeScript** - Full type safety prevents runtime errors
 
 ## 🔒 Security Best Practices
 
 1. **Change Default Credentials**
    - Immediately change `admin`/`changeme` after first login
-   - Use strong, unique passwords
+   - Use strong, unique passwords (8+ chars, mixed case, digit, special)
+   - Password requirements enforced by the system
 
-2. **Use HTTPS in Production**
+2. **Implement Role-Based Access Control** (NEW in v3.8.1)
+   - Assign appropriate roles to users (Admin, Moderator, Operator, Viewer)
+   - Use least-privilege principle - only grant necessary permissions
+   - Review and audit user permissions regularly
+   - Use custom roles for specific permission sets
+   - Remove access for inactive users
+
+3. **Use HTTPS in Production**
    - Deploy behind reverse proxy (nginx/Apache) with SSL
    - Update frontend API URL to use `https://`
+   - Enable HSTS (HTTP Strict Transport Security)
 
-3. **Firewall Configuration**
-   - Restrict port 8080 to trusted IPs
+4. **Firewall Configuration**
+   - Restrict port 8080 to trusted IPs only
    - Only expose through reverse proxy
+   - Consider VPN access for remote administration
 
-4. **Regular Updates**
-   - Keep Paper server updated
-   - Update plugin dependencies
+5. **Regular Updates & Backups** (Enhanced in v3.8.1)
+   - Keep Paper server updated using built-in update system
+   - Update plugin dependencies regularly
+   - Configure auto-backup schedules (daily recommended)
+   - Test backup restoration periodically
    - Monitor security advisories
 
-5. **Monitor Access**
-   - Review authentication logs
-   - Track API usage
-   - Check for suspicious activity
+6. **Monitor Access & Audit Logs** (Enhanced in v3.8.1)
+   - Review audit logs regularly via `/audit` page
+   - Track authentication events (login, logout, failures)
+   - Monitor role and permission changes
+   - Check for suspicious activity patterns
+   - Export logs for long-term compliance
+   - Set up alerts for critical security events
 
 ## 📊 Database Schema
 
-The plugin uses SQLite for persistent player data storage.
+The plugin uses SQLite for persistent storage across multiple databases.
 
-### Tables
+### Player Database (`players.db`)
 
 **players**
 ```sql
@@ -1350,8 +1525,7 @@ CREATE TABLE player_stats (
 );
 ```
 
-### Tracked Statistics
-
+**Tracked Statistics:**
 - `JOINS` - Total server joins
 - `BLOCKS_BROKEN` - Total blocks broken
 - `BLOCKS_BROKEN_{TYPE}` - Blocks broken by type
@@ -1359,6 +1533,55 @@ CREATE TABLE player_stats (
 - `BLOCKS_PLACED_{TYPE}` - Blocks placed by type
 - `DEATHS` - Player deaths
 - `MESSAGES_SENT` - Chat messages sent
+
+### User Database (`users.db`) - NEW in v3.8.1
+
+**users**
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'viewer',
+    created_at INTEGER NOT NULL,
+    last_login INTEGER
+);
+```
+
+**user_permissions**
+```sql
+CREATE TABLE user_permissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    permission TEXT NOT NULL,
+    granted INTEGER DEFAULT 1,
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (username) REFERENCES users(username),
+    UNIQUE(username, permission)
+);
+```
+
+**Available Roles:**
+- `admin` - Full access to all features
+- `moderator` - Player management, broadcast, logs
+- `operator` - Console access, player management
+- `viewer` - Read-only dashboard and logs access
+- `custom` - Custom permission set per user
+
+**Permission Categories (30+ permissions):**
+- Dashboard viewing and management
+- Player management (kick, message, view)
+- Console access and command execution
+- Server control (restart, stop, weather, time)
+- Plugin management
+- World viewing
+- Broadcast messages
+- Log viewing
+- Configuration editing
+- Whitelist and ops management
+- User and role management
+- Update and backup management
+- Audit log access
 
 ## 🧪 Testing
 
@@ -1373,7 +1596,7 @@ mvn verify
 
 # Install to local Paper server
 mvn clean package
-cp target/PaperPanel-3.0.0.jar ~/paperserver/plugins/
+cp target/PaperPanel-3.8.1.jar ~/paperserver/plugins/
 ```
 
 ### Frontend Testing
@@ -1741,7 +1964,7 @@ Contributions are welcome! Please:
 
 <div align="center">
 
-**PaperPanel v3.0.0**
+**PaperPanel v3.8.1**
 
 Made with ❤️ for Minecraft Server Administrators
 
