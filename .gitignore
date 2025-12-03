@@ -72,3 +72,4 @@ webapp/dist/
 .claude/
 version.ps1
 webapp/src/pages/nul
+.mcp.json
