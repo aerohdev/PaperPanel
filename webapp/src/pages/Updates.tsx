@@ -51,6 +51,17 @@ function UpdatesTab() {
     fetchData();
   }, []);
 
+  // Poll for backup progress when backup is running
+  useEffect(() => {
+    if (updateStatus?.backupStatus === 'running') {
+      const pollInterval = setInterval(() => {
+        fetchData();
+      }, 2000); // Poll every 2 seconds
+
+      return () => clearInterval(pollInterval);
+    }
+  }, [updateStatus?.backupStatus]);
+
   const fetchData = async () => {
     try {
       const [statusRes, historyRes, scheduledRes] = await Promise.all([
@@ -103,10 +114,13 @@ function UpdatesTab() {
     setActionLoading('install');
     try {
       await client.post('/updates/install');
-      toast.warning('Update installation started. Server will restart in 5 minutes.');
+      toast.warning('Backup creation started. Server will restart after backup completes + 5 minute countdown.');
 
       // Trigger the installation timer event for UpdateBanner
       window.dispatchEvent(new Event('update-installing'));
+
+      // Fetch data immediately to get backup status
+      setTimeout(() => fetchData(), 500);
     } catch (err: any) {
       toast.error('Failed to install update: ' + (err.response?.data?.error || err.message));
     } finally {
@@ -161,7 +175,7 @@ function UpdatesTab() {
       <ConfirmDialog
         isOpen={showInstallConfirm}
         title="Install Update"
-        message="This will restart the server in 5 minutes. Continue?"
+        message="A backup will be created first, then the server will restart after a 5-minute countdown. Continue?"
         onConfirm={executeInstallUpdate}
         onCancel={() => setShowInstallConfirm(false)}
         variant="warning"
@@ -208,6 +222,44 @@ function UpdatesTab() {
         </div>
       </Card>
       </ScrollAnimatedItem>
+
+      {/* Backup Progress Card */}
+      {updateStatus?.backupStatus === 'running' && (
+        <ScrollAnimatedItem delay={0.05}>
+        <Card className="bg-purple-600/10 border-purple-500">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Archive className="w-5 h-5 text-purple-400 animate-pulse" />
+                  Creating Backup
+                </h3>
+                <p className="text-gray-300 text-sm">
+                  Backup must complete before server restart countdown begins
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-white">{updateStatus.backupProgress}%</span>
+                <p className="text-gray-400 text-xs">Progress</p>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 via-purple-400 to-purple-500 transition-all duration-500 ease-out rounded-full animate-pulse"
+                style={{ width: `${updateStatus.backupProgress}%` }}
+              />
+            </div>
+
+            <p className="text-gray-400 text-sm flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              This may take several minutes depending on world size...
+            </p>
+          </div>
+        </Card>
+        </ScrollAnimatedItem>
+      )}
 
       {/* Update Available Banner */}
       {updateStatus?.updateAvailable && (

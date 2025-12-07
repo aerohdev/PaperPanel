@@ -50,6 +50,8 @@ export interface UpdateStatus {
   downloadUrl?: string;
   lastCheck: number;
   needsCheck: boolean;
+  backupStatus: string; // idle, running, completed, failed, skipped
+  backupProgress: number; // 0-100
 }
 
 export interface SecurityStatus {

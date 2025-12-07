@@ -108,7 +108,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-white/20">
         <div className="text-xs text-gray-400 text-center">
-          <p>PaperPanel v3.8.1</p>
+          <p>PaperPanel v3.8.2</p>
           <p className="mt-1">Powered by Paper</p>
         </div>
       </div>

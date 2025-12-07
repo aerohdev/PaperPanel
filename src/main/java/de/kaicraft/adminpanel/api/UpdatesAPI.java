@@ -142,7 +142,9 @@ public class UpdatesAPI {
                 status.latestBuild,
                 status.downloadUrl,
                 status.lastCheck,
-                status.needsCheck
+                status.needsCheck,
+                status.backupStatus,
+                status.backupProgress
             );
 
             ctx.json(ApiResponse.success("updateStatus", updateStatus));

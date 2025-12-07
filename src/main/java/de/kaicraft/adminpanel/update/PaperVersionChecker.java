@@ -35,6 +35,12 @@ public class PaperVersionChecker {
     private volatile boolean updateBackupCompleted = false;
     private volatile String updateBackupFilename = null;
     private boolean createBackupBeforeUpdate = true; // Default to true for safety
+    private volatile String backupStatus = "idle"; // idle, running, completed, failed
+    private volatile int backupProgress = 0; // 0-100
+
+    // Scheduled task tracking for proper shutdown
+    private Integer periodicCheckTaskId = null;
+    private Integer cleanupTaskId = null;
 
     private static final String PAPER_API_BASE = "https://api.papermc.io/v2/projects/paper";
     private static final long CHECK_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours
@@ -61,12 +67,22 @@ public class PaperVersionChecker {
      */
     public void startPeriodicCheck() {
         // Initial check after 1 minute
-        plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, 
+        plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin,
             this::checkForUpdates, 20L * 60);
-        
-        // Periodic check every 6 hours
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, 
-            this::checkForUpdates, 20L * 60 * 60, 20L * 60 * 360);
+
+        // Periodic check every 6 hours - store task ID for proper shutdown
+        periodicCheckTaskId = plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin,
+            this::checkForUpdates, 20L * 60 * 60, 20L * 60 * 360).getTaskId();
+    }
+
+    /**
+     * Stop periodic version checks and cancel any running tasks
+     */
+    public void stopPeriodicCheck() {
+        if (periodicCheckTaskId != null) {
+            plugin.getServer().getScheduler().cancelTask(periodicCheckTaskId);
+            periodicCheckTaskId = null;
+        }
     }
 
     /**
@@ -217,50 +233,95 @@ public class PaperVersionChecker {
         plugin.getLogger().info("Starting update installation...");
         plugin.getLogger().info("========================================");
 
-        // Start backup asynchronously if enabled
+        // Phase 1: Create backup first (if enabled)
         if (createBackupBeforeUpdate) {
-            plugin.getLogger().info("[UPDATE] Creating pre-update backup asynchronously...");
+            plugin.getLogger().info("[UPDATE] Phase 1: Creating pre-update backup...");
+            plugin.getLogger().info("[UPDATE] The server will restart after backup completes.");
+
+            backupStatus = "running";
+            backupProgress = 0;
             updateBackupCompleted = false;
             updateBackupFilename = null;
 
+            broadcastUpdate("§e§l[UPDATE] Creating backup before update...");
+            broadcastUpdate("§e§lThis may take several minutes. Please be patient.");
+
             plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                 try {
+                    backupProgress = 10;
                     if (plugin.getBackupManager() != null) {
+                        backupProgress = 20;
                         var result = plugin.getBackupManager().createUpdateBackup("update-system");
-                        updateBackupCompleted = true;
+                        backupProgress = 90;
+
                         if (result.success) {
                             updateBackupFilename = result.filename;
                             plugin.getLogger().info("✓ Update backup created: " + result.filename);
+                            backupStatus = "completed";
+                            backupProgress = 100;
                         } else {
                             plugin.getLogger().warning("✗ Update backup failed: " + result.message);
+                            backupStatus = "failed";
                         }
                     } else {
                         // Fallback to built-in backup if BackupManager is not available
+                        backupProgress = 20;
                         boolean success = createBackup();
-                        updateBackupCompleted = true;
+                        backupProgress = 90;
+
                         if (success) {
                             plugin.getLogger().info("✓ Update backup created (fallback method)");
+                            backupStatus = "completed";
+                            backupProgress = 100;
                         } else {
                             plugin.getLogger().warning("✗ Update backup failed (fallback method)");
+                            backupStatus = "failed";
                         }
                     }
+
+                    updateBackupCompleted = true;
+
+                    // After backup completes, start the countdown on main thread
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        startCountdownPhase();
+                    });
+
                 } catch (Exception e) {
                     plugin.getLogger().warning("✗ Update backup error: " + e.getMessage());
-                    updateBackupCompleted = true; // Mark as complete even on error to avoid hanging
+                    e.printStackTrace();
+                    backupStatus = "failed";
+                    updateBackupCompleted = true;
+
+                    // Even if backup fails, continue with update
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        startCountdownPhase();
+                    });
                 }
             });
         } else {
-            plugin.getLogger().info("[UPDATE] Backup disabled - proceeding without backup");
-            updateBackupCompleted = true; // Set to true so we don't wait
+            plugin.getLogger().info("[UPDATE] Backup disabled - proceeding directly to countdown");
+            backupStatus = "skipped";
+            updateBackupCompleted = true;
+            startCountdownPhase();
         }
+    }
 
-        // Phase 1: 5-minute countdown with broadcasts
-        broadcastUpdate("§e§l[UPDATE] Server update will be installed in 5 minutes!");
+    /**
+     * Start the 5-minute countdown phase after backup completes
+     */
+    private void startCountdownPhase() {
+        plugin.getLogger().info("========================================");
+        plugin.getLogger().info("[UPDATE] Phase 2: Starting 5-minute countdown");
+        plugin.getLogger().info("========================================");
+
+        // Phase 2: 5-minute countdown with broadcasts
+        broadcastUpdate("§a§l[UPDATE] Backup complete!");
+        broadcastUpdate("§e§l[UPDATE] Server will restart in 5 minutes!");
         broadcastUpdate("§e§lPlease finish your activities and prepare to disconnect.");
 
         scheduleCountdownBroadcasts();
 
-        // Phase 2: After 5 minutes, execute installation
+        // Phase 3: After 5 minutes, execute installation
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             executeInstallationSteps();
         }, 20L * 60 * 5); // 5 minutes
@@ -286,65 +347,48 @@ public class PaperVersionChecker {
     private void executeInstallationSteps() {
         try {
             // Step 1: Kick all players
-            plugin.getLogger().info("Step 1/5: Kicking all players...");
+            plugin.getLogger().info("Step 1/4: Kicking all players...");
             for (Player player : plugin.getServer().getOnlinePlayers()) {
                 player.kickPlayer("§c§lServer Update\n§e\nThe server is being updated to a new version.\n§7Please reconnect in a few minutes!");
             }
             plugin.getLogger().info("  ✓ All players kicked");
 
-            // Step 2: Wait for backup completion if enabled
+            // Step 2: Check backup status if enabled
             if (createBackupBeforeUpdate) {
-                plugin.getLogger().info("Step 2/5: Waiting for backup to complete...");
+                plugin.getLogger().info("Step 2/4: Checking backup status...");
 
-                // Wait up to 30 seconds for backup to complete if not ready
-                int waitTime = 0;
-                while (!updateBackupCompleted && waitTime < 30) {
-                    try {
-                        Thread.sleep(1000);
-                        waitTime++;
-                        if (waitTime % 5 == 0) {
-                            plugin.getLogger().info("  ... still waiting for backup (" + waitTime + "s)");
-                        }
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-
+                // Backup runs asynchronously - check if it's already done
                 if (updateBackupCompleted) {
                     if (updateBackupFilename != null) {
-                        plugin.getLogger().info("  ✓ Backup ready: " + updateBackupFilename);
+                        plugin.getLogger().info("  ✓ Backup completed: " + updateBackupFilename);
                     } else {
                         plugin.getLogger().info("  ✓ Backup completed");
                     }
                 } else {
-                    plugin.getLogger().warning("  ! Backup did not complete in time, proceeding without backup!");
+                    // Backup is still running - that's OK, it will complete in background
+                    plugin.getLogger().info("  ℹ Backup is running in background and will complete shortly");
+                    plugin.getLogger().info("  ℹ The backup does not need to complete before server restart");
                 }
             } else {
-                plugin.getLogger().info("Step 2/5: Skipping backup (disabled in config)...");
+                plugin.getLogger().info("Step 2/4: Skipping backup (disabled in config)...");
             }
             
             // Step 3: Update start.sh
-            plugin.getLogger().info("Step 3/5: Updating start script...");
+            plugin.getLogger().info("Step 3/4: Updating start script...");
             File currentJar = detectServerJar();
             String oldJarName = currentJar != null ? currentJar.getName() : "paper.jar";
             String newJarName = downloadedJar.getName();
-            
+
             boolean scriptUpdated = updateStartScript(oldJarName, newJarName);
             if (scriptUpdated) {
                 plugin.getLogger().info("  ✓ Start script updated");
             } else {
                 plugin.getLogger().warning("  ! Could not update start script");
             }
-            
-            // Step 4: Delete old JAR
-            plugin.getLogger().info("Step 4/5: Removing old JAR...");
-            if (currentJar != null && currentJar.exists() && !currentJar.equals(downloadedJar)) {
-                currentJar.delete();
-                plugin.getLogger().info("  ✓ Old JAR deleted: " + oldJarName);
-            }
-            
-            // Step 5: Restart server
-            plugin.getLogger().info("Step 5/5: Restarting server...");
+
+            // Step 4: Restart server
+            plugin.getLogger().info("Step 4/4: Restarting server...");
+            plugin.getLogger().info("  ℹ Old JARs will be cleaned up on next server start");
             plugin.getLogger().info("========================================");
             plugin.getLogger().info("UPDATE COMPLETE!");
             plugin.getLogger().info("Server will now restart with new version");
@@ -361,23 +405,25 @@ public class PaperVersionChecker {
 
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 try {
-                    // Ensure spigot.yml has restart-script configured
-                    ensureRestartScriptConfigured();
-
-                    // Save all worlds before restart
+                    // Save all worlds before shutdown
                     plugin.getServer().savePlayers();
                     plugin.getServer().getWorlds().forEach(world -> world.save());
 
-                    plugin.getLogger().info("Attempting restart using Paper restart command...");
-                    plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "restart");
-                } catch (Exception e) {
-                    plugin.getLogger().severe("Restart command failed: " + e.getMessage());
-                    plugin.getLogger().warning("Falling back to shutdown...");
-                    plugin.getLogger().warning("IMPORTANT: You must manually restart the server to use the new JAR!");
-                    plugin.getLogger().warning("The start script has been updated to use: " + downloadedJar.getName());
+                    plugin.getLogger().info("Shutting down server to apply update...");
+                    plugin.getLogger().info("");
+                    plugin.getLogger().info("NOTE: The server will shutdown and must be restarted.");
+                    plugin.getLogger().info("      If using systemd, screen, or a start script with a loop,");
+                    plugin.getLogger().info("      the server will automatically restart with the new JAR.");
+                    plugin.getLogger().info("      Otherwise, manually restart using: " + downloadedJar.getName());
+                    plugin.getLogger().info("");
 
-                    // Fallback: Just shutdown and rely on external restart mechanism
+                    // Shutdown to allow clean restart with new JAR
+                    // This is more reliable than Paper's restart command which may not
+                    // re-execute the start script properly
                     plugin.getServer().shutdown();
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Shutdown failed: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }, 40L); // 2 seconds delay
             
@@ -491,7 +537,7 @@ public class PaperVersionChecker {
      */
     public UpdateStatus getStatus() {
         boolean needsCheck = (System.currentTimeMillis() - lastCheck) > CHECK_INTERVAL;
-        
+
         return new UpdateStatus(
             updateAvailable,
             updateDownloaded,
@@ -500,7 +546,9 @@ public class PaperVersionChecker {
             latestBuild,
             downloadUrl,
             lastCheck,
-            needsCheck
+            needsCheck,
+            backupStatus,
+            backupProgress
         );
     }
 
@@ -700,9 +748,9 @@ public class PaperVersionChecker {
     private File detectServerJar() {
         try {
             File currentDir = new File(".");
-            File[] jars = currentDir.listFiles((dir, name) -> 
+            File[] jars = currentDir.listFiles((dir, name) ->
                 name.toLowerCase().contains("paper") && name.endsWith(".jar") && !name.contains(".backup"));
-            
+
             if (jars != null && jars.length > 0) {
                 File currentJar = jars[0];
                 for (File jar : jars) {
@@ -718,10 +766,95 @@ public class PaperVersionChecker {
         return null;
     }
 
+    /**
+     * Clean up old server JAR files on startup
+     * This removes old Paper JARs that are no longer being used
+     */
+    public void cleanupOldJars() {
+        try {
+            plugin.getLogger().info("Checking for old server JARs to clean up...");
+
+            // Find the JAR name currently in use by reading start scripts
+            String currentJarName = detectCurrentJarFromScript();
+            if (currentJarName == null) {
+                plugin.getLogger().info("  ℹ No start script found, skipping JAR cleanup");
+                return;
+            }
+
+            plugin.getLogger().info("  ℹ Current JAR in start script: " + currentJarName);
+
+            // Find all Paper JAR files in the server directory
+            File currentDir = new File(".");
+            File[] jars = currentDir.listFiles((dir, name) ->
+                name.toLowerCase().contains("paper") &&
+                name.endsWith(".jar") &&
+                !name.contains(".backup") &&
+                !name.equals(currentJarName)); // Exclude the current JAR
+
+            if (jars == null || jars.length == 0) {
+                plugin.getLogger().info("  ✓ No old JARs found to clean up");
+                return;
+            }
+
+            // Delete old JAR files
+            int deleted = 0;
+            for (File jar : jars) {
+                try {
+                    if (jar.delete()) {
+                        plugin.getLogger().info("  ✓ Deleted old JAR: " + jar.getName());
+                        deleted++;
+                    } else {
+                        plugin.getLogger().warning("  ! Failed to delete: " + jar.getName());
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("  ! Error deleting " + jar.getName() + ": " + e.getMessage());
+                }
+            }
+
+            if (deleted > 0) {
+                plugin.getLogger().info("  ✓ Cleanup complete: " + deleted + " old JAR(s) removed");
+            }
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("Error during JAR cleanup: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Detect the JAR filename currently being used in start scripts
+     */
+    private String detectCurrentJarFromScript() {
+        String[] scriptNames = {"start.sh", "run.sh", "start.bat", "run.bat"};
+
+        for (String scriptName : scriptNames) {
+            File script = new File(scriptName);
+            if (script.exists()) {
+                try {
+                    String content = new String(Files.readAllBytes(script.toPath()));
+
+                    // Find JAR filename in script using regex
+                    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("([^\\s/\\\\]+\\.jar)");
+                    java.util.regex.Matcher matcher = pattern.matcher(content);
+
+                    if (matcher.find()) {
+                        return matcher.group(1);
+                    }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Error reading " + scriptName + ": " + e.getMessage());
+                }
+            }
+        }
+
+        return null;
+    }
+
     private boolean updateStartScript(String oldJarName, String newJarName) {
         String[] scriptNames = {"start.sh", "run.sh", "start.bat", "run.bat"};
         boolean anyUpdated = false;
-        
+
+        plugin.getLogger().info("    Updating start scripts...");
+        plugin.getLogger().info("    New JAR filename: " + newJarName);
+
         for (String scriptName : scriptNames) {
             File script = new File(scriptName);
             if (script.exists()) {
@@ -729,28 +862,47 @@ public class PaperVersionChecker {
                     String content = new String(Files.readAllBytes(script.toPath()));
                     String newContent = content;
                     boolean modified = false;
-                    
-                    // Replace any *.jar reference with the new JAR name
-                    // This handles paper.jar, server.jar, paper-1.21.1-115.jar, etc.
+
+                    // Find all *.jar references in the script
                     java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("([^\\s/\\\\]+\\.jar)");
                     java.util.regex.Matcher matcher = pattern.matcher(content);
-                    
+
                     if (matcher.find()) {
                         String oldJarInScript = matcher.group(1);
-                        newContent = content.replaceAll("\\b" + java.util.regex.Pattern.quote(oldJarInScript) + "\\b", newJarName);
-                        modified = true;
-                        plugin.getLogger().info("    ✓ Replaced: " + oldJarInScript + " -> " + newJarName);
+                        plugin.getLogger().info("    Found JAR in " + scriptName + ": " + oldJarInScript);
+
+                        // Use simple string replace instead of replaceAll to avoid regex interpretation
+                        // This prevents corruption of filenames with special characters
+                        newContent = content.replace(oldJarInScript, newJarName);
+
+                        // Verify the replacement worked correctly
+                        if (newContent.contains(newJarName) && !newContent.equals(content)) {
+                            modified = true;
+                            plugin.getLogger().info("    ✓ Replaced: " + oldJarInScript + " -> " + newJarName);
+                        } else {
+                            plugin.getLogger().warning("    ! Replacement verification failed in " + scriptName);
+                            plugin.getLogger().warning("    ! Expected to find: " + newJarName);
+                        }
                     }
-                    
+
                     if (modified) {
                         // Create backup before modifying
                         File backup = new File(scriptName + ".backup");
                         Files.copy(script.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        
+
                         // Write new content
                         Files.write(script.toPath(), newContent.getBytes());
-                        
+
                         plugin.getLogger().info("    ✓ Updated: " + scriptName + " (backup created)");
+
+                        // Read back and verify
+                        String verifyContent = new String(Files.readAllBytes(script.toPath()));
+                        if (verifyContent.contains(newJarName)) {
+                            plugin.getLogger().info("    ✓ Verified: " + scriptName + " contains " + newJarName);
+                        } else {
+                            plugin.getLogger().severe("    ✗ VERIFICATION FAILED: " + scriptName + " does not contain " + newJarName);
+                        }
+
                         anyUpdated = true;
                     } else {
                         plugin.getLogger().info("    - No JAR reference found in " + scriptName);
@@ -761,7 +913,7 @@ public class PaperVersionChecker {
                 }
             }
         }
-        
+
         if (!anyUpdated) {
             plugin.getLogger().warning("  ! No start scripts were updated - manual JAR name change may be needed");
         }
@@ -844,10 +996,12 @@ public class PaperVersionChecker {
         public final String downloadUrl;
         public final long lastCheck;
         public final boolean needsCheck;
+        public final String backupStatus; // idle, running, completed, failed, skipped
+        public final int backupProgress; // 0-100
 
-        public UpdateStatus(boolean updateAvailable, boolean updateDownloaded, String currentVersion, 
-                          String latestVersion, String latestBuild, String downloadUrl, 
-                          long lastCheck, boolean needsCheck) {
+        public UpdateStatus(boolean updateAvailable, boolean updateDownloaded, String currentVersion,
+                          String latestVersion, String latestBuild, String downloadUrl,
+                          long lastCheck, boolean needsCheck, String backupStatus, int backupProgress) {
             this.updateAvailable = updateAvailable;
             this.updateDownloaded = updateDownloaded;
             this.currentVersion = currentVersion;
@@ -856,6 +1010,8 @@ public class PaperVersionChecker {
             this.downloadUrl = downloadUrl;
             this.lastCheck = lastCheck;
             this.needsCheck = needsCheck;
+            this.backupStatus = backupStatus;
+            this.backupProgress = backupProgress;
         }
     }
 

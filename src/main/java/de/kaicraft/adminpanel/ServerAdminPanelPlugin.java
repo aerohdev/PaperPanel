@@ -106,11 +106,21 @@ public class ServerAdminPanelPlugin extends JavaPlugin {
         this.versionChecker = new PaperVersionChecker(this);
         this.versionChecker.startPeriodicCheck();
 
+        // Clean up old server JARs from previous updates (async to not slow down startup)
+        getServer().getScheduler().runTaskLaterAsynchronously(this, () -> {
+            this.versionChecker.cleanupOldJars();
+        }, 100L); // 5 seconds delay to let server finish starting up
+
         getLogger().info("PaperPanel v" + getPluginMeta().getVersion() + " enabled!");
     }
 
     @Override
     public void onDisable() {
+        // Stop version checker periodic tasks
+        if (versionChecker != null) {
+            versionChecker.stopPeriodicCheck();
+        }
+
         // Stop backup manager scheduler
         if (backupManager != null) {
             backupManager.stopScheduler();
